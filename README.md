@@ -1,2 +1,2 @@
-# epmc
-An embarrasingly parallel Markov chain sampler
+# EPSIE
+EPSIE: an Embarrassingly Parallel Sampler for Inference Estimation
