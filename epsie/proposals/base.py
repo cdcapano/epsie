@@ -28,19 +28,22 @@ class BaseProposal(object):
     # @property
     # @abstractmethod
     @abstractproperty  # delete this when switch to python 3
-    def parameters(self):
-        """A list of the parameter names this provides jumps for."""
-        pass
-
-    # uncomment this when switch to python 3:
-    # @property
-    # @abstractmethod
-    @abstractproperty  # delete this when switch to python 3
     def random_state(self):
         """The ``RandomState`` instance the proposal uses.
         
         This should return the ``RandomState`` **class instance** the proposal
         uses, not the random state of that instance. 
+        """
+        pass
+
+    @abstractmethod
+    def set_random_state(self, random_state):
+        """Sets the random state class used by the sampler to the given.
+        
+        Parameters
+        ----------
+        random_state : :py:class:numpy.random.RandomState
+            A numpy RandomState class instance.
         """
         pass
 
