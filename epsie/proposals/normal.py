@@ -15,6 +15,9 @@
 
 from __future__ import absolute_import
 
+import numpy
+from scipy import stats
+
 from .base import BaseProposal
 
 
@@ -32,15 +35,12 @@ class Normal(BaseProposal):
         elif len(parameters) != cov.ndim:
             raise ValueError("dimension of covariance matrix does not match "
                              "given number of parameters")
+        self.cov = cov
         self._dist = stats.multivariate_normal(cov=cov,
                                                seed=random_state)
 
-    def jump(self, size=1):
-        rvals = self._dist.rvs(size=size)
-        return {p: rvals[:, ii] for ii, p in enumerate(self.parameters)}
-
-    def logpdf(self, **vals):
-        return self._dist.logpdf([vals[p] for p in self.parameters])
+    def set_random_state(self, random_state):
+        self._dist.random_state = random_state
 
     @property
     def state(self):
@@ -48,3 +48,18 @@ class Normal(BaseProposal):
 
     def set_state(self, state):
         self.random_state.set_state(state['random_state'])
+
+    @property
+    def random_state(self):
+        return self._dist.random_state
+
+    def jump(self, size=1):
+        rvals = self._dist.rvs(size=size)
+        if size == 1:
+            rvals = {p: rvals[ii] for ii, p in enumerate(self.parameters)}
+        else:
+            rvals = {p: rvals[:, ii] for ii, p in enumerate(self.parameters)}
+        return rvals 
+
+    def logpdf(self, **vals):
+        return self._dist.logpdf([vals[p] for p in self.parameters])
