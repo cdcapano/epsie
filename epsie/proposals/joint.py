@@ -17,6 +17,8 @@ from __future__ import absolute_import
 
 import itertools
 
+import numpy
+
 from .base import BaseProposal
 
 
@@ -25,14 +27,19 @@ class JointProposal(BaseProposal):
 
     Parameters
     ----------
-    proposals : list
-        List of pr
+    \*proposals :
+        The arguments should provide the constituent proposals to use.
+    random_state : :py:class:numpy.random.RandomState or int, optional
+        The ``RandomState`` class or seed to use for the random number
+        generator of all the proposals. If not provided, one will be created.
     """
     name = 'joint'
 
-    def __init__(self, proposals, random_state=None):
-        self.parameters = list(itertools.chain(*[prop.parameters
-                                                 for prop in proposals])
+    # Py3XX: change kwargs to explicit random_state=None
+    def __init__(self, *proposals, **kwargs):
+        random_state = kwargs.pop('random_state', None)  # Py3XX: delete line
+        self.parameters = tuple(itertools.chain(*[prop.parameters
+                                                  for prop in proposals]))
         # check that we don't have multiple proposals for the same parameter
         if len(set(self.parameters)) != len(self.parameters):
             # get the repeated parameters
@@ -40,18 +47,31 @@ class JointProposal(BaseProposal):
                         if self.parameters.count(p) > 1]
             raise ValueError("multiple proposals provided for parameter(s) {}"
                              .format(', '.join(repeated)))
-        self.symmetric = all(prop.symmetric for prop in proposals)
+        # the joint proposal is symmetric only if all of the constitutent
+        # proposals are also
+        self._symmetric = all(prop.symmetric for prop in proposals)
         if not isinstance(random_state, numpy.random.RandomState):
             random_state = numpy.random.RandomState(random_state)
-        self.random_state = random_state
+        self.set_random_state(random_state)
         # have all of the proposals use the same random state
-        for prop in self.proposals:
-            prop.random_state = random_state
+        for prop in proposals:
+            prop.set_random_state(random_state)
         # store the proposals as a dict of parameters -> proposal; we can do
         # this since the mapping of parameters to proposals is one/many:one
-        self.proposals = {prop.params: prop for prop in proposals
+        self.proposals = {prop.parameters: prop for prop in proposals}
 
-    def logpdf(self, vals):
+    @property
+    def random_state(self):
+        return self._random_state
+
+    def set_random_state(self, random_state):
+        self._random_state = random_state
+
+    @property
+    def symmetric(self):
+        return self._symmetric
+
+    def logpdf(self, **vals):
         return sum(p.logpdf(**vals) for p in self.proposals.values())
 
     def update(self, chain):
@@ -61,7 +81,7 @@ class JointProposal(BaseProposal):
 
     def jump(self, size=1):
         out = {}
-        for prop in proposals:
+        for prop in self.proposals.values():
             out.update(prop.jump(size=size))
         return out
 
