@@ -13,6 +13,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+# Py3XX: delete abstractproperty
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy
@@ -24,10 +25,10 @@ class BaseProposal(object):
     __metaclass__ = ABCMeta
     name = None
 
-    # uncomment this when switch to python 3:
+    # Py3XX: uncomment the next two lines 
     # @property
     # @abstractmethod
-    @abstractproperty  # delete this when switch to python 3
+    @abstractproperty  # Py3XX: delete line
     def random_state(self):
         """The ``RandomState`` instance the proposal uses.
         
@@ -47,19 +48,19 @@ class BaseProposal(object):
         """
         pass
 
-    # uncomment this when switch to python 3:
+    # Py3XX: uncomment the next two lines 
     # @property
     # @abstractmethod
-    @abstractproperty  # delete this when switch to python 3
+    @abstractproperty  # Py3XX: delete line
     def symmetric(self):
         """Boolean indicating whether the proposal distribution is symmetric
         from jump to jump."""
         pass
 
-    # uncomment this when switch to python 3:
+    # Py3XX: uncomment the next two lines 
     # @property
     # @abstractmethod
-    @abstractproperty  # delete this when switch to python 3
+    @abstractproperty  # Py3XX: delete line
     def state(self):
         """Returns all information needed to produce a deterministic jump.
 
