@@ -28,16 +28,19 @@ class Normal(BaseProposal):
     symmetric = True
 
     def __init__(self, parameters, cov=None, random_state=None):
-        self.parameters = parameters
+        if isinstance(parameters, (str, unicode)):
+            parameters = [parameters]
+        self.parameters = tuple(parameters)
+        self.ndim = len(parameters)
         # create a frozen distribution to draw from/evaluate
         if cov is None:
             cov = numpy.diag(numpy.ones(len(parameters)))
-        elif len(parameters) != cov.ndim:
-            raise ValueError("dimension of covariance matrix does not match "
-                             "given number of parameters")
         self.cov = cov
         self._dist = stats.multivariate_normal(cov=cov,
                                                seed=random_state)
+        if self.ndim != self._dist.dim:
+            raise ValueError("dimension of covariance matrix does not match "
+                             "given number of parameters")
 
     def set_random_state(self, random_state):
         self._dist.random_state = random_state
@@ -55,7 +58,9 @@ class Normal(BaseProposal):
 
     def jump(self, size=1):
         rvals = self._dist.rvs(size=size)
-        if size == 1:
+        if self.ndim == 1:
+            rvals = {self.parameters[0]: rvals}
+        elif size == 1:
             rvals = {p: rvals[ii] for ii, p in enumerate(self.parameters)}
         else:
             rvals = {p: rvals[:, ii] for ii, p in enumerate(self.parameters)}
