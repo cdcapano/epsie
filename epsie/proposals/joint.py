@@ -76,7 +76,7 @@ class JointProposal(BaseProposal):
 
     def update(self, chain):
         # update each of the proposals
-        for prop in self.propsals.values():
+        for prop in self.proposals.values():
             prop.update(chain)
 
     def jump(self, fromx):
