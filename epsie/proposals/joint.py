@@ -71,18 +71,18 @@ class JointProposal(BaseProposal):
     def symmetric(self):
         return self._symmetric
 
-    def logpdf(self, **vals):
-        return sum(p.logpdf(**vals) for p in self.proposals.values())
+    def logpdf(self, xi, givenx):
+        return sum(p.logpdf(xi, givenx) for p in self.proposals.values())
 
     def update(self, chain):
         # update each of the proposals
         for prop in self.propsals.values():
             prop.update(chain)
 
-    def jump(self, size=1):
+    def jump(self, fromx):
         out = {}
         for prop in self.proposals.values():
-            out.update(prop.jump(size=size))
+            out.update(prop.jump(fromx))
         return out
 
     @property

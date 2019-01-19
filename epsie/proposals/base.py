@@ -82,7 +82,7 @@ class BaseProposal(object):
         pass
 
     @abstractmethod
-    def jump(self, size=1):
+    def jump(self, fromx):
         """This should provide random samples from the proposal distribution.
 
         Samples should be returned as a dictionary mapping parameters to
@@ -91,29 +91,33 @@ class BaseProposal(object):
         pass
 
     @abstractmethod
-    def logpdf(self, **vals):
-        """The log of the pdf of the proposal distribution at the given values.
+    def logpdf(self, xi, givenx):
+        """The log pdf of the proposal distribution at a point.
 
         Parameters
         ----------
-        \**vals :
-            The values are passed as keyword arguments mapping parameter
-            names to test points.
+        xi : dict
+            Dictionary mapping parameter names to values to evaluate.
+        givenx : dict, optional
+            Dictionary mapping parameter names to values of the point from
+            which ``xi`` is evaluated.
         """
         pass
 
-    def pdf(self, **vals):
+    def pdf(self, xi, givenx):
         """The pdf of proposal at the given values.
 
         This just expoentiates ``logpdf``.
 
         Parameters
         ----------
-        \**vals :
-            The values are passed as keyword arguments mapping parameter
-            names to test points.
+        xi : dict
+            Dictionary mapping parameter names to values to evaluate.
+        givenx : dict, optional
+            Dictionary mapping parameter names to values of the point from
+            which ``xi`` is evaluated.
         """
-        return numpy.exp(self.logpdf(**vals))
+        return numpy.exp(self.logpdf(xi, givenx))
 
     def update(self, chain):
         """Update the state of the proposal distribution using the given chain.

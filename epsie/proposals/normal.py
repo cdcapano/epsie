@@ -56,15 +56,14 @@ class Normal(BaseProposal):
     def random_state(self):
         return self._dist.random_state
 
-    def jump(self, size=1):
-        rvals = self._dist.rvs(size=size)
+    def jump(self, fromx):
+        dx = self._dist.rvs(size=1)
         if self.ndim == 1:
-            rvals = {self.parameters[0]: rvals}
-        elif size == 1:
-            rvals = {p: rvals[ii] for ii, p in enumerate(self.parameters)}
+            p = self.parameters[0]
+            return {p: fromx[p] + dx}
         else:
-            rvals = {p: rvals[:, ii] for ii, p in enumerate(self.parameters)}
-        return rvals 
+            return {p: fromx[p] + dx[ii]
+                    for ii, p in enumerate(self.parameters)}
 
-    def logpdf(self, **vals):
-        return self._dist.logpdf([vals[p] for p in self.parameters])
+    def logpdf(self, xi, givenx):
+        return self._dist.logpdf([xi[p] - givenx[p] for p in self.parameters])
