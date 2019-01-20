@@ -22,77 +22,135 @@ from scipy.stats import uniform as randuniform
 
 from .proposals import JointProposal
 
-class _ChainMem(object):
+
+class ChainData(object):
     """Provides easy IO for adding and reading data from chains.
     """
 
-    def __init__(self, parameters, dtype=None):
-        self.parameters = parameters
-        self.dtype = None
-        if dtype is not None:
-            self.set_dtype(**dtype)
-        self.mem = None
+    def __init__(self, parameters, dtypes=None, initial_len=None):
+        self.parameters = tuple(parameters)
+        self._data = None
+        if dtypes is None:
+            dtypes = {}
+        self.set_dtype(**dtypes)
+        if initial_len is not None:
+            self.extend(initial_len)
+
+    @staticmethod
+    def a2d(array):
+        """Converts a structured array into a dictionary."""
+        fields = array.dtype.names  # raises an AttributeError if array is None
+        if fields is None:
+            # not a structred array, just return
+            return array
+        return {f: array[f] for f in fields}
+
+    @property
+    def data(self):
+        try:
+            return self.a2d(self._data)
+        except AttributeError as e:
+            if self._data is None:
+                return None
+            else:
+                raise AttributeError(e)
 
     def set_dtype(self, **dtypes):
-        """Sets the dtype to use for storing values.
+        """Sets the data types to use for the parameters.
 
-        A type for every parameter must be provided.
+        If ``data`` is not currently None, the data will be cast to the new
+        data types.
 
         Parameters
         ----------
         \**dtypes :
-            Parameter types should be specified as keyword arguments. Every
-            parameter must be provided.
+            The keyword arguments should map parameter names to types. Any
+            parameters not specified will default to ``float``. A
+            ``ValueError`` will be raised if any parameters are given that are
+            not in the ``parameters`` attribute.
         """
-        self.dtype = [(p, dtypes.pop(p)) for p in self.parameters]
+        # fill in any missing parameters
+        dtypes.update({p: float for p in self.parameters if p not in dtypes})
+        dtype = numpy.dtype([(p, dtypes.pop(p)) for p in self.parameters])
+        # make sure there were no unrecognized parameters
         if dtypes:
-            raise ValueError("unrecognized parameters {}"
+            raise ValueError("unrecognized parameter(s) {}"
                              .format(', '.join(dtypes.keys())))
+        self.dtype = dtype
+        # cast to new dtype if data already exists
+        if self._data is not None:
+            self._data = self._data.astype(dtype)
 
-    def detect_dtype(self, params):
-        """Detects the dtype to use given some parameter values.
-
-        Parameters
-        ----------
-        params : dict
-            Dictionary mapping parameter names to some (arbitrary) values.
-        """
-        self.set_dtype(**{p: type(val) for p, val in params.items()})
+    def __len__(self):
+        if self._data is None:
+            return 0
+        else:
+            return self._data.size
 
     def extend(self, n):
-        """Extends scratch space by n samples.
+        """Extends scratch space by n items.
         """
-        if self.dtype is None:
-            raise ValueError("dtype not set! Run set_dtype")
-        extra = numpy.zeros(n, dtype=self.dtype)
-        if self.mem is None:
-            self.mem = extra
+        new = numpy.zeros(n, dtype=self.dtype)
+        if self._data is None:
+            self._data = new
         else:
-            self.mem = numpy.append(self.mem, extra)
+            self._data = numpy.append(self._data, new)
 
-    def clear(self):
-        """Clears the memory."""
-        self.mem = None
+    def clear(self, newlen=None):
+        """Clears the memory.
+        
+        Parameters
+        ----------
+        newlen : int, optional
+            If provided, will create new scratch space with the given length.
+        """
+        self._data = None
+        if newlen is not None:
+            self.extend(newlen)
 
     def __repr__(self):
-        return repr(self.mem)
+        return repr(self.data)
 
-    def __getitem__(self, ii):
-        return self.mem[ii]
+    def __getitem__(self, index):
+        return self.a2d(self._data[index])
 
-    def __setitem__(self, ii, params):
-        if self.dtype is None:
-            self.detect_dtype(params)
-        vals = tuple(params.pop(p) for p in self.parameters)
-        # check for unknown params
-        if params:
-            raise ValueError("unrecognized parameters {}"
-                             .format(', '.join(params.keys())))
+    def __setitem__(self, index, value):
+        # try to get the element to set; if it fails, then try extending the
+        # data by the amount needed
         try:
-            self.mem[ii] = vals
-        except (TypeError, IndexError):
-            self.extend(ii+1)
-            self.mem[ii] = vals
+            elem = self._data[index]
+        except (IndexError, TypeError):  # get TypeError if _data is None
+            self.extend(index + 1 - len(self))
+            elem = self._data[index]
+        # if value is a dictionary and index is not a string, then we're
+        # setting values in the array by dictionary
+        if isinstance(value, dict) and not isinstance(index, (str, unicode)):
+            for p in value:
+                elem[p] = value[p]
+        # otherwise, just fall back to using the structred array's setitem
+        else:
+            self._data[index] = value
+
+
+def detect_dtypes(data):
+    """Convenience function to detect the dtype of a dictionary of data.
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary mapping parameter names to some (arbitrary) values.
+        The values may be either arrays or atomic data. If the former, the
+        dtype will be taken from the array's dtype.
+
+    Returns
+    -------
+    dict :
+        Dictionary mapping the parameter names to types.
+    """
+    return {
+        p: val.dtype if isinstance(val, numpy.ndarray) else type(val)
+        for p,val in data.items()}
+
 
 
 class Chain(object):
@@ -127,12 +185,14 @@ class Chain(object):
         generating random variates. If an int or None is provided, a
         :py:class:`numpy.random.RandomState` will be created instead, with
         ``random_state`` used as a seed.
+    scratch_len : int, optional
+        Set the length of memory to use for scratch space.
     chain_id : int, optional
         An interger identifying which chain this is. Optional; if not provided,
         the ``chain_id`` attribute will just be set to None.
     """
     def __init__(self, parameters, model, proposals, random_state=None,
-                 chain_id=None):
+                 scratch_len=None, chain_id=None):
         self.parameters = parameters
         self.model = model
         # combine the proposals into a joint proposal
@@ -141,12 +201,12 @@ class Chain(object):
         self.chain_id = chain_id
         self._iteration = 0
         self._lastclear = 0
-        self.positions = _ChainMem(parameters)
-        self.stats = _ChainMem(['logp', 'logl'],
-                               {'logp': float, 'logl': float})
-        self.acceptance_ratios = _ChainMem(['acceptance_ratio'],
-                                           {'acceptance_ratio': float})
-        self.blobs = None
+        self.scratch_len = scratch_len
+        self._positions = ChainData(parameters, initial_len=scratch_len)
+        self._stats = ChainData(['logl', 'logp'], initial_len=scratch_len)
+        self._acceptance_ratios = ChainData(['ar'],
+                                            initial_len=scratch_len)
+        self._blobs = None
         self._hasblobs = False
         self._p0 = None
         self._logp0 = None
@@ -165,6 +225,8 @@ class Chain(object):
             Dictionary mapping parameters to single values.
         """
         self._p0 = p0.copy()
+        # use p0 to determine the dtype for positions
+        self._positions.set_dtype(**detect_dtypes(p0))
         # evaluate logl, p at this point
         r = self.model(**p0)
         try:
@@ -177,22 +239,14 @@ class Chain(object):
         if self._hasblobs:
             if not isinstance(blob, dict):
                 raise TypeError("model must return blob data as a dictionary")
-            self.blobs = _ChainMem(blob.keys())
-            self.blobs.detect_dtype(blob)
+            self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
+                                    initial_len=self.scratch_len)
         self._logp0 = logp
         self._logl0 = logl
         self._blob0 = blob
 
-    @property
-    def random_state(self):
-        """Returns the ``RandomState`` class."""
-        return self.proposal_dist.random_state
-
-    @property
-    def p0(self):
-        if self._p0 is None:
-            raise ValueError("p0 not set! Run set_p0")
-        return self._p0
+    def __len__(self):
+        return self._iteration - self._lastclear
 
     @property
     def iteration(self):
@@ -205,49 +259,93 @@ class Chain(object):
         return self._lastclear
 
     @property
-    def _index(self):
-        """The index in memory of the current iteration."""
-        return self._iteration - 1 - self._lastclear
+    def p0(self):
+        if self._p0 is None:
+            raise ValueError("p0 not set! Run set_p0")
+        return self._p0
 
-    def clear(self):
-        """Clears memory of the current chain, and sets p0 to the current
-        position."""
-        if self._iteration > 0:
-            # save position then clear
-            self._p0 = self.current_position.copy()
-            self.positions.clear()
-            # save stats then clear
-            self._logp0 = self.current_stats['logp']
-            self._logl0 = self.current_stats['logl']
-            self.stats.clear()
-            # clear acceptance ratios
-            self.acceptance_ratios.clear()
-            # save blobs then clear
-            if self._hasblobs:
-                self._blob0 = self.current_blob.copy()
-                self.blobs.clear()
-        self._lastclear = self._iteration
+    @property
+    def positions(self):
+        return self._positions[:len(self)]
+
+    @property
+    def stats(self):
+        return self._stats[:len(self)]
+
+    @property
+    def acceptance_ratios(self):
+        return self._acceptance_ratios[:len(self)]['ar']
+
+    @property
+    def blobs(self):
+        blobs = self._blobs
+        if blobs is not None:
+            blobs = blobs[:len(self)]
+        return blobs
+
+    def __getitem__(self, index):
+        """Returns all of the chain data at the requested index."""
+        index = (-1)**(index < 0) * (index % len(self))
+        out = {'positions': self._positions[index],
+               'stats': self._stats[index],
+               'acceptance_ratios': self._acceptance_ratios[index]['ar']
+               }
+        if self._hasblobs:
+            out['blobs'] = self._blobs[index]
+        return out
 
     @property
     def current_position(self):
-        try:
-            return self.positions[self._index]
-        except (TypeError, IndexError):
-            return self.p0
+        if len(self) == 0:
+            pos = self.p0
+        else:
+            pos = self._positions[len(self)-1]
+        return pos
 
     @property
     def current_stats(self):
-        try:
-            return self.stats[self._index]
-        except (TypeError, IndexError):
-            return {'logp': self._logp0, 'logl': self._logl0}
+        if len(self) == 0:
+            stats = {'logl': self._logl0, 'logp': self._logp0}
+        else:
+            stats = self._stats[len(self)-1]
+        return stats
 
     @property
     def current_blob(self):
-        try:
-            return self.blobs[self._index]
-        except (TypeError, IndexError):
-            return self._blob0
+        if not self._hasblobs:
+            blob = None
+        elif len(self) == 0:
+            blob = self._blob0
+        else:
+            blob = self._blobs[len(self)-1]
+        return blob
+
+    @property
+    def random_state(self):
+        """Returns the ``RandomState`` class."""
+        return self.proposal_dist.random_state
+
+    def clear(self):
+        """Clears memory of the current chain, and sets p0 to the current
+        position.
+        
+        New scratch space will be created with length equal to ``scratch_len``.
+        """
+        if self._iteration > 0:
+            # save position then clear
+            self._p0 = self.current_position.copy()
+            self._positions.clear(self.scratch_len)
+            # save stats then clear
+            self._logp0 = self.current_stats['logp']
+            self._logl0 = self.current_stats['logl']
+            self._stats.clear(self.scratch_len)
+            # clear acceptance ratios
+            self._acceptance_ratios.clear(self.scratch_len)
+            # save blobs then clear
+            if self._hasblobs:
+                self._blob0 = self.current_blob.copy(self.scratch_len)
+                self._blobs.clear(self.scratch_len)
+        self._lastclear = self._iteration
 
     @property
     def state(self):
@@ -263,6 +361,7 @@ class Chain(object):
         state['current_position'] = self.current_position
         state['current_stats'] = self.current_stats
         state['current_blob'] = self.current_blob
+        state['hasblobs'] = self._hasblobs
         return state
 
     def set_state(self, state):
@@ -283,20 +382,24 @@ class Chain(object):
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
         self._p0 = state['current_position']
+        self.positions.set_dtype(**detect_dtypes(self._p0))
         self._logl0 = state['current_stats']['logl']
         self._logp0 = state['current_stats']['logp']
         self._blob0 = state['current_blob']
+        self._hasblobs = state['hasblobs']
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
 
 
     def step(self):
         """Evolves the chain by a single step."""
-        # in case the proposal needs information about the history of the
-        # chain
+        # get the current position; if this is the first step and set_p0 hasn't
+        # been run, this will raise a ValueError
+        current_pos = self.current_position
+        # in case the any of the proposals need information about the history
+        # of the chain:
         self.proposal_dist.update(self)
         # now call a proposal
-        current_pos = self.current_position
         proposal = self.proposal_dist.jump(current_pos)
         r = self.model(**proposal)
         if self._hasblobs:
@@ -323,9 +426,10 @@ class Chain(object):
             stats = current_stats
             blob = self.current_blob
         # save
-        self._iteration += 1
-        self.positions[self._index] = pos
-        self.stats[self._index] = stats
-        self.acceptance_ratios[self._index] = {'acceptance_ratio': ar}
+        ii = len(self)
+        self._positions[ii] = pos
+        self._stats[ii] = stats
+        self._acceptance_ratios[ii] = ar
         if self._hasblobs:
-            self.blobs[self._index] = blob
+            self._blobs[ii] = blob
+        self._iteration += 1
