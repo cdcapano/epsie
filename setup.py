@@ -23,7 +23,8 @@ import setuptools
 
 
 install_requires = ["numpy",
-                    "scipy>=0.16.0"
+                    "scipy>=0.16.0",
+                    "randomgen",
                    ]
 
 with open("README.md", "r") as fh:
