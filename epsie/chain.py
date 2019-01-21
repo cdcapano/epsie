@@ -180,24 +180,22 @@ class Chain(object):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
-    random_state : :py:class:`numpy.random.RandomState` or int, optional
-        An instance of :py:class:`numpy.random.RandomState` to use for
-        generating random variates. If an int or None is provided, a
-        :py:class:`numpy.random.RandomState` will be created instead, with
-        ``random_state`` used as a seed.
+    brng : :py:class:`randomgen.PGC64` instance, optional
+        Use the given basic random number generator (BRNG) for generating
+        random variates. If an int or None is provided, a BRNG will be
+        created instead using ``brng`` as a seed.
     scratch_len : int, optional
         Set the length of memory to use for scratch space.
     chain_id : int, optional
         An interger identifying which chain this is. Optional; if not provided,
         the ``chain_id`` attribute will just be set to None.
     """
-    def __init__(self, parameters, model, proposals, random_state=None,
+    def __init__(self, parameters, model, proposals, brng=None,
                  scratch_len=None, chain_id=None):
         self.parameters = parameters
         self.model = model
         # combine the proposals into a joint proposal
-        self.proposal_dist = JointProposal(*proposals,
-                                           random_state=random_state)
+        self.proposal_dist = JointProposal(*proposals, brng=brng)
         self.chain_id = chain_id
         self._iteration = 0
         self._lastclear = 0
@@ -241,6 +239,9 @@ class Chain(object):
                 raise TypeError("model must return blob data as a dictionary")
             self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
                                     initial_len=self.scratch_len)
+        # check that we're not starting outside of the prior
+        if logp == -numpy.inf:
+            raise ValueError("starting position is outside of the prior!")
         self._logp0 = logp
         self._logl0 = logl
         self._blob0 = blob
@@ -321,10 +322,6 @@ class Chain(object):
         return blob
 
     @property
-    def random_state(self):
-        """Returns the ``RandomState`` class."""
-        return self.proposal_dist.random_state
-
     def clear(self):
         """Clears memory of the current chain, and sets p0 to the current
         position.
@@ -346,6 +343,21 @@ class Chain(object):
                 self._blob0 = self.current_blob.copy(self.scratch_len)
                 self._blobs.clear(self.scratch_len)
         self._lastclear = self._iteration
+
+    @property
+    def brng(self):
+        """Returns basic random number generator (BRNG) being used."""
+        return self.proposal_dist.brng
+
+    @property
+    def random_generator(self):
+        """Returns the random number generator."""
+        return self.brng.generator
+
+    @property
+    def random_state(self):
+        """Returns the current state of the BRNG."""
+        return self.proposal_dist.random_state
 
     @property
     def state(self):
@@ -410,12 +422,16 @@ class Chain(object):
         current_stats = self.current_stats
         current_logl = current_stats['logl']
         current_logp = current_stats['logp']
-        logar = logp + logl - current_logl - current_logp
-        if not self.proposal_dist.symmetric:
-            logar += self.proposal_dist.logpdf(current_pos, proposal) - \
-                     self.proposal_dist.logpdf(proposal, current_pos)
-        ar = numpy.exp(logar)
-        u = randuniform.rvs(random_state=self.random_state)
+        if logp == -numpy.inf:
+            # force a reject
+            ar = 0.
+        else:
+            logar = logp + logl - current_logl - current_logp
+            if not self.proposal_dist.symmetric:
+                logar += self.proposal_dist.logpdf(current_pos, proposal) - \
+                         self.proposal_dist.logpdf(proposal, current_pos)
+            ar = numpy.exp(logar)
+        u = self.random_generator.uniform()
         if u <= ar:
             # accept
             pos = proposal

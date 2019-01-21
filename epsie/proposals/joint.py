@@ -37,7 +37,7 @@ class JointProposal(BaseProposal):
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, *proposals, **kwargs):
-        random_state = kwargs.pop('random_state', None)  # Py3XX: delete line
+        brng = kwargs.pop('brng', None)  # Py3XX: delete line
         self.parameters = tuple(itertools.chain(*[prop.parameters
                                                   for prop in proposals]))
         # check that we don't have multiple proposals for the same parameter
@@ -50,22 +50,14 @@ class JointProposal(BaseProposal):
         # the joint proposal is symmetric only if all of the constitutent
         # proposals are also
         self._symmetric = all(prop.symmetric for prop in proposals)
-        if not isinstance(random_state, numpy.random.RandomState):
-            random_state = numpy.random.RandomState(random_state)
-        self.set_random_state(random_state)
+        # set the BRNG
+        self.brng = brng
         # have all of the proposals use the same random state
         for prop in proposals:
-            prop.set_random_state(random_state)
+            prop.brng = self.brng
         # store the proposals as a dict of parameters -> proposal; we can do
         # this since the mapping of parameters to proposals is one/many:one
         self.proposals = {prop.parameters: prop for prop in proposals}
-
-    @property
-    def random_state(self):
-        return self._random_state
-
-    def set_random_state(self, random_state):
-        self._random_state = random_state
 
     @property
     def symmetric(self):
@@ -98,7 +90,7 @@ class JointProposal(BaseProposal):
             if s:
                 state[params] = state
         # add the global random state
-        state['random_state'] = self.random_state.get_state()
+        state['random_state'] = self.random_state
         return state
 
     def set_state(self, state):
@@ -109,4 +101,4 @@ class JointProposal(BaseProposal):
             if params in state:
                 prop.set_state(state[params])
         # set the state of the random number generator
-        self.random_state.set_state(state['random_state'])
+        self.random_state = state['random_state']

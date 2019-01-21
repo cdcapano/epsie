@@ -27,43 +27,49 @@ class Normal(BaseProposal):
     name = 'normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, random_state=None):
+    def __init__(self, parameters, cov=None, brng=None):
         if isinstance(parameters, (str, unicode)):
             parameters = [parameters]
         self.parameters = tuple(parameters)
         self.ndim = len(parameters)
-        # create a frozen distribution to draw from/evaluate
-        if cov is None:
+        if cov is None and self.ndim == 1:
+            cov = 1.
+        elif cov is None:
             cov = numpy.diag(numpy.ones(len(parameters)))
-        self.cov = cov
-        self._dist = stats.multivariate_normal(cov=cov,
-                                               seed=random_state)
-        if self.ndim != self._dist.dim:
+        # check that dimensionality makes sense
+        if self.ndim == 1 and isinstance(cov, numpy.ndarray) \
+                or self.ndim > 1 and not isinstance(cov, numpy.ndarray) \
+                or self.ndim > 1 and self.ndim != cov.ndim:
             raise ValueError("dimension of covariance matrix does not match "
                              "given number of parameters")
-
-    def set_random_state(self, random_state):
-        self._dist.random_state = random_state
+        self.cov = cov
 
     @property
     def state(self):
-        return {'random_state': self.random_state.get_state()}
+        return {'random_state': self.random_state}
 
     def set_state(self, state):
-        self.random_state.set_state(state['random_state'])
-
-    @property
-    def random_state(self):
-        return self._dist.random_state
+        self.random_state = state['random_state']
 
     def jump(self, fromx):
-        dx = self._dist.rvs(size=1)
         if self.ndim == 1:
-            p = self.parameters[0]
-            return {p: fromx[p] + dx}
+            newpt = self.random_generator.normal(fromx[p], self.cov)
+            jump = {p: newpt}
         else:
-            return {p: fromx[p] + dx[ii]
-                    for ii, p in enumerate(self.parameters)}
+            newpt = self.random_generator.multivariate_normal(
+                [fromx[p] for p in self.parameters], self.cov)
+            jump = {p: newpt[ii] for ii, p in enumerate(self.parameters)}
+        return jump
+                    
 
     def logpdf(self, xi, givenx):
-        return self._dist.logpdf([xi[p] - givenx[p] for p in self.parameters])
+        means = [givenx[p] for p in self.parameters]
+        if self.ndim == 1:
+            p = self.parameters[0]
+            logp = stats.normal.logpdf(xi[p], loc=givenx[p], scale=self.cov)
+        else:
+            logp = stats.multivariate_normal(
+                [xi[p] for p in self.parameters],
+                mean=[givenx[p] for p in self.parameters],
+                cov=self.cov)
+        return logp

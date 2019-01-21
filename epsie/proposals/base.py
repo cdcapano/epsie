@@ -17,36 +17,60 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy
+from randomgen import RandomGenerator, PCG64
 from scipy import stats
+
+from epsie import randutils
 
 
 class BaseProposal(object):
     """Abstract base class for all proposal classes."""
     __metaclass__ = ABCMeta
     name = None
+    _brngtype = PCG64
 
-    # Py3XX: uncomment the next two lines 
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
-    def random_state(self):
-        """The ``RandomState`` instance the proposal uses.
-        
-        This should return the ``RandomState`` **class instance** the proposal
-        uses, not the random state of that instance. 
+    @property
+    def brng(self):
+        """The basic random number generator (BRNG) instance being used.
+
+        If a brng hasn't been set yet or is ``None``, one will be created
+        using a seed created by :py:func:`randutils.create_seed`.
         """
-        pass
+        if self._brng is None:
+            self._brng = self._brngtype(randutils.create_seed())
+        return self._brng
 
-    @abstractmethod
-    def set_random_state(self, random_state):
-        """Sets the random state class used by the sampler to the given.
+    @brng.setter
+    def brng(self, brng):
+        """Sets the basic random number generator to use."""
+        self._brng = brng
+
+    @property
+    def random_generator(self):
+        """The random number generator.
+
+        This is an instance of :py:class:`randgen.RandomGenerator` that is
+        derived from the BRNG. It provides has methods to create random
+        draws from various distributions.
+        """
+        return self.brng.generator
+
+    @property
+    def random_state(self):
+        """The current state of the basic random number generator (BRNG).
+        """
+        return self.brng.state
+
+    @random_state.setter
+    def random_state(self, state):
+        """Sets the state of brng.
         
         Parameters
         ----------
-        random_state : :py:class:numpy.random.RandomState
-            A numpy RandomState class instance.
+        state : dict
+            Dictionary giving the state to set.
         """
-        pass
+        self.brng.state = state
 
     # Py3XX: uncomment the next two lines 
     # @property
