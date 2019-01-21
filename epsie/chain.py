@@ -206,12 +206,12 @@ class Chain(object):
                                             initial_len=scratch_len)
         self._blobs = None
         self._hasblobs = False
-        self._p0 = None
+        self._start = None
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
 
-    def set_p0(self, p0):
+    def set_start(self, position):
         """Sets the starting position.
 
         This also evaulates the log likelihood and log prior at the starting
@@ -219,14 +219,14 @@ class Chain(object):
 
         Parameters
         ----------
-        p0 : dict
+        position : dict
             Dictionary mapping parameters to single values.
         """
-        self._p0 = p0.copy()
-        # use p0 to determine the dtype for positions
-        self._positions.set_dtype(**detect_dtypes(p0))
+        self._start = position.copy()
+        # use start position to determine the dtype for positions
+        self._positions.set_dtype(**detect_dtypes(position))
         # evaluate logl, p at this point
-        r = self.model(**p0)
+        r = self.model(**position)
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -260,10 +260,20 @@ class Chain(object):
         return self._lastclear
 
     @property
-    def p0(self):
-        if self._p0 is None:
-            raise ValueError("p0 not set! Run set_p0")
-        return self._p0
+    def start_position(self):
+        if self._start is None:
+            raise ValueError("Starting position not set! Run set_start.")
+        return self._start
+
+    @property
+    def logl0(self):
+        """The log likelihood of the starting position."""
+        return self._logl0
+
+    @property
+    def logp0(self):
+        """The log prior of the starting position."""
+        return self._logp0
 
     @property
     def positions(self):
@@ -298,7 +308,7 @@ class Chain(object):
     @property
     def current_position(self):
         if len(self) == 0:
-            pos = self.p0
+            pos = self.start_position
         else:
             pos = self._positions[len(self)-1]
         return pos
@@ -323,14 +333,14 @@ class Chain(object):
 
     @property
     def clear(self):
-        """Clears memory of the current chain, and sets p0 to the current
-        position.
+        """Clears memory of the current chain, and sets start position to the
+        current position.
         
         New scratch space will be created with length equal to ``scratch_len``.
         """
         if self._iteration > 0:
             # save position then clear
-            self._p0 = self.current_position.copy()
+            self._start = self.current_position.copy()
             self._positions.clear(self.scratch_len)
             # save stats then clear
             self._logp0 = self.current_stats['logp']
@@ -393,8 +403,8 @@ class Chain(object):
         self.clear()
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
-        self._p0 = state['current_position']
-        self.positions.set_dtype(**detect_dtypes(self._p0))
+        self._start = state['current_position']
+        self.positions.set_dtype(**detect_dtypes(self._start))
         self._logl0 = state['current_stats']['logl']
         self._logp0 = state['current_stats']['logp']
         self._blob0 = state['current_blob']
@@ -405,8 +415,8 @@ class Chain(object):
 
     def step(self):
         """Evolves the chain by a single step."""
-        # get the current position; if this is the first step and set_p0 hasn't
-        # been run, this will raise a ValueError
+        # get the current position; if this is the first step and set_start
+        # hasn't been run, this will raise a ValueError
         current_pos = self.current_position
         # in case the any of the proposals need information about the history
         # of the chain:
