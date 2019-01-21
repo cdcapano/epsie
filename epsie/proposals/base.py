@@ -20,7 +20,7 @@ import numpy
 from randomgen import RandomGenerator, PCG64
 from scipy import stats
 
-from epsie import randutils
+from epsie.randutils import create_seed
 
 
 class BaseProposal(object):
@@ -33,17 +33,34 @@ class BaseProposal(object):
     def brng(self):
         """The basic random number generator (BRNG) instance being used.
 
-        If a brng hasn't been set yet or is ``None``, one will be created
-        using a seed created by :py:func:`randutils.create_seed`.
+        A BRNG will be created if it doesn't exist yet.
         """
-        if self._brng is None:
-            self._brng = self._brngtype(randutils.create_seed())
-        return self._brng
+        try:
+            return self._brng
+        except AttributeError:
+            self._brng = self._create_brng()
+            return self._brng
 
     @brng.setter
     def brng(self, brng):
-        """Sets the basic random number generator to use."""
+        """Sets the basic random number generator (BRNG) to use.
+
+        Parameters
+        ----------
+        brng : :py:class:`randomgen.PCG64`, int, or None
+            Either the BRNG to use or an integer/None. If the latter, a
+            BRNG will be created using the given as a seed. If the seed is
+            None, a seed will be created using :py:func:`create_seed`.
+        """
+        if not isinstance(brng, self._brngtype):
+            brng = self._create_brng(brng)
         self._brng = brng
+
+    def _create_brng(self, seed=None):
+        """Creates an instance of the BRNG."""
+        if seed is None:
+            seed = create_seed()
+        return self._brngtype(seed)
 
     @property
     def random_generator(self):

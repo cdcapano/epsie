@@ -29,9 +29,11 @@ class JointProposal(BaseProposal):
     ----------
     \*proposals :
         The arguments should provide the constituent proposals to use.
-    random_state : :py:class:numpy.random.RandomState or int, optional
-        The ``RandomState`` class or seed to use for the random number
-        generator of all the proposals. If not provided, one will be created.
+    brng : `:py:class:randomgen.PCG64` instance or int, optional
+        The basic random number generator (BRNG) to use, or an integer. If
+        an integer, a BRNG instance will be created using the given value.
+        Default (None) is to create a new BRNG with a seed from
+        :py:func:`randutils.create_seed`.
     """
     name = 'joint'
 

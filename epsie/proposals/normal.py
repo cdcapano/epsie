@@ -27,7 +27,7 @@ class Normal(BaseProposal):
     name = 'normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, brng=None):
+    def __init__(self, parameters, cov=None):
         if isinstance(parameters, (str, unicode)):
             parameters = [parameters]
         self.parameters = tuple(parameters)
