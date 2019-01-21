@@ -29,11 +29,11 @@ class JointProposal(BaseProposal):
     ----------
     \*proposals :
         The arguments should provide the constituent proposals to use.
-    brng : `:py:class:randomgen.PCG64` instance or int, optional
+    brng : :py:class:`epsie.BRNG` instance or int, optional
         The basic random number generator (BRNG) to use, or an integer. If
         an integer, a BRNG instance will be created using the given value.
         Default (None) is to create a new BRNG with a seed from
-        :py:func:`randutils.create_seed`.
+        :py:func:`epsie.create_seed`.
     """
     name = 'joint'
 

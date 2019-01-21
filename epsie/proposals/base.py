@@ -17,17 +17,17 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy
-from randomgen import RandomGenerator, PCG64
+from randomgen import RandomGenerator
 from scipy import stats
 
-from epsie.randutils import create_seed
+import epsie
+from epsie import create_seed
 
 
 class BaseProposal(object):
     """Abstract base class for all proposal classes."""
     __metaclass__ = ABCMeta
     name = None
-    _brngtype = PCG64
 
     @property
     def brng(self):
@@ -47,12 +47,12 @@ class BaseProposal(object):
 
         Parameters
         ----------
-        brng : :py:class:`randomgen.PCG64`, int, or None
+        brng : :py:class:`epsie.BRNG`, int, or None
             Either the BRNG to use or an integer/None. If the latter, a
             BRNG will be created using the given as a seed. If the seed is
             None, a seed will be created using :py:func:`create_seed`.
         """
-        if not isinstance(brng, self._brngtype):
+        if not isinstance(brng, epsie.BRNG):
             brng = self._create_brng(brng)
         self._brng = brng
 
@@ -60,7 +60,7 @@ class BaseProposal(object):
         """Creates an instance of the BRNG."""
         if seed is None:
             seed = create_seed()
-        return self._brngtype(seed)
+        return epsie.BRNG(seed)
 
     @property
     def random_generator(self):
