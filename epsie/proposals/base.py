@@ -21,7 +21,6 @@ from randomgen import RandomGenerator
 from scipy import stats
 
 import epsie
-from epsie import create_seed
 
 
 class BaseProposal(object):
@@ -49,18 +48,12 @@ class BaseProposal(object):
         ----------
         brng : :py:class:`epsie.BRNG`, int, or None
             Either the BRNG to use or an integer/None. If the latter, a
-            BRNG will be created using the given as a seed. If the seed is
-            None, a seed will be created using :py:func:`create_seed`.
+            BRNG will be created by passing ``brng`` as the ``seed`` argument
+            to :py:func:`epsie.create_brng`.
         """
         if not isinstance(brng, epsie.BRNG):
-            brng = self._create_brng(brng)
+            brng = epsie.create_brng(brng)
         self._brng = brng
-
-    def _create_brng(self, seed=None):
-        """Creates an instance of the BRNG."""
-        if seed is None:
-            seed = create_seed()
-        return epsie.BRNG(seed)
 
     @property
     def random_generator(self):

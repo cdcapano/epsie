@@ -30,10 +30,8 @@ class JointProposal(BaseProposal):
     \*proposals :
         The arguments should provide the constituent proposals to use.
     brng : :py:class:`epsie.BRNG` instance or int, optional
-        The basic random number generator (BRNG) to use, or an integer. If
-        an integer, a BRNG instance will be created using the given value.
-        Default (None) is to create a new BRNG with a seed from
-        :py:func:`epsie.create_seed`.
+        The basic random number generator (BRNG) to use, or an integer/None. If
+        the latter, a BRNG will be created using :py:func:`epsie.create_brng`.
     """
     name = 'joint'
 

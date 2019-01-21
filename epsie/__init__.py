@@ -26,7 +26,7 @@ from randomgen import PCG64
 # The class used for all basic random number generation.
 # Users may change this, but it has to be something recognized by randomgen
 # and have the ability to accept streams; i.e., it must have calling structure
-# class(seed, stream).
+# class(seed, stream), with default stream set to None.
 BRNG = PCG64
 
 
@@ -55,6 +55,23 @@ def create_seed(seed=None):
         # the following instead:
         # seed = int.from_bytes(bseed, byteorder='big')
     return seed
+
+
+def create_brng(seed=None, stream=None):
+    """Creates a an instance of :py:class:`epsie.BRNG`.
+
+    Parameters
+    ----------
+    seed : int, optional
+        The seed to use. If seed is None (the default), will create a seed
+        using ``create_seed``.
+    stream : int, optional
+        The stream to create the BRNG for. This allows multiple BRNGs to exist
+        with the same seed, but that produce different sets of random numbers.
+    """
+    if seed is None:
+        seed = create_seed(seed)
+    return BRNG(seed, stream)
 
 
 def create_brngs(seed, nrngs):

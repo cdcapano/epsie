@@ -294,6 +294,10 @@ class Chain(object):
             blobs = blobs[:len(self)]
         return blobs
 
+    @property
+    def hasblobs(self):
+        return self._hasblobs
+
     def __getitem__(self, index):
         """Returns all of the chain data at the requested index."""
         index = (-1)**(index < 0) * (index % len(self))
@@ -353,6 +357,7 @@ class Chain(object):
                 self._blob0 = self.current_blob.copy(self.scratch_len)
                 self._blobs.clear(self.scratch_len)
         self._lastclear = self._iteration
+        return self
 
     @property
     def brng(self):
@@ -459,3 +464,4 @@ class Chain(object):
         if self._hasblobs:
             self._blobs[ii] = blob
         self._iteration += 1
+        return self
