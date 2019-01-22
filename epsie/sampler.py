@@ -17,6 +17,54 @@
 from epsie import create_seed, create_brngs
 from .chain import Chain
 
+
+global _chains = None
+
+def _create_chain(parameters, model, proposals, seed, chain_id):
+    """Creates a chain and stores it to the global ``_chains`` dict.
+
+    Parameters
+    ----------
+    parameters : list or tuple of strings
+        The names of the parameters the chains should sample.
+    model : object
+        Model object for the chain to use.
+    proposals : list of epsie.Proposals
+        Proposal classes the chain should use.
+    seed : int
+        The seed the chains should use for initializing the BRNG.
+    chain_ids : list of int
+        Chain ids that should be created. The length of the list determines
+        the number of chains to create; the ids are used to set the stream
+        value for the BRNG, as well as to uniquely identify the chains.
+    """
+    if _chains is None:
+        _chains = {}
+    _chains[chain_id] = Chain(parameters, model, proposals,
+                              brng=epsie.create_brng(seed, stream=chain_id),
+                              chain_id=chain_id)
+
+def _get_chain(chain_id):
+    """Returns the chain with the given ``chain_id`` from ``_chains``.
+
+    This is used to send a child process's chain to the parent process.
+    """
+    return _chains[chain_id]
+
+def _set_start(positions, chain_id):
+    """Sets the start position of the ``chain_id`` chain in ``_chains``.
+    """
+    _chains[chain_id].set_start({p: positions[p][chain_id] for p in positions})
+
+def _run(self, chains, niterations):
+    """Private method for evolving the chains."""
+    for _ in range(niterations):
+        for chain in chains:
+            chain.step()
+        self.niterations += 1
+    return chains
+
+
 class Sampler(object):
     """
     Parameters
@@ -68,14 +116,47 @@ class Sampler(object):
         # Create the chains: if we are using multiple processes, this will
         # cause each child process to only have the subset of chains it will
         # be running
-        self.chains = self.map(self._create_chain, range(nchains))
+        self.chains = self.map(self._setup_chain, range(self.nchains))
 
-    def _create_chain(self, chain_id):
-        """Creates a BRNG and a chain using the given chain_id."""
-        return Chain(self.parameters, sef.model, self.proposals,
-                     brng=epsie.create_brng(self.seed, stream=chain_id),
-                     chain_id=chain_id)
+    def _setup_chain(self, chain_id):
+        """Creates a chain."""
+        _create_chain(self.parameters, self.model, self.proposals,
+                      self.seed, chain_id)
 
+    def set_start(self, positions):
+        """Sets the starting position of all of the chains.
+
+        Parameters
+        ----------
+        positions : dict
+            Dictionary mapping parameter names to arrays of values. The chains
+            must have length equal to the number of chains.
+        """
+        self.map(lambda x: _set_start(positions, x), range(self.nchains))
+
+    def _collect_chains(self):
+        """Collects all of the chains from the children processes."""
+        self.chains = map(lambda x: x, self.chains)
+
+    def clear(self):
+        """Clears all of the chains."""
+        self.map(lambda x: x.clear(), self.chains) 
+        self._collect_chains()
+
+    def run(self, niterations):
+        """Evolves all of the chains by niterations.
+
+        All chains are cycled over and incremented one step on each iteration;
+        this ensures that the collection of chains evolve at approximately
+        the same rate.
+
+        Parameters
+        ----------
+        niterations : int
+            The number of iterations to evolve the chains for.
+        """
+        self.map(lambda x: self._run(x, niterations), self.chains)
+        self._collect_chains()
     def concatenate_chains(self, attr, item=None):
         """Concatenates the given attribute over all of the chains."""
         if item is None:
@@ -83,18 +164,6 @@ class Sampler(object):
         else:
             getter = lambda x: getattr(x, attr)[item]
         return numpy.stack(map(getter, chains), axis=0)
-
-    def set_start(self, position):
-        """Sets the starting position of all of the chains.
-
-        Parameters
-        ----------
-        position : dict
-            Dictionary mapping parameter names to arrays of values. The chains
-            must have length equal to the number of chains.
-        """
-        for ii, chain in enumerate(self.chains):
-            chain.set_p0({p: position[p][ii] for p in self.parameters})
 
     @property
     def start_position(self):
@@ -140,34 +209,3 @@ class Sampler(object):
         """The history of all acceptance ratios from all of the chains."""
         return self.concatenate_chains('acceptance_ratio')
 
-    def _collect_chains(self):
-        """Collects all of the chains from the children processes."""
-        self.chains = map(lambda x: x, self.chains)
-
-    def clear(self):
-        """Clears all of the chains."""
-        self.map(lambda x: x.clear(), self.chains) 
-        self._collect_chains()
-
-    def _run(self, chains, niterations):
-        """Private method for evolving the chains."""
-        for _ in range(niterations):
-            for chain in chains:
-                chain.step()
-            self.niterations += 1
-        return chains
-
-    def run(self, niterations):
-        """Evolves all of the chains by niterations.
-
-        All chains are cycled over and incremented one step on each iteration;
-        this ensures that the collection of chains evolve at approximately
-        the same rate.
-
-        Parameters
-        ----------
-        niterations : int
-            The number of iterations to evolve the chains for.
-        """
-        self.map(lambda x: self._run(x, niterations), self.chains)
-        self._collect_chains()
