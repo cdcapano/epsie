@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import numpy
+import copy
 
 import epsie
 from epsie import create_seed, create_brngs
@@ -75,7 +76,7 @@ class Sampler(object):
         self.seed = seed
         # create the chains
         self.chains = [Chain(self.parameters, self.model,
-                             self.proposals.values(),
+                             [copy.copy(p) for p in self.proposals.values()],
                              brng=epsie.create_brng(self.seed, stream=cid),
                              chain_id=cid)
                        for cid in range(self.nchains)]
@@ -171,5 +172,5 @@ class Sampler(object):
     @property
     def acceptance_ratios(self):
         """The history of all acceptance ratios from all of the chains."""
-        return self.concatenate_chains('acceptance_ratio')
+        return self.concatenate_chains('acceptance_ratios')
 
