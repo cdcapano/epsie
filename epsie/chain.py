@@ -391,9 +391,6 @@ class ChainData(object):
     dtypes : dict, optional
         Dictionary mapping parameter names to types. Will default to using
         ``float`` for any parameters that are not provided.
-    initial_len : int, optional
-        Set the length of the data arrays to the provided value. If None
-        provided, the underlying data array will be initialied to ``None``.
 
     Attributes
     ----------
@@ -402,16 +399,61 @@ class ChainData(object):
     dtypes : dict
         The data type used for each of the parameters.
     data
+
+    Examples
+    --------
+    Create an scratch space for two parameters, "x" and "y". Note that,
+    initially, the data attribute returns None, and the length is zero:
+
+    >>> from epsie.chain import ChainData
+    >>> chaindata = ChainData(['x', 'y'])
+    >>> print(len(chaindata))
+    0
+    >>> print(chaindata.data)
+    None
+
+    Now add some data by passing a dictionary of values. Note that the length
+    is automatically extended to accomodate the given index, with zeroes filled
+    in up to that point:
+
+    >>> chaindata[1] = {'x': 2.5, 'y': 1.}
+    >>> chaindata.data
+    {'x': array([0. , 2.5]), 'y': array([0., 1.])}
+    >>> len(chaindata)
+    2
+
+    Manually extend the scratch space, and fill it. Note that we can set
+    multiple values at once using standard slicing syntax:
+
+    >>> chaindata.extend(4)
+    >>> chaindata[2:] = {'x': [3.5, 4.5, 5.5, 6.5], 'y': [2, 3, 4, 5]}
+    >>> chaindata.data
+    {'x': array([0. , 2.5, 3.5, 4.5, 5.5, 6.5]),
+     'y': array([0., 1., 2., 3., 4., 5.])}
+
+    Since we did not specify dtypes, the data types have all defaulted to
+    floats. Change 'y' to be ints instead:
+
+    >>> chaindata.dtypes = {'y': int}
+    >>> chaindata.data
+    {'x': array([0. , 2.5, 3.5, 4.5, 5.5, 6.5]),
+     'y': array([0, 1, 2, 3, 4, 5])}
+
+    Clear the memory, and set the new length to be 3:
+
+    >>> chaindata.clear(3)
+    >>> chaindata.data
+    {'x': array([0., 0., 0.]), 'y': array([0, 0, 0])}
+
     """
 
-    def __init__(self, parameters, dtypes=None, initial_len=None):
+    def __init__(self, parameters, dtypes=None):
         self.parameters = tuple(parameters)
         self._data = None
+        self._dtypes = {}
         if dtypes is None:
             dtypes = {}
         self.dtypes = dtypes  # will call the dtypes.setter, below
-        if initial_len is not None:
-            self.set_len(initial_len)
 
     @staticmethod
     def a2d(array):
@@ -462,7 +504,7 @@ class ChainData(object):
         unrecognized = [p for p in dtypes if p not in self.parameters]
         if any(unrecognized):
             raise ValueError("unrecognized parameter(s) {}"
-                             .format(', '.join(unrecognized))
+                             .format(', '.join(unrecognized)))
         # store it
         self._dtypes.update(dtypes)
         # fill in any missing parameters
