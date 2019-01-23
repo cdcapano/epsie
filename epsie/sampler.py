@@ -33,7 +33,7 @@ class Sampler(object):
     model : object
         Model object.
     nchains : int
-        The number of chains to create.
+        The number of chains to create. Must be greater than zero.
     proposals : dict, optional
         Dictionary mapping parameter names to proposal classes. Any parameters
         not listed will use the ``default_propsal``.
@@ -53,6 +53,8 @@ class Sampler(object):
                  default_proposal=None, seed=None, pool=None):
         self.parameters = tuple(parameters)
         self.model = model
+        if nchains < 1:
+            raise ValueError("nchains must be >= 1")
         self.nchains = nchains
         if proposals is None:
             proposals = {}
@@ -62,7 +64,6 @@ class Sampler(object):
         missing_props =  tuple(set(parameters) - set(proposals.keys()))
         proposals[missing_props] = default_proposal(missing_props)
         self.proposals = proposals
-        self.niterations = 0
         # create the random number states
         if seed is None:
             seed = create_seed(seed)
@@ -91,30 +92,6 @@ class Sampler(object):
         for (ii, chain) in enumerate(self.chains):
             chain.set_start({p: positions[p][ii] for p in positions})
 
-    def clear(self):
-        """Clears all of the chains."""
-        for chain in self.chains:
-            chain.clear()
-
-    def run(self, niterations):
-        """Evolves all of the chains by niterations.
-
-        Parameters
-        ----------
-        niterations : int
-            The number of iterations to evolve the chains for.
-        """
-        args = zip([niterations]*len(self.chains), self.chains)
-        self.chains = self.map(_evolve_chain, args)
-
-    def concatenate_chains(self, attr, item=None):
-        """Concatenates the given attribute over all of the chains."""
-        if item is None:
-            getter = lambda x: getattr(x, attr)
-        else:
-            getter = lambda x: getattr(x, attr)[item]
-        return numpy.stack(map(getter, self.chains), axis=0)
-
     @property
     def start_position(self):
         """The start position of the chains.
@@ -127,10 +104,51 @@ class Sampler(object):
             Dictionary mapping parameters to arrays with shape ``nchains``
             giving the starting position of each chain.
         """
-        #return {p: numpy.array([c.start_position[p] for c in self.chains])
-        #        for p in self.parameters}
         return {p: self.concatenate_chains('start_position', p)
                 for p in self.parameters}
+
+    def run(self, niterations):
+        """Evolves all of the chains by niterations.
+
+        Parameters
+        ----------
+        niterations : int
+            The number of iterations to evolve the chains for.
+        """
+        # extend the scratch space for the chains
+        for c in self.chains:
+            c.scratchlen += max(niterations - (c.scratchlen - len(c)), 0)
+        # construct arguments for passing to the pool
+        args = zip([niterations]*len(self.chains), self.chains)
+        self.chains = self.map(_evolve_chain, args)
+
+    @property
+    def niterations(self):
+        """The number of iterations the chains have been run for.
+        """
+        # all of the chains should be at the same iteration, so just use the
+        # first one
+        return self.chains[0].iteration
+
+    def clear(self):
+        """Clears all of the chains."""
+        for chain in self.chains:
+            chain.clear()
+
+    @property
+    def lastclear(self):
+        """The iteration that the last clear occurred at."""
+        # all of the chains should of been cleared at the same time, so just
+        # use the first one
+        return self.chains[0].lastclear
+
+    def concatenate_chains(self, attr, item=None):
+        """Concatenates the given attribute over all of the chains."""
+        if item is None:
+            getter = lambda x: getattr(x, attr)
+        else:
+            getter = lambda x: getattr(x, attr)[item]
+        return numpy.stack(map(getter, self.chains), axis=0)
 
     @property
     def positions(self):

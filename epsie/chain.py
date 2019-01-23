@@ -34,7 +34,7 @@ class ChainData(object):
             dtypes = {}
         self.set_dtype(**dtypes)
         if initial_len is not None:
-            self.extend(initial_len)
+            self.set_len(initial_len)
 
     @staticmethod
     def a2d(array):
@@ -95,6 +95,18 @@ class ChainData(object):
             self._data = new
         else:
             self._data = numpy.append(self._data, new)
+
+    def set_len(self, n):
+        """Sets the data length to ``n``.
+
+        If the data length is already > ``n``, a ``ValueError`` is raised.
+        """
+        lself = len(self)
+        if lself < n:
+            self.extend(n - lself)
+        else:
+            raise ValueError("current length ({}) is already greater than {}"
+                             .format(lself, n))
 
     def clear(self, newlen=None):
         """Clears the memory.
@@ -185,14 +197,12 @@ class Chain(object):
         Use the given basic random number generator (BRNG) for generating
         random variates. If an int or None is provided, a BRNG will be
         created instead using ``brng`` as a seed.
-    scratch_len : int, optional
-        Set the length of memory to use for scratch space.
     chain_id : int, optional
         An interger identifying which chain this is. Optional; if not provided,
         the ``chain_id`` attribute will just be set to None.
     """
     def __init__(self, parameters, model, proposals, brng=None,
-                 scratch_len=None, chain_id=None):
+                 chain_id=None):
         self.parameters = parameters
         self.model = model
         # combine the proposals into a joint proposal
@@ -200,17 +210,67 @@ class Chain(object):
         self.chain_id = chain_id
         self._iteration = 0
         self._lastclear = 0
-        self.scratch_len = scratch_len
-        self._positions = ChainData(parameters, initial_len=scratch_len)
-        self._stats = ChainData(['logl', 'logp'], initial_len=scratch_len)
-        self._acceptance_ratios = ChainData(['ar'],
-                                            initial_len=scratch_len)
+        self._scratchlen = 0
+        self._positions = ChainData(parameters)
+        self._stats = ChainData(['logl', 'logp'])
+        self._acceptance_ratios = ChainData(['ar'])
         self._blobs = None
         self._hasblobs = False
         self._start = None
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
+
+    def __len__(self):
+        return self._iteration - self._lastclear
+
+    @property
+    def iteration(self):
+        return self._iteration
+
+    @property
+    def lastclear(self):
+        """Returns the iteration of the last time the chain memory was cleared.
+        """
+        return self._lastclear
+
+    @property
+    def scratchlen(self):
+        """The length of the scratch space used."""
+        return self._scratchlen
+
+    @scratchlen.setter
+    def scratchlen(self, n):
+        """Set the scratch length to the given value.
+
+        This will immediately increase the scratch length to ``n``. If the
+        chain is already longer than ``n``, this will have no immediate impact.
+        However, the next time ``clear`` is called, the scratch length will
+        be reset to ``n``.
+
+        Parameters
+        ----------
+        n : int
+            The length to set.
+        """
+        self._scratchlen = n
+        try:
+            self._positions.set_len(n)
+        except ValueError:
+            pass
+        try:
+            self._stats.set_len(n)
+        except ValueError:
+            pass
+        try:
+            self._acceptance_ratios.set_len(n)
+        except ValueError:
+            pass
+        if self.hasblobs:
+            try:
+                self._blobs.set_len(n)
+            except ValueError:
+                pass
 
     def set_start(self, position):
         """Sets the starting position.
@@ -246,19 +306,6 @@ class Chain(object):
         self._logp0 = logp
         self._logl0 = logl
         self._blob0 = blob
-
-    def __len__(self):
-        return self._iteration - self._lastclear
-
-    @property
-    def iteration(self):
-        return self._iteration
-
-    @property
-    def lastclear(self):
-        """Returns the iteration of the last time the chain memory was cleared.
-        """
-        return self._lastclear
 
     @property
     def start_position(self):
@@ -299,17 +346,6 @@ class Chain(object):
     def hasblobs(self):
         return self._hasblobs
 
-    def __getitem__(self, index):
-        """Returns all of the chain data at the requested index."""
-        index = (-1)**(index < 0) * (index % len(self))
-        out = {'positions': self._positions[index],
-               'stats': self._stats[index],
-               'acceptance_ratios': self._acceptance_ratios[index]['ar']
-               }
-        if self._hasblobs:
-            out['blobs'] = self._blobs[index]
-        return out
-
     @property
     def current_position(self):
         if len(self) == 0:
@@ -345,19 +381,30 @@ class Chain(object):
         if self._iteration > 0:
             # save position then clear
             self._start = self.current_position.copy()
-            self._positions.clear(self.scratch_len)
+            self._positions.clear(self.scratchlen)
             # save stats then clear
             self._logp0 = self.current_stats['logp']
             self._logl0 = self.current_stats['logl']
-            self._stats.clear(self.scratch_len)
+            self._stats.clear(self.scratchlen)
             # clear acceptance ratios
-            self._acceptance_ratios.clear(self.scratch_len)
+            self._acceptance_ratios.clear(self.scratchlen)
             # save blobs then clear
             if self._hasblobs:
-                self._blob0 = self.current_blob.copy(self.scratch_len)
-                self._blobs.clear(self.scratch_len)
+                self._blob0 = self.current_blob.copy(self.scratchlen)
+                self._blobs.clear(self.scratchlen)
         self._lastclear = self._iteration
         return self
+
+    def __getitem__(self, index):
+        """Returns all of the chain data at the requested index."""
+        index = (-1)**(index < 0) * (index % len(self))
+        out = {'positions': self._positions[index],
+               'stats': self._stats[index],
+               'acceptance_ratios': self._acceptance_ratios[index]['ar']
+               }
+        if self._hasblobs:
+            out['blobs'] = self._blobs[index]
+        return out
 
     @property
     def brng(self):
