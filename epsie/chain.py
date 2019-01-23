@@ -23,149 +23,6 @@ from scipy.stats import uniform as randuniform
 from .proposals import JointProposal
 
 
-class ChainData(object):
-    """Provides easy IO for adding and reading data from chains.
-    """
-
-    def __init__(self, parameters, dtypes=None, initial_len=None):
-        self.parameters = tuple(parameters)
-        self._data = None
-        if dtypes is None:
-            dtypes = {}
-        self.set_dtype(**dtypes)
-        if initial_len is not None:
-            self.set_len(initial_len)
-
-    @staticmethod
-    def a2d(array):
-        """Converts a structured array into a dictionary."""
-        fields = array.dtype.names  # raises an AttributeError if array is None
-        if fields is None:
-            # not a structred array, just return
-            return array
-        return {f: array[f] for f in fields}
-
-    @property
-    def data(self):
-        try:
-            return self.a2d(self._data)
-        except AttributeError as e:
-            if self._data is None:
-                return None
-            else:
-                raise AttributeError(e)
-
-    def set_dtype(self, **dtypes):
-        """Sets the data types to use for the parameters.
-
-        If ``data`` is not currently None, the data will be cast to the new
-        data types.
-
-        Parameters
-        ----------
-        \**dtypes :
-            The keyword arguments should map parameter names to types. Any
-            parameters not specified will default to ``float``. A
-            ``ValueError`` will be raised if any parameters are given that are
-            not in the ``parameters`` attribute.
-        """
-        # fill in any missing parameters
-        dtypes.update({p: float for p in self.parameters if p not in dtypes})
-        dtype = numpy.dtype([(p, dtypes.pop(p)) for p in self.parameters])
-        # make sure there were no unrecognized parameters
-        if dtypes:
-            raise ValueError("unrecognized parameter(s) {}"
-                             .format(', '.join(dtypes.keys())))
-        self.dtype = dtype
-        # cast to new dtype if data already exists
-        if self._data is not None:
-            self._data = self._data.astype(dtype)
-
-    def __len__(self):
-        if self._data is None:
-            return 0
-        else:
-            return self._data.size
-
-    def extend(self, n):
-        """Extends scratch space by n items.
-        """
-        new = numpy.zeros(n, dtype=self.dtype)
-        if self._data is None:
-            self._data = new
-        else:
-            self._data = numpy.append(self._data, new)
-
-    def set_len(self, n):
-        """Sets the data length to ``n``.
-
-        If the data length is already > ``n``, a ``ValueError`` is raised.
-        """
-        lself = len(self)
-        if lself < n:
-            self.extend(n - lself)
-        else:
-            raise ValueError("current length ({}) is already greater than {}"
-                             .format(lself, n))
-
-    def clear(self, newlen=None):
-        """Clears the memory.
-        
-        Parameters
-        ----------
-        newlen : int, optional
-            If provided, will create new scratch space with the given length.
-        """
-        self._data = None
-        if newlen is None:
-            newlen = 0
-        self.extend(newlen)
-
-    def __repr__(self):
-        return repr(self.data)
-
-    def __getitem__(self, index):
-        return self.a2d(self._data[index])
-
-    def __setitem__(self, index, value):
-        # try to get the element to set; if it fails, then try extending the
-        # data by the amount needed
-        try:
-            elem = self._data[index]
-        except (IndexError, TypeError):  # get TypeError if _data is None
-            self.extend(index + 1 - len(self))
-            elem = self._data[index]
-        # if value is a dictionary and index is not a string, then we're
-        # setting values in the array by dictionary
-        if isinstance(value, dict) and not isinstance(index, (str, unicode)):
-            for p in value:
-                elem[p] = value[p]
-        # otherwise, just fall back to using the structred array's setitem
-        else:
-            self._data[index] = value
-
-
-def detect_dtypes(data):
-    """Convenience function to detect the dtype of a dictionary of data.
-
-    Parameters
-    ----------
-    data : dict
-        Dictionary mapping parameter names to some (arbitrary) values.
-        The values may be either arrays or atomic data. If the former, the
-        dtype will be taken from the array's dtype.
-
-    Returns
-    -------
-    dict :
-        Dictionary mapping the parameter names to types.
-    """
-    return {
-        p: val.dtype if isinstance(val, numpy.ndarray) else type(val)
-        for p,val in data.items()}
-
-
-
 class Chain(object):
     """A Markov chain.
 
@@ -285,7 +142,7 @@ class Chain(object):
         """
         self._start = position.copy()
         # use start position to determine the dtype for positions
-        self._positions.set_dtype(**detect_dtypes(position))
+        self._positions.dtypes = detect_dtypes(position)
         # evaluate logl, p at this point
         r = self.model(**position)
         try:
@@ -298,8 +155,7 @@ class Chain(object):
         if self._hasblobs:
             if not isinstance(blob, dict):
                 raise TypeError("model must return blob data as a dictionary")
-            self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
-                                    initial_len=self.scratch_len)
+            self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob))
         # check that we're not starting outside of the prior
         if logp == -numpy.inf:
             raise ValueError("starting position is outside of the prior!")
@@ -456,7 +312,7 @@ class Chain(object):
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
         self._start = state['current_position']
-        self._positions.set_dtype(**detect_dtypes(self._start))
+        self._positions.dtypes = detect_dtypes(self._start)
         self._logl0 = state['current_stats']['logl']
         self._logp0 = state['current_stats']['logp']
         self._blob0 = state['current_blob']
@@ -512,3 +368,191 @@ class Chain(object):
             self._blobs[ii] = blob
         self._iteration += 1
         return self
+
+
+class ChainData(object):
+    """Handles reading and adding data to a chain.
+
+    When initialized, a list of parameter names must be provided for which the
+    data will be stored. Items may then be added by giving a dictionary mapping
+    parameter names to their values. See the Examples below. If the index given
+    where the new data should be added is larger then the length of the
+    instance's current memory, it will automatically be extended by the amount
+    needed. Scratch space may be allocated ahead of time by using the
+    ``extend`` method.
+
+    Data can be retrieved using the ``.data`` attribute, which will return the
+    data as a dictionary mapping parameter names to numpy arrays.
+
+    Parameters
+    ----------
+    parameters : list or tuple of str
+        The names of the parameters to store data for.
+    dtypes : dict, optional
+        Dictionary mapping parameter names to types. Will default to using
+        ``float`` for any parameters that are not provided.
+    initial_len : int, optional
+        Set the length of the data arrays to the provided value. If None
+        provided, the underlying data array will be initialied to ``None``.
+
+    Attributes
+    ----------
+    parameters : tuple
+        The names of the parameters that were given.
+    dtypes : dict
+        The data type used for each of the parameters.
+    data
+    """
+
+    def __init__(self, parameters, dtypes=None, initial_len=None):
+        self.parameters = tuple(parameters)
+        self._data = None
+        if dtypes is None:
+            dtypes = {}
+        self.dtypes = dtypes  # will call the dtypes.setter, below
+        if initial_len is not None:
+            self.set_len(initial_len)
+
+    @staticmethod
+    def a2d(array):
+        """Converts a structured array into a dictionary."""
+        fields = array.dtype.names  # raises an AttributeError if array is None
+        if fields is None:
+            # not a structred array, just return
+            return array
+        return {f: array[f] for f in fields}
+
+    @property
+    def data(self):
+        """Returns the saved data as a dictionary of numpy arrays.
+        
+        If no data has been added yet, and an initial length was not specified,
+        returns ``None``.
+        """
+        try:
+            return self.a2d(self._data)
+        except AttributeError as e:
+            if self._data is None:
+                return None
+            else:
+                raise AttributeError(e)
+
+    @property
+    def dtypes(self):
+        """Dictionary mapping parameter names to their data types."""
+        return self._dtypes
+
+    @dtypes.setter
+    def dtypes(self, dtypes):
+        """Sets/updates the dtypes to the given dictionary.
+
+        If data has already been saved for a parameter, an attempt will be
+        made to cast the data to the new data type.
+
+        A ``ValueError`` will be raised if a parameter name is in the
+        dictionary that was not provided upon initialization.
+
+        Parameters
+        ----------
+        dtypes : dict
+            Dictionary mapping parameter names to data types. The data type
+            of any parameters not provided will remain their current/default
+            (float) type.
+        """
+        unrecognized = [p for p in dtypes if p not in self.parameters]
+        if any(unrecognized):
+            raise ValueError("unrecognized parameter(s) {}"
+                             .format(', '.join(unrecognized))
+        # store it
+        self._dtypes.update(dtypes)
+        # fill in any missing parameters
+        self._dtypes.update({p: float for p in self.parameters
+                             if p not in self._dtypes})
+        # create the numpy verion
+        self._npdtype = numpy.dtype([(p, self.dtypes[p])
+                                     for p in self.parameters])
+        # cast to new dtype if data already exists
+        if self._data is not None:
+            self._data = self._data.astype(self._npdtype)
+
+    def __len__(self):
+        if self._data is None:
+            return 0
+        else:
+            return self._data.size
+
+    def extend(self, n):
+        """Extends scratch space by n items.
+        """
+        new = numpy.zeros(n, dtype=self._npdtype)
+        if self._data is None:
+            self._data = new
+        else:
+            self._data = numpy.append(self._data, new)
+
+    def set_len(self, n):
+        """Sets the data length to ``n``.
+
+        If the data length is already > ``n``, a ``ValueError`` is raised.
+        """
+        lself = len(self)
+        if lself < n:
+            self.extend(n - lself)
+        else:
+            raise ValueError("current length ({}) is already greater than {}"
+                             .format(lself, n))
+
+    def clear(self, newlen=None):
+        """Clears the memory.
+        
+        Parameters
+        ----------
+        newlen : int, optional
+            If provided, will create new scratch space with the given length.
+        """
+        self._data = None
+        if newlen is None:
+            newlen = 0
+        self.extend(newlen)
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def __getitem__(self, index):
+        return self.a2d(self._data[index])
+
+    def __setitem__(self, index, value):
+        # try to get the element to set; if it fails, then try extending the
+        # data by the amount needed
+        try:
+            elem = self._data[index]
+        except (IndexError, TypeError):  # get TypeError if _data is None
+            self.extend(index + 1 - len(self))
+            elem = self._data[index]
+        # if value is a dictionary and index is not a string, then we're
+        # setting values in the array by dictionary
+        if isinstance(value, dict) and not isinstance(index, (str, unicode)):
+            for p in value:
+                elem[p] = value[p]
+        # otherwise, just fall back to using the structred array's setitem
+        else:
+            self._data[index] = value
+
+
+def detect_dtypes(data):
+    """Convenience function to detect the dtype of a dictionary of data.
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary mapping parameter names to some (arbitrary) values.
+        The values may be either arrays or atomic data. If the former, the
+        dtype will be taken from the array's dtype.
+
+    Returns
+    -------
+    dict :
+        Dictionary mapping the parameter names to types.
+    """
+    return {p: val.dtype if isinstance(val, numpy.ndarray) else type(val)
+            for p,val in data.items()}
