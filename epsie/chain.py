@@ -105,8 +105,9 @@ class ChainData(object):
             If provided, will create new scratch space with the given length.
         """
         self._data = None
-        if newlen is not None:
-            self.extend(newlen)
+        if newlen is None:
+            newlen = 0
+        self.extend(newlen)
 
     def __repr__(self):
         return repr(self.data)
@@ -335,7 +336,6 @@ class Chain(object):
             blob = self._blobs[len(self)-1]
         return blob
 
-    @property
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
         current position.
