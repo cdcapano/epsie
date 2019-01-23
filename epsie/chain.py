@@ -409,7 +409,7 @@ class Chain(object):
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
         self._start = state['current_position']
-        self.positions.set_dtype(**detect_dtypes(self._start))
+        self._positions.set_dtype(**detect_dtypes(self._start))
         self._logl0 = state['current_stats']['logl']
         self._logp0 = state['current_stats']['logp']
         self._blob0 = state['current_blob']

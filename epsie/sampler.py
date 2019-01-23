@@ -24,13 +24,6 @@ from .chain import Chain
 from .proposals import Normal
 
 
-def _run(niterations_chain):
-    """Private method for evolving the chains."""
-    niterations, chain = niterations_chain
-    for _ in range(niterations):
-        chain.step()
-    return chain
-
 class Sampler(object):
     """
     Parameters
@@ -112,15 +105,7 @@ class Sampler(object):
             The number of iterations to evolve the chains for.
         """
         args = zip([niterations]*len(self.chains), self.chains)
-        self.chains = self.map(_run, args)
-            #lambda x: self._run(niterations, x), self.chains)
-
-    @staticmethod
-    def _run(niterations, chain):
-        """Private method for evolving the chains."""
-        for _ in range(niterations):
-            chain.step()
-        return chain
+        self.chains = self.map(_evolve_chain, args)
 
     def concatenate_chains(self, attr, item=None):
         """Concatenates the given attribute over all of the chains."""
@@ -154,9 +139,29 @@ class Sampler(object):
                 for p in self.parameters}
 
     @property
+    def current_positions(self):
+        """The current position of the chains.
+
+        This will default to the start position if the chains haven't been
+        run yet.
+        """
+        return {p: self.concatenate_chains('current_position', p)
+                for p in self.parameters}
+
+    @property
     def stats(self):
         """The history of stats from all of the chains."""
         return {s: self.concatenate_chains('stats', s)
+                for s in ['logl', 'logp']}
+
+    @property
+    def current_stats(self):
+        """The current stats of the chains.
+
+        This will default to the stats of the start positions if the chains
+        haven't been run yet.
+        """
+        return {s: self.concatenate_chains('current_stats', s)
                 for s in ['logl', 'logp']}
 
     @property
@@ -170,7 +175,59 @@ class Sampler(object):
         return blobs
 
     @property
+    def current_blobs(self):
+        """The current blob data.
+
+        This will default to the blob data of the start positions if the
+        chains haven't been run yet.
+        """
+        if self.chains[0].hasblobs:
+            blobs = {b: self.concatenate_chains('current_blob', b)
+                     for b in self.chains[0].blob0}
+        else:
+            blobs = None
+        return blobs
+
+    @property
     def acceptance_ratios(self):
         """The history of all acceptance ratios from all of the chains."""
         return self.concatenate_chains('acceptance_ratios')
 
+    @property
+    def state(self):
+        """The state of all of the chains.
+
+        Returns a dictionary mapping chain ids to their states.
+        """
+        return {chain.chain_id: chain.state for chain in self.chains}
+
+    def set_state(self, state):
+        """Sets the state of the all of the chains.
+
+        Parameters
+        ----------
+        state : dict
+            Dictionary mapping chain id to the state to set the chain to. See
+            :py:func:`chain.Chain.set_state` for details.
+        """
+        for ii, chain in enumerate(self.chains):
+            chain.set_state(state[ii])
+
+
+def _evolve_chain(niterations_chain):
+    """Evolves a chain for some number of iterations.
+
+    This is used by ``Sampler.run`` to evolve a collection of chains in a
+    parallel environment. This is not a staticmethod of ``Sampler`` because
+    such functions need to be picklable when using python's multiprocessing
+    pool.
+
+    Parameters
+    ----------
+    niterations_chain : tuple of int, chain
+        The number of iterations to run on the given chain.
+    """
+    niterations, chain = niterations_chain
+    for _ in range(niterations):
+        chain.step()
+    return chain
