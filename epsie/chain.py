@@ -50,6 +50,10 @@ class Chain(object):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
+    beta : float, optional
+        The inverse temperature of the chain. Must be in range 0 (= infinite
+        temperature; i.e., only sample the prior) <= beta <= 1 (= coldest
+        temperate; i.e., sample the standard posterior). Default is 1.
     brng : :py:class:`randomgen.PGC64` instance, optional
         Use the given basic random number generator (BRNG) for generating
         random variates. If an int or None is provided, a BRNG will be
@@ -58,12 +62,15 @@ class Chain(object):
         An interger identifying which chain this is. Optional; if not provided,
         the ``chain_id`` attribute will just be set to None.
     """
-    def __init__(self, parameters, model, proposals, brng=None,
+    def __init__(self, parameters, model, proposals, beta=1., brng=None,
                  chain_id=None):
         self.parameters = parameters
         self.model = model
         # combine the proposals into a joint proposal
         self.proposal_dist = JointProposal(*proposals, brng=brng)
+        # store the temp
+        self._beta = None
+        self.beta = beta
         self.chain_id = chain_id
         self._iteration = 0
         self._lastclear = 0
@@ -82,7 +89,25 @@ class Chain(object):
         return self._iteration - self._lastclear
 
     @property
+    def _beta(self):
+        """Returns the beta (=1 / temperature) of the chain."""
+        return self._beta
+
+    @beta.setter
+    def beta(self, beta):
+        """Checks that beta is in the allowed range before setting."""
+        if not 0 <= beta <= 1:
+            raise ValueError("beta must be in range [0, 1]")
+        self._beta = beta
+
+    @property
+    def temperature(self):
+        """Returns the temperature (= 1 / beta) of the chain."""
+        return 1./self._beta
+
+    @property
     def iteration(self):
+        """The number of times the chain has been stepped."""
         return self._iteration
 
     @property
@@ -344,7 +369,8 @@ class Chain(object):
             # force a reject
             ar = 0.
         else:
-            logar = logp + logl - current_logl - current_logp
+            logar = logp + logl**self.beta \
+                    - current_logl**self.beta - current_logp
             if not self.proposal_dist.symmetric:
                 logar += self.proposal_dist.logpdf(current_pos, proposal) - \
                          self.proposal_dist.logpdf(proposal, current_pos)
