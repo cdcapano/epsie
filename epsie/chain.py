@@ -50,10 +50,14 @@ class Chain(object):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
-    beta : float, optional
-        The inverse temperature of the chain. Must be in range 0 (= infinite
+    betas : array of floats, optional
+        Array of inverse temperatures. Each beta must be in range 0 (= infinite
         temperature; i.e., only sample the prior) <= beta <= 1 (= coldest
-        temperate; i.e., sample the standard posterior). Default is 1.
+        temperate; i.e., sample the standard posterior). Default is a single
+        beta = 1.
+    swap_interval : int, optional
+        For a parallel tempered chain, how often to calculate temperature
+        swaps. Default is 1 (= swap on every iteration).
     brng : :py:class:`randomgen.PGC64` instance, optional
         Use the given basic random number generator (BRNG) for generating
         random variates. If an int or None is provided, a BRNG will be
@@ -62,22 +66,33 @@ class Chain(object):
         An interger identifying which chain this is. Optional; if not provided,
         the ``chain_id`` attribute will just be set to None.
     """
-    def __init__(self, parameters, model, proposals, beta=1., brng=None,
-                 chain_id=None):
+    def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
+                 brng=None, chain_id=None):
         self.parameters = parameters
         self.model = model
         # combine the proposals into a joint proposal
         self.proposal_dist = JointProposal(*proposals, brng=brng)
         # store the temp
-        self._beta = None
-        self.beta = beta
+        self._betas = None
+        self.betas = betas
         self.chain_id = chain_id
         self._iteration = 0
         self._lastclear = 0
         self._scratchlen = 0
-        self._positions = ChainData(parameters)
-        self._stats = ChainData(['logl', 'logp'])
-        self._acceptance_ratios = ChainData(['ar'])
+        self._positions = ChainData(parameters, ntemps=self.ntemps)
+        self._stats = ChainData(['logl', 'logp'], ntemps=self.ntemps)
+        self._acceptance_ratios = ChainData(['ar'], ntemps=self.ntemps)
+        # for parallel tempering, store an array giving the acceptance ratio
+        # between temps and whether or not they swapped
+        self.swap_interval = swap_interval
+        self._temperature_swaps = None
+        if self.ntemps > 1:
+            # we pass ntemps=ntemps-1 here because the acceptance ratio
+            # is calculated between adjacent temps
+            self._temperature_swaps = ChainData(
+                ['acceptance_ratio', 'swapped'],
+                dtype={'accpetance_ratio': float, 'swapped': bool},
+                ntemps=self.ntemps-1)
         self._blobs = None
         self._hasblobs = False
         self._start = None
@@ -89,23 +104,6 @@ class Chain(object):
         return self._iteration - self._lastclear
 
     @property
-    def _beta(self):
-        """Returns the beta (=1 / temperature) of the chain."""
-        return self._beta
-
-    @beta.setter
-    def beta(self, beta):
-        """Checks that beta is in the allowed range before setting."""
-        if not 0 <= beta <= 1:
-            raise ValueError("beta must be in range [0, 1]")
-        self._beta = beta
-
-    @property
-    def temperature(self):
-        """Returns the temperature (= 1 / beta) of the chain."""
-        return 1./self._beta
-
-    @property
     def iteration(self):
         """The number of times the chain has been stepped."""
         return self._iteration
@@ -115,6 +113,42 @@ class Chain(object):
         """Returns the iteration of the last time the chain memory was cleared.
         """
         return self._lastclear
+
+    @property
+    def betas(self):
+        """Returns the betas (=1 / temperatures) used by the chain."""
+        return self._betas
+
+    @betas.setter
+    def betas(self, betas):
+        """Checks that the betas are in the allowed range before setting."""
+        if isinstance(betas, (float, int)):
+            # only single temperature; turn into list so things below won't
+            # break
+            betas = [betas]
+        if not isinstance(betas, numpy.ndarray):
+            # betas is probably a list or tuple; convert to array so we can use
+            # numpy functions
+            betas = numpy.array(betas)
+        if not (betas == 1.).any():
+            logging.warn("No betas = 1 found. This means that the normal "
+                         "posterior (i.e., likelihood * prior) will not be "
+                         "sampled by the chain.")
+        # check that all betas are in [0, 1]
+        if not ((0 <= betas) & (betas <= 1)).all():
+            raise ValueError("all betas must be in range [0, 1]")
+        # sort from coldest to hottest and store
+        self._betas = numpy.sort(betas)[::-1]  # note: this copies the betas
+
+    @property
+    def temperatures(self):
+        """Returns the temperatures (= 1 / betas) used by the chain."""
+        return 1./self._betas
+
+    @property
+    def ntemps(self):
+        """Returns the number of temperatures used by the chain."""
+        return len(self.betas)
 
     @property
     def scratchlen(self):
@@ -148,6 +182,11 @@ class Chain(object):
             self._acceptance_ratios.set_len(n)
         except ValueError:
             pass
+        if self.ntemps > 1:
+            try:
+                self._temperature_swaps.set_len(n)
+            except ValueError:
+                pass
         if self.hasblobs:
             try:
                 self._blobs.set_len(n)
@@ -163,13 +202,23 @@ class Chain(object):
         Parameters
         ----------
         position : dict
-            Dictionary mapping parameters to single values.
+            Dictionary mapping parameters to values. If ntemps > 1, values
+            should be numpy arrays with length = ntemps. Otherwise, these
+            should be atomic data typees..
         """
         self._start = position.copy()
+        if self.ntemps > 1:
+            # copy the arrays
+            position = {p: arr.copy() for (p, arr) in position.items()}
+            # use the first temperature to determine blobs
+            posit0 = {p: arr[0] for arr in position.items()}
+        else:
+            # copy to new dictionary
+            posit0 = position = position.copy()
         # use start position to determine the dtype for positions
-        self._positions.dtypes = detect_dtypes(position)
+        self._positions.dtypes = detect_dtypes(posit0)
         # evaluate logl, p at this point
-        r = self.model(**position)
+        r = self.model(**posit0)
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -180,13 +229,40 @@ class Chain(object):
         if self._hasblobs:
             if not isinstance(blob, dict):
                 raise TypeError("model must return blob data as a dictionary")
-            self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob))
+            self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
+                                    ntemps=self.ntemps)
+        # store
+        if self.ntemps > 1:
+            logl0 = numpy.zeros(self.ntemps, float)
+            logp0 = numpy.zeros(self.ntemps, float)
+            logl0[0] = logl
+            logp0[0] = logp
+            if self._hasblobs:
+                blob0 = numpy.zeros(self.ntemps, dtype=self._blobs._npdtype)
+                blob0[0] = (blob[p] for p in blob0.dtype.names)
+            # get the rest of the temperatures
+            for tk in range(1, self.ntemps):
+                r = self.model(**{p: position[p][tk] for p in position})
+                if self._hasblobs:
+                    logl, logp, blob = r
+                    blob0[tk] = blob
+                else:
+                    logl, logp = r   
+                logp0[tk] = logp
+                logl0[tk] = logl
+        else:
+            logl0 = logl
+            logp0 = logp
+            blob0 = blob
+            # for the check below
+            logp = numpy.array([logp])
         # check that we're not starting outside of the prior
-        if logp == -numpy.inf:
+        if (logp == -numpy.inf).any():
             raise ValueError("starting position is outside of the prior!")
-        self._logp0 = logp
-        self._logl0 = logl
-        self._blob0 = blob
+        # store
+        self._logp0 = logp0
+        self._logl0 = logl0
+        self._blob0 = blob0
 
     @property
     def start_position(self):
@@ -205,6 +281,10 @@ class Chain(object):
         return self._logp0
 
     @property
+    def blob0(self):
+        return self._blob0
+
+    @property
     def positions(self):
         return self._positions[:len(self)]
 
@@ -215,6 +295,10 @@ class Chain(object):
     @property
     def acceptance_ratios(self):
         return self._acceptance_ratios[:len(self)]['ar']
+
+    @property
+    def temperature_swaps(self):
+        return self._temperature_swaps[:len(self)]
 
     @property
     def blobs(self):
@@ -285,6 +369,8 @@ class Chain(object):
                }
         if self._hasblobs:
             out['blobs'] = self._blobs[index]
+        if self.ntemps > 1:
+            out['temperature_swaps'] = self._temperature_swaps[index]
         return out
 
     @property
@@ -354,6 +440,17 @@ class Chain(object):
         # in case the any of the proposals need information about the history
         # of the chain:
         self.proposal_dist.update(self)
+        # now step
+        current_stats = self.current_stats
+        current_blob = self.current_blob
+        if self.ntemps == 1:
+            pos, stats, blob, ar = self._singletemp_step(
+                current_pos, current_stats, current_blob, self.betas[0])
+        else:
+            # cycle over the temps, stepping each
+            for tk in range(self.ntemps):
+                positk = {p: current_position[tk]}
+            
         # now call a proposal
         proposal = self.proposal_dist.jump(current_pos)
         r = self.model(**proposal)
@@ -395,6 +492,37 @@ class Chain(object):
         self._iteration += 1
         return self
 
+    def _singletemp_step(self, current_pos, current_stats, current_blob, beta):
+        proposal = self.proposal_dist.jump(current_pos)
+        r = self.model(**proposal)
+        if self._hasblobs:
+            logl, logp, blob = r
+        else:
+            logl, logp = r
+        # evaluate
+        current_logl = current_stats['logl']
+        current_logp = current_stats['logp']
+        if logp == -numpy.inf:
+            # force a reject
+            ar = 0.
+        else:
+            logar = logp + logl**beta \
+                    - current_logl**beta - current_logp
+            if not self.proposal_dist.symmetric:
+                logar += self.proposal_dist.logpdf(current_pos, proposal) - \
+                         self.proposal_dist.logpdf(proposal, current_pos)
+            ar = numpy.exp(logar)
+        u = self.random_generator.uniform()
+        if u <= ar:
+            # accept
+            pos = proposal
+            stats = {'logl': logl, 'logp': logp}
+        else:
+            # reject
+            pos = current_pos
+            stats = current_stats
+            blob = self.current_blob
+        return pos, stats, blob, ar
 
 class ChainData(object):
     """Handles reading and adding data to a chain.
@@ -410,6 +538,21 @@ class ChainData(object):
     Data can be retrieved using the ``.data`` attribute, which will return the
     data as a dictionary mapping parameter names to numpy arrays.
 
+    Space for multiple temperatures may be specified by providing the
+    ``ntemps`` argument. In this case, the array will have shape
+    ``niterations x ntemps``.
+
+    .. note::
+
+        Note that the temperatures are the last index. This is because numpy is
+        row major. When stepping a chain, the collection of temperatures at a
+        given iteration are often accessed, to write data, and to do
+        temperature swaps. However, once the chain is complete, it is more
+        common to access all the iterations at once for a given temperature;
+        e.g., to calculate autocorrelation length. For this reason, it is
+        recommended that the chain data be transposed before doing other
+        operations and writing to disk.
+
     Parameters
     ----------
     parameters : list or tuple of str
@@ -417,6 +560,8 @@ class ChainData(object):
     dtypes : dict, optional
         Dictionary mapping parameter names to types. Will default to using
         ``float`` for any parameters that are not provided.
+    ntemps : int, optional
+        The number of temperatures used by the chain. Default is 1.
 
     Attributes
     ----------
@@ -473,13 +618,14 @@ class ChainData(object):
 
     """
 
-    def __init__(self, parameters, dtypes=None):
+    def __init__(self, parameters, dtypes=None, ntemps=1):
         self.parameters = tuple(parameters)
         self._data = None
         self._dtypes = {}
         if dtypes is None:
             dtypes = {}
         self.dtypes = dtypes  # will call the dtypes.setter, below
+        self.ntemps = ntemps
 
     @staticmethod
     def a2d(array):
@@ -488,7 +634,7 @@ class ChainData(object):
         if fields is None:
             # not a structred array, just return
             return array
-        return {f: array[f] for f in fields}
+        return {f: getatomic(array[f]) for f in fields}
 
     @property
     def data(self):
@@ -552,11 +698,16 @@ class ChainData(object):
     def extend(self, n):
         """Extends scratch space by n items.
         """
-        new = numpy.zeros(n, dtype=self._npdtype)
+        if self.ntemps == 1:
+            newshape = n
+        else:
+            newshape = (n, self.ntemps)
+        new = numpy.zeros(newshape, dtype=self._npdtype)
+
         if self._data is None:
             self._data = new
         else:
-            self._data = numpy.append(self._data, new)
+            self._data = numpy.append(self._data, new, axis=0)
 
     def set_len(self, n):
         """Sets the data length to ``n``.
@@ -624,3 +775,12 @@ def detect_dtypes(data):
     """
     return {p: val.dtype if isinstance(val, numpy.ndarray) else type(val)
             for p,val in data.items()}
+
+
+def getatomic(val):
+    """Checks if a given value is an array of length 1. If so, it returns
+    the value as its native python type.
+    """
+    if isinstance(val, numpy.ndarray) and val.size == 1:
+        val = val.item(0)
+    return val
