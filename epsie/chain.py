@@ -452,7 +452,8 @@ class Chain(object):
         for tk in range(self.ntemps):
             pos, stats, blob, ar = self._singletemp_step(
                 current_pos[..., tk], current_stats[..., tk],
-                current_blob[..., tk], self.betas[tk])
+                current_blob[..., tk] if self._hasblobs else None,
+                self.betas[tk])
             # save
             if self.ntemps > 1:
                 index = (ii, tk)
@@ -477,6 +478,7 @@ class Chain(object):
             logl, logp, blob = r
         else:
             logl, logp = r
+            blob = None
         # evaluate
         current_logl = current_stats['logl']
         current_logp = current_stats['logp']
