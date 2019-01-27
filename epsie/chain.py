@@ -87,11 +87,11 @@ class Chain(object):
         self.swap_interval = swap_interval
         self._temperature_swaps = None
         if self.ntemps > 1:
-            # we pass ntemps=ntemps-1 here because the acceptance ratio
-            # is calculated between adjacent temps
+            # we pass ntemps=ntemps-1 here because there will be ntemps-1
+            # acceptance ratios for ntemp levels
             self._temperature_swaps = ChainData(
-                ['acceptance_ratio', 'swapped'],
-                dtype={'accpetance_ratio': float, 'swapped': bool},
+                ['acceptance_ratio', 'swap_index'],
+                dtype={'accpetance_ratio': float, 'swap_index': int},
                 ntemps=self.ntemps-1)
         self._blobs = None
         self._hasblobs = False
@@ -206,19 +206,20 @@ class Chain(object):
             should be numpy arrays with length = ntemps. Otherwise, these
             should be atomic data typees..
         """
-        self._start = position.copy()
-        if self.ntemps > 1:
-            # copy the arrays
-            position = {p: arr.copy() for (p, arr) in position.items()}
-            # use the first temperature to determine blobs
-            posit0 = {p: arr[0] for arr in position.items()}
-        else:
-            # copy to new dictionary
-            posit0 = position = position.copy()
-        # use start position to determine the dtype for positions
-        self._positions.dtypes = detect_dtypes(posit0)
-        # evaluate logl, p at this point
-        r = self.model(**posit0)
+        # we'll store current positions as 1-iteration ChainData, since this
+        # makes it easy to deal with 1 or more temps
+        self._start = ChainData(self.parameters,
+                                dtypes=detect_dtypes(position),
+                                ntemps=self.ntemps)
+        # use detected dtypes to set the dtype of the full chain
+        self._positions.dtypes = self._start.dtypes
+        # note: if only a single value is given for each parameter, this will
+        # expand the values to the number of temps
+        self._start[0] = position
+        # Use the coldest temp to determine if have blobs
+        # start only has one iteration, so doing [..., 0] will work even
+        # if there is only a single temp
+        r = self.model(**self._start[..., 0])
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -229,79 +230,76 @@ class Chain(object):
         if self._hasblobs:
             if not isinstance(blob, dict):
                 raise TypeError("model must return blob data as a dictionary")
+            # create scratch for the chain of blobs and the inital blob
             self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
                                     ntemps=self.ntemps)
-        # store
-        if self.ntemps > 1:
-            logl0 = numpy.zeros(self.ntemps, float)
-            logp0 = numpy.zeros(self.ntemps, float)
-            logl0[0] = logl
-            logp0[0] = logp
-            if self._hasblobs:
-                blob0 = numpy.zeros(self.ntemps, dtype=self._blobs._npdtype)
-                blob0[0] = (blob[p] for p in blob0.dtype.names)
-            # get the rest of the temperatures
-            for tk in range(1, self.ntemps):
-                r = self.model(**{p: position[p][tk] for p in position})
-                if self._hasblobs:
-                    logl, logp, blob = r
-                    blob0[tk] = blob
-                else:
-                    logl, logp = r   
-                logp0[tk] = logp
-                logl0[tk] = logl
-        else:
-            logl0 = logl
-            logp0 = logp
-            blob0 = blob
-            # for the check below
-            logp = numpy.array([logp])
+            self._blob0 = ChainData(blob.keys(), dtypes=self._blobs.dtypes,
+                                    ntemps=self.ntemps)
+            self._blob0.extend(1)
+            self._blob0[..., 0] = blob
+        # Store the initial stats
+        self._stats0 = ChainData(['logl', 'logp'], ntemps=self.ntemps)
+        self._stats0.extend(1)
+        self._stats0[..., 0] = (logl, logp)
+        # Evaluate the rest of the temperatures
+        for tk in range(1, self.ntemps):
+            r = self.model(**self._start[0, tk])
+            if self.hasblobs:
+                logl, logp, blob = r
+                self._blob0[0, tk] = blob
+            else:
+                logl, logp = r
+            self._stats0[0, tk] = (logl, logp)
         # check that we're not starting outside of the prior
-        if (logp == -numpy.inf).any():
+        if numpy.array(self._stats0[0]['logp'] == -numpy.inf).any():
             raise ValueError("starting position is outside of the prior!")
-        # store
-        self._logp0 = logp0
-        self._logl0 = logl0
-        self._blob0 = blob0
 
     @property
     def start_position(self):
+        """The starting position.
+
+        Raises a ``ValueError`` if ``set_start`` has not been run yet.
+        """
         if self._start is None:
             raise ValueError("Starting position not set! Run set_start.")
         return self._start
 
     @property
-    def logl0(self):
-        """The log likelihood of the starting position."""
-        return self._logl0
-
-    @property
-    def logp0(self):
-        """The log prior of the starting position."""
-        return self._logp0
+    def stats0(self):
+        """The log likelihood and log prior of the starting position."""
+        return self._stats0
 
     @property
     def blob0(self):
+        """The blob data of the starting position."""
         return self._blob0
 
     @property
     def positions(self):
+        """The history of all of the positions."""
         return self._positions[:len(self)]
 
     @property
     def stats(self):
+        """The log likelihoods and log priors of the positions."""
         return self._stats[:len(self)]
 
     @property
     def acceptance_ratios(self):
+        """The history of all of the acceptance ratios."""
         return self._acceptance_ratios[:len(self)]['ar']
 
     @property
     def temperature_swaps(self):
+        """The history of all of the temperature swaps."""
         return self._temperature_swaps[:len(self)]
 
     @property
     def blobs(self):
+        """The history of all of the blob data.
+
+        If the model does not return blobs, this is just ``None``.
+        """
         blobs = self._blobs
         if blobs is not None:
             blobs = blobs[:len(self)]
@@ -309,10 +307,12 @@ class Chain(object):
 
     @property
     def hasblobs(self):
+        """Whether the model returns blobs."""
         return self._hasblobs
 
     @property
     def current_position(self):
+        """The current position of the chain."""
         if len(self) == 0:
             pos = self.start_position
         else:
@@ -321,14 +321,19 @@ class Chain(object):
 
     @property
     def current_stats(self):
+        """The log likelihood and log prior of the current position."""
         if len(self) == 0:
-            stats = {'logl': self._logl0, 'logp': self._logp0}
+            stats = self._stats0
         else:
             stats = self._stats[len(self)-1]
         return stats
 
     @property
     def current_blob(self):
+        """The blob data of the current position.
+
+        If the model does not return blobs, just returns ``None``.
+        """
         if not self._hasblobs:
             blob = None
         elif len(self) == 0:
@@ -345,17 +350,19 @@ class Chain(object):
         """
         if self._iteration > 0:
             # save position then clear
-            self._start = self.current_position.copy()
+            self._start[0] = self.current_position
             self._positions.clear(self.scratchlen)
             # save stats then clear
-            self._logp0 = self.current_stats['logp']
-            self._logl0 = self.current_stats['logl']
+            self._stats0[0] = self.current_stats
             self._stats.clear(self.scratchlen)
             # clear acceptance ratios
             self._acceptance_ratios.clear(self.scratchlen)
+            # clear temperature swaps
+            if self.ntemps > 1:
+                self._temperature_swaps.clear(self.scratchlen)
             # save blobs then clear
             if self._hasblobs:
-                self._blob0 = self.current_blob.copy(self.scratchlen)
+                self._blob0[0] = self.current_blob
                 self._blobs.clear(self.scratchlen)
         self._lastclear = self._iteration
         return self
@@ -367,10 +374,10 @@ class Chain(object):
                'stats': self._stats[index],
                'acceptance_ratios': self._acceptance_ratios[index]['ar']
                }
-        if self._hasblobs:
-            out['blobs'] = self._blobs[index]
         if self.ntemps > 1:
             out['temperature_swaps'] = self._temperature_swaps[index]
+        if self._hasblobs:
+            out['blobs'] = self._blobs[index]
         return out
 
     @property
@@ -424,8 +431,7 @@ class Chain(object):
         self._lastclear = state['iteration']
         self._start = state['current_position']
         self._positions.dtypes = detect_dtypes(self._start)
-        self._logl0 = state['current_stats']['logl']
-        self._logp0 = state['current_stats']['logp']
+        self._stats0 = state['current_stats']
         self._blob0 = state['current_blob']
         self._hasblobs = state['hasblobs']
         # set the proposals' states
@@ -434,65 +440,37 @@ class Chain(object):
 
     def step(self):
         """Evolves the chain by a single step."""
-        # get the current position; if this is the first step and set_start
-        # hasn't been run, this will raise a ValueError
-        current_pos = self.current_position
         # in case the any of the proposals need information about the history
         # of the chain:
         self.proposal_dist.update(self)
-        # now step
+        # get the current position; if this is the first step and set_start
+        # hasn't been run, this will raise a ValueError
+        current_pos = self.current_position
         current_stats = self.current_stats
         current_blob = self.current_blob
-        if self.ntemps == 1:
-            pos, stats, blob, ar = self._singletemp_step(
-                current_pos, current_stats, current_blob, self.betas[0])
-        else:
-            # cycle over the temps, stepping each
-            for tk in range(self.ntemps):
-                positk = {p: current_position[tk]}
-            
-        # now call a proposal
-        proposal = self.proposal_dist.jump(current_pos)
-        r = self.model(**proposal)
-        if self._hasblobs:
-            logl, logp, blob = r
-        else:
-            logl, logp = r
-        # evaluate
-        current_stats = self.current_stats
-        current_logl = current_stats['logl']
-        current_logp = current_stats['logp']
-        if logp == -numpy.inf:
-            # force a reject
-            ar = 0.
-        else:
-            logar = logp + logl**self.beta \
-                    - current_logl**self.beta - current_logp
-            if not self.proposal_dist.symmetric:
-                logar += self.proposal_dist.logpdf(current_pos, proposal) - \
-                         self.proposal_dist.logpdf(proposal, current_pos)
-            ar = numpy.exp(logar)
-        u = self.random_generator.uniform()
-        if u <= ar:
-            # accept
-            pos = proposal
-            stats = {'logl': logl, 'logp': logp}
-        else:
-            # reject
-            pos = current_pos
-            stats = current_stats
-            blob = self.current_blob
-        # save
         ii = len(self)
-        self._positions[ii] = pos
-        self._stats[ii] = stats
-        self._acceptance_ratios[ii] = ar
-        if self._hasblobs:
-            self._blobs[ii] = blob
+        for tk in range(self.ntemps):
+            pos, stats, blob, ar = self._singletemp_step(
+                current_pos[..., tk], current_stats[..., tk],
+                current_blob[..., tk], self.betas[tk])
+            # save
+            if self.ntemps > 1:
+                index = (ii, tk)
+            else:
+                index = ii
+            self._positions[index] = pos
+            self._stats[index] = stats
+            self._acceptance_ratios[index] = ar
+            if self._hasblobs:
+                self._blobs[index] = blob
+        # do temperature swaps
+        if self.ntemps > 1 and ii % self.swap_interval == 0:
+            self.swap_temperatures(ii)
         self._iteration += 1
         return self
 
     def _singletemp_step(self, current_pos, current_stats, current_blob, beta):
+        """Steps a single temperature."""
         proposal = self.proposal_dist.jump(current_pos)
         r = self.model(**proposal)
         if self._hasblobs:
@@ -521,8 +499,67 @@ class Chain(object):
             # reject
             pos = current_pos
             stats = current_stats
-            blob = self.current_blob
+            blob = current_blob
         return pos, stats, blob, ar
+
+    def swap_temperatures(self, ii):
+        """Computes acceptance ratio between temperatures and swaps them.
+
+        Parameters
+        ----------
+        ii : int
+            The iteration to do the swaps on.
+        """
+        # get values of all temps at current step
+        position = self._positions[ii, :]
+        stats = self._stats[ii, :]
+        if self._hasblobs:
+            blob = self._blobs[ii, :]
+        # we'll create an array of indices to keep track of where things
+        # will go after all of the swaps have been done
+        swap_index = numpy.arange(self.ntemps, dtype=int)
+        # swaps are determined by finding acceptance ratio:
+        # A_jk = min( (L_j/L_k)^(beta_k - beta_j), 1)
+        # We start with the hottest chain:
+        loglk = statsk['logl']
+        swk = swap_index[-1]
+        # to store acceptance ratios and swaps
+        ars = numpy.zeros(self.ntemps)
+        # since stored coldest to hottest, this is:
+        dbetas = numpy.diff(betas)  # = beta_k - beta_j
+        # now cycle down through the temps, comparing the current one
+        # to the one below it
+        for tk in range(self.ntemps-1, 0, -1):
+            tj = tk - 1
+            loglj = stats['logl'][tj]
+            swj = swap_index[tj]
+            ar = numpy.exp(dbetas*(loglj - loglk))
+            u = self.random_generator.uniform()
+            swap = u <= ar
+            if swap:
+                # move the colder swap index into the current slot
+                swap_index[tk] = swj
+                # we won't change loglk and swk so that move down to the
+                # next coldest temperature on the next loop
+            else:
+                # don't swap, so drop the current swk and loglk here,
+                # and pick up the colder items to compare on the next loop
+                swap_index[tk] = swk
+                loglk = loglj
+                swk = swj
+            # store the acceptance ratio
+            ars[tk] = ar
+        # now do the swaps and store
+        self._positions[ii] = {p: position[p][swap_index] for p in position}
+        self._stats[ii] = {s: stats[s][swap_index] for s in stats}
+        if self._hasblobs:
+            self._blobs[ii] = {b: blob[b][swap_index] for b in blob}
+        # since we have ntemps-1 acceptance ratios, we won't store the
+        # hottest swap index, since it can be inferred from the other
+        # swap indices
+        self._temperature_swaps[ii] = {'acceptance_ratio': ar,
+                                       'swap_index': swap_index[:-1]}
+
 
 class ChainData(object):
     """Handles reading and adding data to a chain.
@@ -627,15 +664,6 @@ class ChainData(object):
         self.dtypes = dtypes  # will call the dtypes.setter, below
         self.ntemps = ntemps
 
-    @staticmethod
-    def a2d(array):
-        """Converts a structured array into a dictionary."""
-        fields = array.dtype.names  # raises an AttributeError if array is None
-        if fields is None:
-            # not a structred array, just return
-            return array
-        return {f: getatomic(array[f]) for f in fields}
-
     @property
     def data(self):
         """Returns the saved data as a dictionary of numpy arrays.
@@ -644,7 +672,7 @@ class ChainData(object):
         returns ``None``.
         """
         try:
-            return self.a2d(self._data)
+            return array2dict(self._data)
         except AttributeError as e:
             if self._data is None:
                 return None
@@ -738,7 +766,7 @@ class ChainData(object):
         return repr(self.data)
 
     def __getitem__(self, index):
-        return self.a2d(self._data[index])
+        return array2dict(self._data[index])
 
     def __setitem__(self, index, value):
         # try to get the element to set; if it fails, then try extending the
@@ -777,10 +805,19 @@ def detect_dtypes(data):
             for p,val in data.items()}
 
 
+def array2dict(array):
+    """Converts a structured array into a dictionary."""
+    fields = array.dtype.names  # raises an AttributeError if array is None
+    if fields is None:
+        # not a structred array, just return
+        return array
+    return {f: getatomic(array[f]) for f in fields}
+
+
 def getatomic(val):
-    """Checks if a given value is an array of length 1. If so, it returns
+    """Checks if a given value is numpy scalar. If so, it returns
     the value as its native python type.
     """
-    if isinstance(val, numpy.ndarray) and val.size == 1:
+    if isinstance(val, numpy.ndarray) and val.size == 1 and val.ndim == 0:
         val = val.item(0)
     return val
