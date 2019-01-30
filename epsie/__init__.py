@@ -81,3 +81,21 @@ def create_brngs(seed, nrngs):
     statistically independent of each other, while still being reproducable.
     """
     return [BRNG(seed, ii) for ii in range(nrngs)]
+
+
+def array2dict(array):
+    """Converts a structured array into a dictionary."""
+    fields = array.dtype.names  # raises an AttributeError if array is None
+    if fields is None:
+        # not a structred array, just return
+        return array
+    return {f: _getatomic(array[f]) for f in fields}
+
+
+def _getatomic(val):
+    """Checks if a given value is numpy scalar. If so, it returns
+    the value as its native python type.
+    """
+    if isinstance(val, numpy.ndarray) and val.size == 1 and val.ndim == 0:
+        val = val.item(0)
+    return val

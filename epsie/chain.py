@@ -20,6 +20,7 @@ from __future__ import absolute_import
 import numpy
 from scipy.stats import uniform as randuniform
 
+from epsie import array2dict
 from .proposals import JointProposal
 
 
@@ -219,7 +220,7 @@ class Chain(object):
         # Use the coldest temp to determine if have blobs
         # start only has one iteration, so doing [..., 0] will work even
         # if there is only a single temp
-        r = self.model(**self._start[..., 0])
+        r = self.model(**array2dict(self._start[..., 0]))
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -254,25 +255,44 @@ class Chain(object):
         if numpy.array(self._stats0[0]['logp'] == -numpy.inf).any():
             raise ValueError("starting position is outside of the prior!")
 
-    @property
-    def start_position(self):
-        """The starting position.
+    @start_position.setter
+    def start_position(self, position):
+        """Sets the start position.
+        """
+        # we'll store current positions as 1-iteration ChainData, since this
+        # makes it easy to deal with 1 or more temps
+        self._start = ChainData(self.parameters,
+                                dtypes=detect_dtypes(position),
+                                ntemps=self.ntemps)
+        # use detected dtypes to set the dtype of the full chain
+        self._positions.dtypes = self._start.dtypes
+        # note: if only a single value is given for each parameter, this will
+        # expand the values to the number of temps
+        self._start[0] = position
 
+    @property
+    def stats0(self):
+        """The log likelihood and log prior of the starting position.
+        
         Raises a ``ValueError`` if ``set_start`` has not been run yet.
         """
         if self._start is None:
             raise ValueError("Starting position not set! Run set_start.")
-        return self._start
-
-    @property
-    def stats0(self):
-        """The log likelihood and log prior of the starting position."""
-        return self._stats0
+        return self._stats0[0]
 
     @property
     def blob0(self):
-        """The blob data of the starting position."""
-        return self._blob0
+        """The blob data of the starting position.
+        
+        Raises a ``ValueError`` if ``set_start`` has not been run yet.
+        """
+        if self._start is None:
+            raise ValueError("Starting position not set! Run set_start.")
+        if self._blob0 is None:
+            blob = None
+        else:
+            blob = self._blob0[0]
+        return blob
 
     @property
     def positions(self):
@@ -323,7 +343,7 @@ class Chain(object):
     def current_stats(self):
         """The log likelihood and log prior of the current position."""
         if len(self) == 0:
-            stats = self._stats0
+            stats = self.stats0
         else:
             stats = self._stats[len(self)-1]
         return stats
@@ -337,7 +357,7 @@ class Chain(object):
         if not self._hasblobs:
             blob = None
         elif len(self) == 0:
-            blob = self._blob0
+            blob = self.blob0
         else:
             blob = self._blobs[len(self)-1]
         return blob
@@ -406,10 +426,14 @@ class Chain(object):
         state['chain_id'] = self.chain_id
         state['proposal_dist'] = self.proposal_dist.state
         state['iteration'] = self.iteration
-        state['current_position'] = self.current_position
-        state['current_stats'] = self.current_stats
-        state['current_blob'] = self.current_blob
+        state['current_position'] = array2dict(self.current_position)
+        state['current_stats'] = array2dict(self.current_stats)
         state['hasblobs'] = self._hasblobs
+        if self._hasblobs:
+            blob = array2dict(self.current_blob)
+        else:
+            blob = None
+        state['current_blob'] = blob
         return state
 
     def set_state(self, state):
@@ -430,7 +454,7 @@ class Chain(object):
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
         self._start = state['current_position']
-        self._positions.dtypes = detect_dtypes(self._start)
+        self._positions.dtypes = detect_dtypes(self.start_position)
         self._stats0 = state['current_stats']
         self._blob0 = state['current_blob']
         self._hasblobs = state['hasblobs']
@@ -445,14 +469,24 @@ class Chain(object):
         self.proposal_dist.update(self)
         # get the current position; if this is the first step and set_start
         # hasn't been run, this will raise a ValueError
-        current_pos = self.current_position
-        current_stats = self.current_stats
-        current_blob = self.current_blob
+        # We'll ensure that the returned valued is an array of length 1,
+        # so tehf loop below will work
+        current_pos = self.current_position.reshape(self.ntemps)
+        current_stats = self.current_stats.reshape(self.ntemps)
+        if self.hasblobs:
+            current_blob = self.current_blob.reshape(self.ntemps)
+        else:
+            current_bob = None
         ii = len(self)
         for tk in range(self.ntemps):
+            if self.ntemps > 1:
+                index = (self._iteration, tk)
+            else:
+                index = self._iteration
             pos, stats, blob, ar = self._singletemp_step(
-                current_pos[..., tk], current_stats[..., tk],
-                current_blob[..., tk] if self._hasblobs else None,
+                array2dict(current_pos[tk]),
+                array2dict(current_stats[tk]),
+                array2dict(current_blob[tk]) if self._hasblobs else None,
                 self.betas[tk])
             # save
             if self.ntemps > 1:
@@ -668,13 +702,13 @@ class ChainData(object):
 
     @property
     def data(self):
-        """Returns the saved data as a dictionary of numpy arrays.
+        """Returns the saved data as a numpy structered array.
         
         If no data has been added yet, and an initial length was not specified,
         returns ``None``.
         """
         try:
-            return array2dict(self._data)
+            return self._data
         except AttributeError as e:
             if self._data is None:
                 return None
@@ -723,7 +757,7 @@ class ChainData(object):
         if self._data is None:
             return 0
         else:
-            return self._data.size
+            return self._data.shape[0]
 
     def extend(self, n):
         """Extends scratch space by n items.
@@ -768,7 +802,18 @@ class ChainData(object):
         return repr(self.data)
 
     def __getitem__(self, index):
-        return array2dict(self._data[index])
+        return self._data[index]
+
+    def asdict(self, index=None):
+        """Returns the data as a dictionary.
+        
+        Parameters
+        ----------
+        index : slice, optional
+            Only get the elements indicated by the given slice before
+            converting to a dictionary.
+        """
+        return array2dict(self[index])
 
     def __setitem__(self, index, value):
         # try to get the element to set; if it fails, then try extending the
@@ -789,37 +834,22 @@ class ChainData(object):
 
 
 def detect_dtypes(data):
-    """Convenience function to detect the dtype of a dictionary of data.
+    """Convenience function to detect the dtype of some data.
 
     Parameters
     ----------
-    data : dict
-        Dictionary mapping parameter names to some (arbitrary) values.
-        The values may be either arrays or atomic data. If the former, the
-        dtype will be taken from the array's dtype.
+    data : dict or numpy.ndarray
+        Either a numpy structred array/void or a dictionary mapping parameter
+        names to some (arbitrary) values. The values may be either arrays or
+        atomic data. If the former, the dtype will be taken from the array's
+        dtype.
 
     Returns
     -------
     dict :
         Dictionary mapping the parameter names to types.
     """
+    if not isinstance(data, dict):  # assume it's a numpy.void or numpy.ndarray
+        data = array2dict(data)
     return {p: val.dtype if isinstance(val, numpy.ndarray) else type(val)
             for p,val in data.items()}
-
-
-def array2dict(array):
-    """Converts a structured array into a dictionary."""
-    fields = array.dtype.names  # raises an AttributeError if array is None
-    if fields is None:
-        # not a structred array, just return
-        return array
-    return {f: getatomic(array[f]) for f in fields}
-
-
-def getatomic(val):
-    """Checks if a given value is numpy scalar. If so, it returns
-    the value as its native python type.
-    """
-    if isinstance(val, numpy.ndarray) and val.size == 1 and val.ndim == 0:
-        val = val.item(0)
-    return val
