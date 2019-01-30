@@ -207,16 +207,7 @@ class Chain(object):
             should be numpy arrays with length = ntemps. Otherwise, these
             should be atomic data typees..
         """
-        # we'll store current positions as 1-iteration ChainData, since this
-        # makes it easy to deal with 1 or more temps
-        self._start = ChainData(self.parameters,
-                                dtypes=detect_dtypes(position),
-                                ntemps=self.ntemps)
-        # use detected dtypes to set the dtype of the full chain
-        self._positions.dtypes = self._start.dtypes
-        # note: if only a single value is given for each parameter, this will
-        # expand the values to the number of temps
-        self._start[0] = position
+        self.start_position = position
         # Use the coldest temp to determine if have blobs
         # start only has one iteration, so doing [..., 0] will work even
         # if there is only a single temp
@@ -228,20 +219,18 @@ class Chain(object):
             logl, logp = r
             blob = None
             self._hasblobs = False
+        # create dict to store the stats/blobs at each temperature
+        stats = {'logl': numpy.zeros(self.ntemps),
+                 'logp': numpy.zeros(self.ntemps)}
+        stats['logl'][0] = logl
+        stats['logp'][0] = logp
         if self._hasblobs:
             if not isinstance(blob, dict):
                 raise TypeError("model must return blob data as a dictionary")
-            # create scratch for the chain of blobs and the inital blob
-            self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
-                                    ntemps=self.ntemps)
-            self._blob0 = ChainData(blob.keys(), dtypes=self._blobs.dtypes,
-                                    ntemps=self.ntemps)
-            self._blob0.extend(1)
-            self._blob0[..., 0] = blob
-        # Store the initial stats
-        self._stats0 = ChainData(['logl', 'logp'], ntemps=self.ntemps)
-        self._stats0.extend(1)
-        self._stats0[..., 0] = (logl, logp)
+            blob0 = ChainData(blob.keys(), dtypes=self._blobs.dtypes,
+                              ntemps=self.ntemps)
+            blob0.extend(1)
+            blob0[..., 0] = blob
         # Evaluate the rest of the temperatures
         for tk in range(1, self.ntemps):
             r = self.model(**self._start[0, tk])
@@ -250,10 +239,12 @@ class Chain(object):
                 self._blob0[0, tk] = blob
             else:
                 logl, logp = r
-            self._stats0[0, tk] = (logl, logp)
-        # check that we're not starting outside of the prior
-        if numpy.array(self._stats0[0]['logp'] == -numpy.inf).any():
-            raise ValueError("starting position is outside of the prior!")
+            stats['logl'][tk] = logl
+            stats['logp'][tk] = logp
+        # store
+        self.stats0 = stats
+        if self._hasblobs:
+            self.blob0 = blob0.asdict(0)
 
     @property
     def start_position(self):
@@ -265,6 +256,21 @@ class Chain(object):
             raise ValueError("Starting position not set! Run set_start.")
         return self._start[0]
 
+    @start_position.setter
+    def start_position(self, position):
+        """Sets the start position.
+        """
+        # we'll store current positions as 1-iteration ChainData, since this
+        # makes it easy to deal with 1 or more temps
+        self._start = ChainData(self.parameters,
+                                dtypes=detect_dtypes(position),
+                                ntemps=self.ntemps)
+        # use detected dtypes to set the dtype of the full chain
+        self._positions.dtypes = self._start.dtypes
+        # note: if only a single value is given for each parameter, this will
+        # expand the values to the number of temps
+        self._start[0] = position
+
     @property
     def stats0(self):
         """The log likelihood and log prior of the starting position.
@@ -274,6 +280,22 @@ class Chain(object):
         if self._start is None:
             raise ValueError("Starting position not set! Run set_start.")
         return self._stats0[0]
+
+    @stats0.setter
+    def stats0(self, stats):
+        """Sets the starting stats.
+
+        Parameters
+        ----------
+        dict, numpy structred array of len 1, or numpy.void
+            Dictionary or numpy array/void object mapping parameter names to
+            the starting statistics.
+        """
+        self._stats0 = ChainData(['logl', 'logp'], ntemps=self.ntemps)
+        self._stats0[0] = stats
+        # check that we're not starting outside of the prior
+        if numpy.array(self._stats0[0]['logp'] == -numpy.inf).any():
+            raise ValueError("starting position is outside of the prior!")
 
     @property
     def blob0(self):
@@ -288,6 +310,28 @@ class Chain(object):
         else:
             blob = self._blob0[0]
         return blob
+
+    @blob0.setter
+    def blob0(self, blob):
+        """Sets the starting blob.
+
+        Parameters
+        ----------
+        dict, numpy structred array of len 1, or numpy.void
+            Dictionary or numpy array/void object mapping parameter names to
+            the starting blob parameters.
+        """
+        if blob is None:
+            self._blob0 = blob
+        else:
+            self._blob0 = ChainData(blob.keys(), dtypes=detect_dtypes(blob),
+                                    ntemps=self.ntemps)
+            # create scratch for blobs
+            if self._blobs is None:
+                self._blobs = ChainData(blob.keys(),
+                                        dtypes=detect_dtypes(blob),
+                                        ntemps=self.ntemps)
+            self._blob0[0] = blob
 
     @property
     def positions(self):
@@ -448,11 +492,10 @@ class Chain(object):
         self.clear()
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
-        self._start = state['current_position']
-        self._positions.dtypes = detect_dtypes(self.start_position)
-        self._stats0 = state['current_stats']
-        self._blob0 = state['current_blob']
+        self.start_position = state['current_position']
+        self.stats0 = state['current_stats']
         self._hasblobs = state['hasblobs']
+        self.blob0 = state['current_blob']
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
 
