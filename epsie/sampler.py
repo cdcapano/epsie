@@ -100,12 +100,11 @@ class Sampler(object):
 
         Returns
         -------
-        dict :
-            Dictionary mapping parameters to arrays with shape ``nchains``
-            giving the starting position of each chain.
+        numpy.ndarray :
+            Structured array with shape ``nchains`` and fields given by the
+            parameters.
         """
-        return {p: self.concatenate_chains('start_position', p)
-                for p in self.parameters}
+        return self.concatenate_chains('start_position')
 
     def run(self, niterations):
         """Evolves all of the chains by niterations.
@@ -153,8 +152,7 @@ class Sampler(object):
     @property
     def positions(self):
         """The history of positions from all of the chains."""
-        return {p: self.concatenate_chains('positions', p)
-                for p in self.parameters}
+        return self.concatenate_chains('positions')
 
     @property
     def current_positions(self):
@@ -163,14 +161,12 @@ class Sampler(object):
         This will default to the start position if the chains haven't been
         run yet.
         """
-        return {p: self.concatenate_chains('current_position', p)
-                for p in self.parameters}
+        return self.concatenate_chains('current_position')
 
     @property
     def stats(self):
         """The history of stats from all of the chains."""
-        return {s: self.concatenate_chains('stats', s)
-                for s in ['logl', 'logp']}
+        return self.concatenate_chains('stats')
 
     @property
     def current_stats(self):
@@ -179,15 +175,13 @@ class Sampler(object):
         This will default to the stats of the start positions if the chains
         haven't been run yet.
         """
-        return {s: self.concatenate_chains('current_stats', s)
-                for s in ['logl', 'logp']}
+        return self.concatenate_chains('current_stats')
 
     @property
     def blobs(self):
         """The history of all of the blobs from all of the chains."""
         if self.chains[0].hasblobs:
-            blobs = {b: self.concatenate_chains('blobs', b)
-                     for b in self.chains[0].blob0}
+            blobs = self.concatenate_chains('blobs')
         else:
             blobs = None
         return blobs
@@ -200,8 +194,7 @@ class Sampler(object):
         chains haven't been run yet.
         """
         if self.chains[0].hasblobs:
-            blobs = {b: self.concatenate_chains('current_blob', b)
-                     for b in self.chains[0].blob0}
+            blobs = self.concatenate_chains('current_blob')
         else:
             blobs = None
         return blobs
