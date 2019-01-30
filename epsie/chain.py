@@ -92,7 +92,7 @@ class Chain(object):
             # acceptance ratios for ntemp levels
             self._temperature_swaps = ChainData(
                 ['acceptance_ratio', 'swap_index'],
-                dtype={'accpetance_ratio': float, 'swap_index': int},
+                dtypes={'acceptance_ratio': float, 'swap_index': int},
                 ntemps=self.ntemps-1)
         self._blobs = None
         self._hasblobs = False
@@ -211,7 +211,7 @@ class Chain(object):
         # Use the coldest temp to determine if have blobs
         # start only has one iteration, so doing [..., 0] will work even
         # if there is only a single temp
-        r = self.model(**array2dict(self._start[..., 0]))
+        r = self.model(**array2dict(self._start[..., 0][0]))
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -233,7 +233,7 @@ class Chain(object):
             blob0[..., 0] = blob
         # Evaluate the rest of the temperatures
         for tk in range(1, self.ntemps):
-            r = self.model(**self._start[0, tk])
+            r = self.model(**array2dict(self._start[0, tk]))
             if self.hasblobs:
                 logl, logp, blob = r
                 self._blob0[0, tk] = blob
@@ -558,8 +558,8 @@ class Chain(object):
             # force a reject
             ar = 0.
         else:
-            logar = logp + logl**beta \
-                    - current_logl**beta - current_logp
+            logar = logp + logl * beta \
+                    - current_logl * beta - current_logp
             if not self.proposal_dist.symmetric:
                 logar += self.proposal_dist.logpdf(current_pos, proposal) - \
                          self.proposal_dist.logpdf(proposal, current_pos)
@@ -595,43 +595,43 @@ class Chain(object):
         # swaps are determined by finding acceptance ratio:
         # A_jk = min( (L_j/L_k)^(beta_k - beta_j), 1)
         # We start with the hottest chain:
-        loglk = statsk['logl']
-        swk = swap_index[-1]
+        loglk = stats['logl'][-1]
         # to store acceptance ratios and swaps
-        ars = numpy.zeros(self.ntemps)
-        # since stored coldest to hottest, this is:
-        dbetas = numpy.diff(betas)  # = beta_k - beta_j
+        ars = numpy.zeros(self.ntemps-1)
+        # since stored coldest to hottest, the folling = beta_k - beta_j
+        dbetas = numpy.diff(self.betas)
         # now cycle down through the temps, comparing the current one
         # to the one below it
         for tk in range(self.ntemps-1, 0, -1):
+            swk = swap_index[tk]
             tj = tk - 1
             loglj = stats['logl'][tj]
             swj = swap_index[tj]
-            ar = numpy.exp(dbetas*(loglj - loglk))
+            ar = numpy.exp(dbetas[tj]*(loglj - loglk))
             u = self.random_generator.uniform()
             swap = u <= ar
             if swap:
-                # move the colder swap index into the current slot
+                # move the colder index into the current slot...
                 swap_index[tk] = swj
-                # we won't change loglk and swk so that move down to the
+                # ...and the hotter index into the colder slot
+                swap_index[tj] = swk
+                # we won't change loglk so that it will get compared to
                 # next coldest temperature on the next loop
             else:
-                # don't swap, so drop the current swk and loglk here,
-                # and pick up the colder items to compare on the next loop
-                swap_index[tk] = swk
+                # don't swap, so drop the current loglk here, and pick up
+                # the colder logl to compare on the next loop
                 loglk = loglj
-                swk = swj
             # store the acceptance ratio
-            ars[tk] = ar
+            ars[tj] = ar
         # now do the swaps and store
-        self._positions[ii] = {p: position[p][swap_index] for p in position}
-        self._stats[ii] = {s: stats[s][swap_index] for s in stats}
+        self._positions[ii] = position[swap_index]
+        self._stats[ii] = stats[swap_index]
         if self._hasblobs:
-            self._blobs[ii] = {b: blob[b][swap_index] for b in blob}
+            self._blobs[ii] = blob[swap_index]
         # since we have ntemps-1 acceptance ratios, we won't store the
         # hottest swap index, since it can be inferred from the other
         # swap indices
-        self._temperature_swaps[ii] = {'acceptance_ratio': ar,
+        self._temperature_swaps[ii] = {'acceptance_ratio': ars,
                                        'swap_index': swap_index[:-1]}
 
 
