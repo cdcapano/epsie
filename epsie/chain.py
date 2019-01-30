@@ -255,20 +255,15 @@ class Chain(object):
         if numpy.array(self._stats0[0]['logp'] == -numpy.inf).any():
             raise ValueError("starting position is outside of the prior!")
 
-    @start_position.setter
-    def start_position(self, position):
-        """Sets the start position.
+    @property
+    def start_position(self):
+        """The starting position.
+
+        Raises a ``ValueError`` if ``set_start`` has not been run yet.
         """
-        # we'll store current positions as 1-iteration ChainData, since this
-        # makes it easy to deal with 1 or more temps
-        self._start = ChainData(self.parameters,
-                                dtypes=detect_dtypes(position),
-                                ntemps=self.ntemps)
-        # use detected dtypes to set the dtype of the full chain
-        self._positions.dtypes = self._start.dtypes
-        # note: if only a single value is given for each parameter, this will
-        # expand the values to the number of temps
-        self._start[0] = position
+        if self._start is None:
+            raise ValueError("Starting position not set! Run set_start.")
+        return self._start[0]
 
     @property
     def stats0(self):
