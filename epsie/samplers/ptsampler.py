@@ -23,8 +23,8 @@ import copy
 
 import epsie
 from epsie import create_seed, create_brngs
-from .chain import Chain
-from .proposals import Normal
+from epsie.chain import Chain
+from epsie.proposals import Normal
 
 
 class ParallelTemperedSampler(object):
@@ -313,9 +313,3 @@ def _evolve_chain(niterations_chain):
     for _ in range(niterations):
         chain.step()
     return chain
-
-
-def make_betas_ladder(ntemps, maxtemp):
-    """Makes a log spaced ladder of betas."""
-    minbeta = 1./maxtemp
-    return numpy.geomspace(minbeta, 1., num=ntemps)
