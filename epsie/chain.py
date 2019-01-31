@@ -209,9 +209,11 @@ class Chain(object):
         """
         self.start_position = position
         # Use the coldest temp to determine if have blobs
-        # start only has one iteration, so doing [..., 0] will work even
-        # if there is only a single temp
-        r = self.model(**array2dict(self._start[..., 0][0]))
+        if self.ntemps > 1:
+            index = (0, 0)
+        else:
+            index = 0
+        r = self.model(**array2dict(self._start[index]))
         try:
             logl, logp, blob = r
             self._hasblobs = True
