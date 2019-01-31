@@ -23,6 +23,14 @@ import os
 import numpy
 from randomgen import PCG64
 
+#
+# =============================================================================
+#
+#                     Random number generation utilities
+#
+# =============================================================================
+#
+
 # The class used for all basic random number generation.
 # Users may change this, but it has to be something recognized by randomgen
 # and have the ability to accept streams; i.e., it must have calling structure
@@ -83,6 +91,15 @@ def create_brngs(seed, nrngs):
     return [BRNG(seed, ii) for ii in range(nrngs)]
 
 
+#
+# =============================================================================
+#
+#                          Array utilities
+#
+# =============================================================================
+#
+
+
 def array2dict(array):
     """Converts a structured array into a dictionary."""
     fields = array.dtype.names  # raises an AttributeError if array is None
@@ -99,3 +116,18 @@ def _getatomic(val):
     if isinstance(val, numpy.ndarray) and val.size == 1 and val.ndim == 0:
         val = val.item(0)
     return val
+
+
+#
+# =============================================================================
+#
+#                          Parallel tempering utilities
+#
+# =============================================================================
+#
+
+
+def make_betas_ladder(ntemps, maxtemp):
+    """Makes a log spaced ladder of betas."""
+    minbeta = 1./maxtemp
+    return numpy.geomspace(minbeta, 1., num=ntemps)
