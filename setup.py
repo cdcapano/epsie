@@ -32,7 +32,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="epsie",
-    version="0.0.1",
+    version="0.1.0",
     author="Collin D. Capano",
     author_email="cdcapano@gmail.com",
     description="An Embarrassingly Parallel Sampler for "
