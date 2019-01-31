@@ -30,9 +30,21 @@ install_requires = ["numpy",
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+# get version
+with open("epsie/_version.py", "r") as fh:
+    vstr = fh.read().strip()
+try:
+    vstr = vstr.split('=')[1].strip()
+except IndexError:
+    raise RuntimeError("version string in epsie._verion.py not formatted "
+                       "correctly; it should be:\n"
+                       "__version__ = VERSION")
+# remove ' and " from version string
+version = vstr.replace("'", "").replace('"', "")
+
 setuptools.setup(
     name="epsie",
-    version="0.1.0",
+    version=version,
     author="Collin D. Capano",
     author_email="cdcapano@gmail.com",
     description="An Embarrassingly Parallel Sampler for "

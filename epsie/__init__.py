@@ -19,6 +19,9 @@ chains.
 
 from __future__ import absolute_import
 
+# get the version number
+from ._version import __version__
+
 import os
 import numpy
 from randomgen import PCG64
