@@ -82,7 +82,9 @@ class Chain(object):
         self._scratchlen = 0
         self._positions = ChainData(parameters, ntemps=self.ntemps)
         self._stats = ChainData(['logl', 'logp'], ntemps=self.ntemps)
-        self._acceptance_ratios = ChainData(['ar'], ntemps=self.ntemps)
+        self._acceptance = ChainData(['acceptance_ratio', 'accepted'],
+                                     ntemps=self.ntemps,
+                                     dtypes={'accepted': bool})
         # for parallel tempering, store an array giving the acceptance ratio
         # between temps and whether or not they swapped
         self.swap_interval = swap_interval
@@ -180,7 +182,7 @@ class Chain(object):
         except ValueError:
             pass
         try:
-            self._acceptance_ratios.set_len(n)
+            self._acceptance.set_len(n)
         except ValueError:
             pass
         if self.ntemps > 1:
@@ -346,9 +348,9 @@ class Chain(object):
         return self._stats[:len(self)]
 
     @property
-    def acceptance_ratios(self):
-        """The history of all of the acceptance ratios."""
-        return self._acceptance_ratios[:len(self)]['ar']
+    def acceptance(self):
+        """The history of all of acceptance ratios and accepted booleans."""
+        return self._acceptance[:len(self)]
 
     @property
     def temperature_swaps(self):
@@ -416,8 +418,8 @@ class Chain(object):
             # save stats then clear
             self._stats0[0] = self.current_stats
             self._stats.clear(self.scratchlen)
-            # clear acceptance ratios
-            self._acceptance_ratios.clear(self.scratchlen)
+            # clear acceptance info
+            self._acceptance.clear(self.scratchlen)
             # clear temperature swaps
             if self.ntemps > 1:
                 self._temperature_swaps.clear(self.scratchlen)
@@ -433,7 +435,7 @@ class Chain(object):
         index = (-1)**(index < 0) * (index % len(self))
         out = {'positions': self._positions[index],
                'stats': self._stats[index],
-               'acceptance_ratios': self._acceptance_ratios[index]['ar']
+               'acceptance': self._acceptance[index]
                }
         if self.ntemps > 1:
             out['temperature_swaps'] = self._temperature_swaps[index]
@@ -523,7 +525,7 @@ class Chain(object):
                 index = (self._iteration, tk)
             else:
                 index = self._iteration
-            pos, stats, blob, ar = self._singletemp_step(
+            pos, stats, blob, ar, accepted = self._singletemp_step(
                 array2dict(current_pos[tk]),
                 array2dict(current_stats[tk]),
                 array2dict(current_blob[tk]) if self._hasblobs else None,
@@ -535,7 +537,7 @@ class Chain(object):
                 index = ii
             self._positions[index] = pos
             self._stats[index] = stats
-            self._acceptance_ratios[index] = ar
+            self._acceptance[index] = (ar, accepted)
             if self._hasblobs:
                 self._blobs[index] = blob
         # do temperature swaps
@@ -567,8 +569,8 @@ class Chain(object):
                          self.proposal_dist.logpdf(proposal, current_pos)
             ar = numpy.exp(logar)
         u = self.random_generator.uniform()
-        if u <= ar:
-            # accept
+        accept = u <= ar
+        if accept:
             pos = proposal
             stats = {'logl': logl, 'logp': logp}
         else:
@@ -576,7 +578,7 @@ class Chain(object):
             pos = current_pos
             stats = current_stats
             blob = current_blob
-        return pos, stats, blob, ar
+        return pos, stats, blob, ar, accept
 
     def swap_temperatures(self, ii):
         """Computes acceptance ratio between temperatures and swaps them.

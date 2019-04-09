@@ -261,9 +261,9 @@ class ParallelTemperedSampler(object):
         return blobs
 
     @property
-    def acceptance_ratios(self):
-        """The history of all acceptance ratios from all of the chains."""
-        return self.concatenate_chains('acceptance_ratios')
+    def acceptance(self):
+        """The history of all acceptance stats from all of the chains."""
+        return self.concatenate_chains('acceptance')
 
     @property
     def temperature_swaps(self):
