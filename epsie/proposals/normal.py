@@ -31,10 +31,12 @@ class Normal(BaseProposal):
     parameters : (list of) str
         The names of the parameters to produce proposals for.
     cov : array, optional
-        The covariance matrix of the parameters. If provided, must have shape
-        `ndim x ndim` where `ndim` = the number of parameters given. Default
-        (None) is to use the identity matrix; i.e., unit variance, with all
-        parameters independent of each other.
+        The covariance matrix of the parameters. May provide either a single
+        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
+        where ``ndim`` = the number of parameters given. If a single float or
+        a 1D array is given, will use a diagonal covariance matrix (i.e., all
+        parameters are independent of each other). Default (None) is to use
+        unit variance for all parameters.
 
     Attributes
     ----------
@@ -48,17 +50,40 @@ class Normal(BaseProposal):
     def __init__(self, parameters, cov=None):
         self.parameters = parameters
         self.ndim = len(parameters)
-        if cov is None and self.ndim == 1:
+        self._cov = None
+        self.cov = cov
+
+    @property
+    def cov(self):
+        """The covariance matrix used.
+        """
+        return self._cov
+
+    @cov.setter
+    def cov(self, cov):
+        """Sets the covariance matrix.
+
+        If a single float or a 1D array is given, will use a diagonal
+        covariance matrix (i.e., all parameters are independent of each other).
+        Default (None) is to use unit variance for all parameters.
+
+        Raises a ``ValueError`` if the dimensionality of the given array
+        isn't ndim x ndim.
+        """
+        if cov is None:
             cov = 1.
-        elif cov is None:
-            cov = numpy.diag(numpy.ones(len(parameters)))
+        if not isinstance(cov, numpy.ndarray):
+            cov = numpy.array(cov)
+        if cov.ndim <= 1:
+            cov = numpy.repeat(cov, len(self.parameters))
+        if cov.ndim < 2:
+            cov = numpy.diag(cov)
         # check that dimensionality makes sense
-        if self.ndim == 1 and isinstance(cov, numpy.ndarray) \
-                or self.ndim > 1 and not isinstance(cov, numpy.ndarray) \
-                or self.ndim > 1 and self.ndim != cov.ndim:
+        if cov.shape != (self.ndim, self.ndim):
             raise ValueError("dimension of covariance matrix does not match "
                              "given number of parameters")
-        self.cov = cov
+        self._cov = cov
+    
 
     @property
     def state(self):
@@ -112,7 +137,7 @@ class AdaptiveNormal(Normal):
         adaptation will be done once a chain exceeds this value.
     adaptation_decay : int, optional
         The decay rate to use for the adaptation size (:math:`beta` in the
-        equation below). If not provided, will use :math:`1/log_10(T)`, where
+        equation below). If not provided, will use :math:`1/\log_10(T)`, where
         :math:`T` is the adaptation duration.
     start_iteration : int, optional
         The iteration to start doing the adaptation (:math:`k_0+1` in the
@@ -157,7 +182,19 @@ class AdaptiveNormal(Normal):
                  initial_var=None):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormal, self).__init__(parameters)
-
+        # figure out initial variance to use
+        self._deltas = None
+        self.prior_widths = prior_widths
+        self.adaptation_duration = adaptation_duration
+        if adaptation_decay is None:
+            adaptation_decay = 1./numpy.log10(self.adaptation_duration)
+        self.adaptation_decay = adaptation_decay
+        self.start_iteration = start_iteration
+        self.target_rate = target_rate
+        if initial_var is None:
+            initial_var = numpy.diag((1 - self.target_rate)*0.09*self.deltas)
+        # set the covariance to the initial
+        self.cov = initial_var
 
     @property
     def prior_widths(self):
@@ -168,16 +205,46 @@ class AdaptiveNormal(Normal):
     def prior_widths(self, prior_widths):
         """Sets the prior widths, making sure that widths are provided for
         each parameter in ``parameters``.
+
+        Also sets the deltas attribute.
         """
         try:
             self._prior_widths = {p: abs(prior_widths[p])
                                   for p in self.parameters}
         except KeyError:
             raise ValueError("must provide prior widths for every parameter")
+        self._deltas = numpy.array([self.prior_widths[p]
+                                    for p in self.parameters])
+
+    @property
+    def deltas(self):
+        """The prior widths, as a numpy array."""
+        return self._deltas
+
+    @property
+    def adaptation_duration(self):
+        """The adaptation duration used."""
+        return self._adaptation_duration
+
+    @adaptation_duration.setter
+    def adaptaton_duration(self, adaptation_duration):
+        """Sets the adaptation duration to the given value, making sure it is
+        larger than 1.
+        """
+        if adaptation_duration < 1:
+            raise ValueError("adaptation duration must be >= 1")
+        self._adaptation_duration = adaptation_duration
 
     def update(self, chain):
         """Updates the adaptation based on whether the last iteration was
         accepted or not.
         """
-        if chain[-1].acceptance['accepted']:
-            pass
+        dk = chain.iteration - self.start_iteration
+        if dk > 1 and chain.iteration < self.adaptation_duration:
+            dk = dk**(-self.adaptation_decay) - 0.1
+            if chain[-1].acceptance['accepted']:
+                alpha = 1 - self.target_rate
+            else:
+                alpha = -self.target_rate
+            dsigmas = alpha * dk * self.deltas/10.
+            self._cov[numpy.diag_indices(self.ndim)] += dsigmas
