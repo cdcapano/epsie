@@ -35,6 +35,8 @@ class MetropolisHastingsSampler(ParallelTemperedSampler):
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
+    default_proposal_args : dict, optional
+        Dictionary of arguments to pass to the default proposal.
     seed : int, optional
         Seed for the random number generator. If None provided, will create
         one.
@@ -44,8 +46,10 @@ class MetropolisHastingsSampler(ParallelTemperedSampler):
     """
 
     def __init__(self, parameters, model, nchains, proposals=None,
-                 default_proposal=None, seed=None, pool=None):
+                 default_proposal=None, default_proposal_args=None, seed=None,
+                 pool=None):
         # just call the parallel tempered sampler with 1 temperature
         super(MetropolisHastingsSampler, self).__init__(
             parameters, model, nchains, betas=1, proposals=proposals,
-            default_proposal=default_proposal, seed=seed, pool=pool)
+            default_proposal=default_proposal,
+            default_proposal_args=default_propsal_args, seed=seed, pool=pool)

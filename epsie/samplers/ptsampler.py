@@ -49,6 +49,8 @@ class ParallelTemperedSampler(object):
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
+    default_proposal_args : dict, optional
+        Dictionary of arguments to pass to the default proposal.
     seed : int, optional
         Seed for the random number generator. If None provided, will create
         one.
@@ -57,7 +59,8 @@ class ParallelTemperedSampler(object):
         single core.
     """
     def __init__(self, parameters, model, nchains, betas, proposals=None,
-                 default_proposal=None, seed=None, pool=None):
+                 default_proposal=None, default_proposal_args=None, seed=None,
+                 pool=None):
         self.parameters = tuple(parameters)
         self.model = model
         if nchains < 1:
@@ -79,8 +82,11 @@ class ParallelTemperedSampler(object):
         # create default proposal instances for the other parameters
         if default_proposal is None:
             default_proposal = Normal
+        if default_proposal_args is None:
+            default_proposal_args = {}
         missing_props =  tuple(set(parameters) - set(proposals.keys()))
-        proposals[missing_props] = default_proposal(missing_props)
+        proposals[missing_props] = default_proposal(missing_props,
+                                                    **default_proposal_args)
         self.proposals = proposals
         # create the random number states
         if seed is None:
