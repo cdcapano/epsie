@@ -20,6 +20,7 @@ from __future__ import absolute_import
 import numpy
 import logging
 import copy
+import itertools
 
 import epsie
 from epsie import create_seed, create_brngs
@@ -84,9 +85,11 @@ class ParallelTemperedSampler(object):
             default_proposal = Normal
         if default_proposal_args is None:
             default_proposal_args = {}
-        missing_props =  tuple(set(parameters) - set(proposals.keys()))
-        proposals[missing_props] = default_proposal(missing_props,
-                                                    **default_proposal_args)
+        missing_props =  tuple(set(parameters)
+                               - set(itertools.chain(*proposals.keys())))
+        if missing_props:
+            proposals[missing_props] = default_proposal(
+                missing_props, **default_proposal_args)
         self.proposals = proposals
         # create the random number states
         if seed is None:
