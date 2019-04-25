@@ -17,17 +17,17 @@
 
 from __future__ import absolute_import
 
-from abc import (ABCMeta, abstractmethod)
 import numpy
 from scipy.stats import uniform as randuniform
 
 from epsie import array2dict
 from epsie.proposals import JointProposal
 
+from .base import BaseChain
 from .chaindata import (ChainData, detect_dtypes)
 
 
-class Chain(object):
+class Chain(BaseChain):
     """A Markov chain.
 
     The chain requires a ``model`` to  be provided. This can be any object that
@@ -106,9 +106,6 @@ class Chain(object):
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
-
-    def __len__(self):
-        return self._iteration - self._lastclear
 
     @property
     def iteration(self):
@@ -259,69 +256,6 @@ class Chain(object):
                 self._blobs = ChainData(blob.keys(),
                                         dtypes=detect_dtypes(blob))
             self._blob0[0] = blob
-
-    @property
-    def positions(self):
-        """The history of all of the positions."""
-        return self._positions[:len(self)]
-
-    @property
-    def stats(self):
-        """The log likelihoods and log priors of the positions."""
-        return self._stats[:len(self)]
-
-    @property
-    def acceptance(self):
-        """The history of all of acceptance ratios and accepted booleans."""
-        return self._acceptance[:len(self)]
-
-    @property
-    def blobs(self):
-        """The history of all of the blob data.
-
-        If the model does not return blobs, this is just ``None``.
-        """
-        blobs = self._blobs
-        if blobs is not None:
-            blobs = blobs[:len(self)]
-        return blobs
-
-    @property
-    def hasblobs(self):
-        """Whether the model returns blobs."""
-        return self._hasblobs
-
-    @property
-    def current_position(self):
-        """The current position of the chain."""
-        if len(self) == 0:
-            pos = self.start_position
-        else:
-            pos = self._positions[len(self)-1]
-        return pos
-
-    @property
-    def current_stats(self):
-        """The log likelihood and log prior of the current position."""
-        if len(self) == 0:
-            stats = self.stats0
-        else:
-            stats = self._stats[len(self)-1]
-        return stats
-
-    @property
-    def current_blob(self):
-        """The blob data of the current position.
-
-        If the model does not return blobs, just returns ``None``.
-        """
-        if not self._hasblobs:
-            blob = None
-        elif len(self) == 0:
-            blob = self.blob0
-        else:
-            blob = self._blobs[len(self)-1]
-        return blob
 
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
