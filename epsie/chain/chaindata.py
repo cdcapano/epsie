@@ -34,7 +34,7 @@ class ChainData(object):
     ``extend`` method.
 
     Data can be retrieved using the ``.data`` attribute, which will return the
-    data as a dictionary mapping parameter names to numpy arrays.
+    data as a numpy structred array.
 
     Space for multiple temperatures may be specified by providing the
     ``ntemps`` argument. In this case, the array will have shape
@@ -87,7 +87,7 @@ class ChainData(object):
 
     >>> chaindata[1] = {'x': 2.5, 'y': 1.}
     >>> chaindata.data
-    {'x': array([0. , 2.5]), 'y': array([0., 1.])}
+    array([(0. , 0.), (2.5, 1.)], dtype=[('x', '<f8'), ('y', '<f8')])
     >>> len(chaindata)
     2
 
@@ -97,22 +97,22 @@ class ChainData(object):
     >>> chaindata.extend(4)
     >>> chaindata[2:] = {'x': [3.5, 4.5, 5.5, 6.5], 'y': [2, 3, 4, 5]}
     >>> chaindata.data
-    {'x': array([0. , 2.5, 3.5, 4.5, 5.5, 6.5]),
-     'y': array([0., 1., 2., 3., 4., 5.])}
+    array([(0. , 0.), (2.5, 1.), (3.5, 2.), (4.5, 3.), (5.5, 4.), (6.5, 5.)],
+      dtype=[('x', '<f8'), ('y', '<f8')])
 
     Since we did not specify dtypes, the data types have all defaulted to
     floats. Change 'y' to be ints instead:
 
     >>> chaindata.dtypes = {'y': int}
     >>> chaindata.data
-    {'x': array([0. , 2.5, 3.5, 4.5, 5.5, 6.5]),
-     'y': array([0, 1, 2, 3, 4, 5])}
+    array([(0. , 0), (2.5, 1), (3.5, 2), (4.5, 3), (5.5, 4), (6.5, 5)],
+      dtype=[('x', '<f8'), ('y', '<i8')])
 
     Clear the memory, and set the new length to be 3:
 
     >>> chaindata.clear(3)
     >>> chaindata.data
-    {'x': array([0., 0., 0.]), 'y': array([0, 0, 0])}
+    array([(0., 0), (0., 0), (0., 0)], dtype=[('x', '<f8'), ('y', '<i8')])
 
     """
 
