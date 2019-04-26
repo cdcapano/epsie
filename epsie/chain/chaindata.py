@@ -238,7 +238,10 @@ class ChainData(object):
             Only get the elements indicated by the given slice before
             converting to a dictionary.
         """
-        return array2dict(self[index])
+        if index is None:
+            return array2dict(self.data)
+        else:
+            return array2dict(self[index])
 
     def __setitem__(self, index, value):
         # try to get the element to set; if it fails, then try extending the
