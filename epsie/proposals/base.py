@@ -63,7 +63,7 @@ class BaseProposal(object):
         try:
             return self._brng
         except AttributeError:
-            self._brng = self._create_brng()
+            self._brng = epsie.create_brng()
             return self._brng
 
     @brng.setter
