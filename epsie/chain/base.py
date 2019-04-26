@@ -56,6 +56,11 @@ class BaseChain(object):
     def __len__(self):
         return self.iteration - self.lastclear
 
+    @property
+    def hasblobs(self):
+        """Whether the model returns blobs."""
+        return self._hasblobs
+
     # Py3XX: uncomment the next two lines 
     # @property
     # @abstractmethod
@@ -86,7 +91,7 @@ class BaseChain(object):
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
     def start_position(self, position):
-        """The start position."""
+        """Dictionary mapping parameters to their start position."""
         pass
 
     # Py3XX: uncomment the next two lines 
@@ -94,7 +99,7 @@ class BaseChain(object):
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
     def stats0(self):
-        """The log likelihood and log prior of the starting position."""
+        """Dictionary of the log likelihood and prior at the start position."""
         pass
 
     # Py3XX: uncomment the next two lines 
@@ -102,87 +107,76 @@ class BaseChain(object):
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
     def blob0(self):
-        """The blob data of the starting position."""
+        """Dictionary of the blob data at the start position."""
         pass
 
-    @property
-    def blobs(self):
-        """The history of all of the blob data.
-
-        If the model does not return blobs, this is just ``None``.
-        """
-        blobs = self._blobs
-        if blobs is not None:
-            blobs = blobs[:len(self)]
-        return blobs
-
-    @property
-    def hasblobs(self):
-        """Whether the model returns blobs."""
-        return self._hasblobs
-
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def positions(self):
-        """The history of all of the positions."""
-        return self._positions[:len(self)]
+        """The history of all of the positions, as a structred array."""
+        pass
 
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def stats(self):
-        """The log likelihoods and log priors of the positions."""
-        return self._stats[:len(self)]
+        """The log likelihoods and log priors of the positions, as a structred
+        array.
+        """
+        pass
 
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def acceptance(self):
-        """The history of all of acceptance ratios and accepted booleans."""
-        return self._acceptance[:len(self)]
+        """The history of all of acceptance ratios and accepted booleans, as
+        a structred array.
+        """
+        pass
 
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def blobs(self):
-        """The history of all of the blob data.
+        """The history of all of the blob data, as a structred array.
 
         If the model does not return blobs, this is just ``None``.
         """
-        blobs = self._blobs
-        if blobs is not None:
-            blobs = blobs[:len(self)]
-        return blobs
+        pass
 
-    @property
-    def hasblobs(self):
-        """Whether the model returns blobs."""
-        return self._hasblobs
-
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def current_position(self):
-        """The current position of the chain."""
-        if len(self) == 0:
-            pos = self.start_position
-        else:
-            pos = self._positions[len(self)-1]
-        return pos
+        """Dictionary of the current position of the chain."""
+        pass
 
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def current_stats(self):
-        """The log likelihood and log prior of the current position."""
-        if len(self) == 0:
-            stats = self.stats0
-        else:
-            stats = self._stats[len(self)-1]
-        return stats
+        """Dictionary giving the log likelihood and log prior of the current
+        position.
+        """
+        pass
 
-    @property
+    # Py3XX: uncomment the next two lines 
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def current_blob(self):
-        """The blob data of the current position.
+        """Dictionary of the blob data of the current position.
 
         If the model does not return blobs, just returns ``None``.
         """
-        if not self._hasblobs:
-            blob = None
-        elif len(self) == 0:
-            blob = self.blob0
-        else:
-            blob = self._blobs[len(self)-1]
-        return blob
+        pass
 
     @abstractmethod
     def clear(self):

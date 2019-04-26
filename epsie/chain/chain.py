@@ -158,9 +158,9 @@ class Chain(BaseChain):
 
     @property
     def start_position(self):
-        """The start position.
+        """Dictionary mapping parameters to their start position.
 
-        If it hasn't been set, raises a ``ValueError``.
+        If the start position hasn't been set, raises a ``ValueError``.
         """
         if self._start is None:
             raise ValueError("Starting position not set!")
@@ -194,12 +194,13 @@ class Chain(BaseChain):
             if not isinstance(blob, dict):
                 raise TypeError("model must return blob data as a dictionary")
             self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob))
-        self.stats0 = {'logl:', logl, 'logp': logp}
+        self.stats0 = {'logl': logl, 'logp': logp}
         self.blob0 = blob
 
     @property
     def stats0(self):
-        """The log likelihood and log prior of the starting position.
+        """Dictionary of the log likelihood and log prior at the start
+        position.
         
         Raises a ``ValueError`` if the start position has not been set yet.
         """
@@ -220,12 +221,11 @@ class Chain(BaseChain):
         # check that we're not starting outside of the prior
         if stats['logp'] == -numpy.inf:
             raise ValueError("starting position is outside of the prior!")
-        self._stats0 = ChainData(['logl', 'logp'])
-        self._stats0[0] = stats
+        self._stats0 = stats.copy()
 
     @property
     def blob0(self):
-        """The blob data of the starting position.
+        """The blob data of the starting position, as a dictionary.
         
         Raises a ``ValueError`` if ``set_start`` has not been run yet.
         """
@@ -234,7 +234,7 @@ class Chain(BaseChain):
         if self._blob0 is None:
             blob = None
         else:
-            blob = self._blob0[0]
+            blob = self._blob0
         return blob
 
     @blob0.setter
@@ -243,19 +243,78 @@ class Chain(BaseChain):
 
         Parameters
         ----------
-        dict, numpy structred array of len 1, or numpy.void
-            Dictionary or numpy array/void object mapping parameter names to
-            the starting blob parameters.
+        blob: dict
+            Dictionary mapping blob parameters to their values.
         """
-        if blob is None:
-            self._blob0 = blob
-        else:
-            self._blob0 = ChainData(blob.keys(), dtypes=detect_dtypes(blob))
+        if blob is not None:
+            blob = blob.copy()
             # create scratch for blobs
             if self._blobs is None:
                 self._blobs = ChainData(blob.keys(),
                                         dtypes=detect_dtypes(blob))
-            self._blob0[0] = blob
+        self._blob0 = blob
+
+    @property
+    def positions(self):
+        """The history of all of the positions, as a structred array."""
+        return self._positions[:len(self)]
+
+    @property
+    def stats(self):
+        """The log likelihoods and log priors of the positions, as a structured
+        array."""
+        return self._stats[:len(self)]
+
+    @property
+    def acceptance(self):
+        """The history of all of acceptance ratios and accepted booleans,
+        as a structred array."""
+        return self._acceptance[:len(self)]
+
+    @property
+    def blobs(self):
+        """The history of all of the blob data, as a structured array.
+
+        If the model does not return blobs, this is just ``None``.
+        """
+        blobs = self._blobs
+        if blobs is not None:
+            blobs = blobs[:len(self)]
+        return blobs
+
+    @property
+    def current_position(self):
+        """Dictionary of the current position of the chain."""
+        if len(self) == 0:
+            pos = self.start_position
+        else:
+            pos = self._positions.asdict(len(self)-1)
+        return pos
+
+    @property
+    def current_stats(self):
+        """Dictionary giving the log likelihood and log prior of the current
+        position.
+        """
+        if len(self) == 0:
+            stats = self.stats0
+        else:
+            stats = self._stats.asdict(len(self)-1)
+        return stats
+
+    @property
+    def current_blob(self):
+        """Dictionary of the blob data of the current position.
+
+        If the model does not return blobs, just returns ``None``.
+        """
+        if not self.hasblobs:
+            blob = None
+        elif len(self) == 0:
+            blob = self.blob0
+        else:
+            blob = self._blobs.asdict(len(self)-1)
+        return blob
 
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
@@ -265,16 +324,16 @@ class Chain(BaseChain):
         """
         if self._iteration > 0:
             # save position then clear
-            self._start[0] = self.current_position
+            self._start = self.current_position
             self._positions.clear(self.scratchlen)
             # save stats then clear
-            self._stats0[0] = self.current_stats
+            self._stats0 = self.current_stats
             self._stats.clear(self.scratchlen)
             # clear acceptance info
             self._acceptance.clear(self.scratchlen)
             # save blobs then clear
-            if self._hasblobs:
-                self._blob0[0] = self.current_blob
+            if self.hasblobs:
+                self._blob0 = self.current_blob
                 self._blobs.clear(self.scratchlen)
         self._lastclear = self._iteration
         return self
@@ -373,6 +432,7 @@ class Chain(BaseChain):
         current_logp = current_stats['logp']
         if logp == -numpy.inf:
             # force a reject
+            accept = False
             ar = 0.
         else:
             logar = logp + logl * self.beta \
@@ -381,8 +441,8 @@ class Chain(BaseChain):
                 logar += self.proposal_dist.logpdf(current_pos, proposal) - \
                          self.proposal_dist.logpdf(proposal, current_pos)
             ar = numpy.exp(logar)
-        u = self.random_generator.uniform()
-        accept = u <= ar
+            u = self.random_generator.uniform()
+            accept = u <= ar
         if accept:
             pos = proposal
             stats = {'logl': logl, 'logp': logp}
@@ -395,7 +455,7 @@ class Chain(BaseChain):
         index = self._iteration
         self._positions[index] = pos
         self._stats[index] = stats
-        self._acceptance[index] = (ar, accepted)
+        self._acceptance[index] = (ar, accept)
         if self._hasblobs:
             self._blobs[index] = blob
         self._iteration += 1
