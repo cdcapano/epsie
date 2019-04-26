@@ -392,8 +392,8 @@ class Chain(BaseChain):
         state['iteration'] = self.iteration
         state['current_position'] = self.current_position
         state['current_stats'] = self.current_stats
-        state['hasblobs'] = self._hasblobs
-        if self._hasblobs:
+        state['hasblobs'] = self.hasblobs
+        if self.hasblobs:
             blob = self.current_blob
         else:
             blob = None
@@ -417,7 +417,7 @@ class Chain(BaseChain):
         self.clear()
         self._iteration = state['iteration']
         self._lastclear = state['iteration']
-        self.start_position = state['current_position']
+        self._start = state['current_position'].copy()
         self.stats0 = state['current_stats']
         self._hasblobs = state['hasblobs']
         self.blob0 = state['current_blob']
@@ -467,7 +467,7 @@ class Chain(BaseChain):
             stats = current_stats
             blob = current_blob
         # save
-        index = self._iteration
+        index = len(self)
         self._positions[index] = pos
         self._stats[index] = stats
         self._acceptance[index] = (ar, accept)

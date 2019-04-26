@@ -256,40 +256,8 @@ class ParallelTemperedChain(BaseChain):
         """Returns the number of temperatures used by the chain."""
         return len(self.betas)
 
-    @property
-    def start_position(self):
-        """Dictionary mapping parameters to their start position.
-
-        If the start position hasn't been set, raises a ``ValueError``.
-        """
-        if self._start is None:
-            raise ValueError("Starting position not set!")
-        return self._start
-
-    @start_position.setter
-    def start_position(self, position):
-        """Sets the starting position.
-
-        This also evaulates the log likelihood and log prior at the starting
-        position, as well as determine if the model returns blob data.
-
-        Parameters
-        ----------
-        position : dict
-            Dictionary mapping parameters to values. If ntemps > 1, values
-            should be numpy arrays with length = ntemps. Otherwise, these
-            should be atomic data types.
-        """
-        self._start = position.copy()
-        for tk, chain in enumerate(self.chains):
-            if self.ntemps == 1:
-                posk = {param: position[param][tk] for param in position}
-            else:
-                posk = position
-            chain.start_position = posk
-
     def _concatenate_dicts(self, attr):
-        """Concatenates dictionary attributes over all of the temperaturs.
+        """Concatenates dictionary attributes over all of the temperatures.
 
         Parameters
         ----------
@@ -315,6 +283,36 @@ class ParallelTemperedChain(BaseChain):
         else:
             getter = lambda x: getattr(x, attr)[item]
         return numpy.stack(map(getter, self.chains))
+
+    @property
+    def start_position(self):
+        """Dictionary mapping parameters to their start position.
+
+        If the start position hasn't been set, raises a ``ValueError``.
+        """
+        return self._concatenate_dicts('start_position')
+
+    @start_position.setter
+    def start_position(self, position):
+        """Sets the starting position.
+
+        This also evaulates the log likelihood and log prior at the starting
+        position, as well as determine if the model returns blob data.
+
+        Parameters
+        ----------
+        position : dict
+            Dictionary mapping parameters to values. If ntemps > 1, values
+            should be numpy arrays with length = ntemps. Otherwise, these
+            should be atomic data types.
+        """
+        self._start = position.copy()
+        for tk, chain in enumerate(self.chains):
+            if self.ntemps > 1:
+                posk = {param: position[param][tk] for param in position}
+            else:
+                posk = position
+            chain.start_position = posk
 
     @property
     def stats0(self):
@@ -404,10 +402,7 @@ class ParallelTemperedChain(BaseChain):
     @property
     def current_position(self):
         """Dictionary of the current position of the chain."""
-        if len(self) == 0:
-            pos = self.start_position
-        else:
-            return self._concatenate_dicts('current_position')
+        return self._concatenate_dicts('current_position')
 
     @property
     def current_stats(self):
@@ -514,7 +509,7 @@ class ParallelTemperedChain(BaseChain):
             new_blobs = [self.chains[swk].current_blob
                          for swk in swap_index]
         # note: we're not swapping the acceptance ratios
-        ii = self.iteration - 1
+        ii = self.iteration - self.lastclear - 1
         for (tk, chain) in enumerate(self.chains):
             chain._positions[ii] = new_positions[tk]
             chain._stats[ii] = new_stats[tk]

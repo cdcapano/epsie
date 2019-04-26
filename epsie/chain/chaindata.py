@@ -227,6 +227,8 @@ class ChainData(object):
         return repr(self.data)
 
     def __getitem__(self, index):
+        if self._data is None:
+            raise ValueError("no data has been set yet")
         return self._data[index]
 
     def asdict(self, index=None):
