@@ -24,7 +24,8 @@ import itertools
 
 import epsie
 from epsie import create_seed, create_brngs
-from epsie.chain import Chain
+from epsie.chain import ParallelTemperedChain
+from epsie.chain.chaindata import (ChainData, detect_dtypes)
 from epsie.proposals import Normal
 
 
@@ -96,12 +97,13 @@ class ParallelTemperedSampler(object):
             seed = create_seed(seed)
         self.seed = seed
         # create the chains
-        self.chains = [Chain(self.parameters, self.model,
-                             [copy.copy(p) for p in self.proposals.values()],
-                             betas=betas,
-                             brng=epsie.create_brng(self.seed, stream=cid),
-                             chain_id=cid)
-                        for cid in range(nchains)]
+        self.chains = [ParallelTemperedChain(
+            self.parameters, self.model,
+            [copy.copy(p) for p in self.proposals.values()],
+            betas=betas,
+            brng=epsie.create_brng(self.seed, stream=cid),
+            chain_id=cid)
+            for cid in range(nchains)]
         # set the mapping function
         if pool is None:
             self.map = map
@@ -147,17 +149,46 @@ class ParallelTemperedSampler(object):
         for c in self.chains:
             c.swap_interval = interval
 
-    def set_start(self, positions):
-        """Sets the starting position of all of the chains.
+    def _concatenate_dicts(self, attr):
+        """Concatenates dictionary attributes over all of the chains.
 
         Parameters
         ----------
-        positions : dict
-            Dictionary mapping parameter names to arrays of values. The chains
-            must have length equal to the number of chains.
+        attr : str
+            The name of the attribute to get from the chains. The attribute
+            is assumed to return a dictionary.
+
+        Returns
+        -------
+        dict :
+            Dictionary mapping parameters to arrays. The arrays have shape
+            ``[ntemps x] nchains``.
         """
-        for (ii, chain) in enumerate(self.chains):
-            chain.set_start({p: positions[p][ii, ...] for p in positions})
+        # we'll create a chain data instance to stack the dictionaries
+        d = getattr(self.chains[0], attr)
+        out = ChainData(list(d.keys()), dtypes=detect_dtypes(d),
+                        ntemps=self.ntemps)
+        out.extend(self.nchains)
+        for ii, chain in enumerate(self.chains):
+            out[ii] = getattr(chain, attr)
+        return out.asdict()
+
+    def _concatenate_arrays(self, attr, item=None):
+        """Concatenates the given attribute over all of the chains.
+
+        The attribute is assumed to return an array.
+
+        Returned array has shape ``[ntemps x] nchains x niterations``.
+        """
+        if item is None:
+            getter = lambda x: getattr(x, attr)
+        else:
+            getter = lambda x: getattr(x, attr)[item]
+        if self.ntemps == 1:
+            axis = 0
+        else:
+            axis = 1  # will give ntemps x nchains x niterations
+        return numpy.stack(map(getter, self.chains), axis=axis)
 
     @property
     def start_position(self):
@@ -171,8 +202,21 @@ class ParallelTemperedSampler(object):
             Dictionary mapping parameters to arrays with shape ``nchains``
             giving the starting position of each chain.
         """
-        return {p: self.concatenate_chains('start_position', p)
-                for p in self.parameters}
+        return self._concatenate_dicts('start_position')
+
+    @start_position.setter
+    def start_position(self, positions):
+        """Sets the starting position of all of the chains.
+
+        Parameters
+        ----------
+        positions : dict
+            Dictionary mapping parameter names to arrays of values. The chains
+            must have length equal to the number of chains.
+        """
+        for (ii, chain) in enumerate(self.chains):
+            chain.start_position = {p: positions[p][ii, ...]
+                                    for p in positions}
 
     def run(self, niterations):
         """Evolves all of the chains by niterations.
@@ -201,28 +245,10 @@ class ParallelTemperedSampler(object):
         # use the first one
         return self.chains[0].lastclear
 
-    def concatenate_chains(self, attr, item=None):
-        """Concatenates the given attribute over all of the chains.
-        
-        Returned array has shape ``[ntemps x] nchains x niterations``.
-        """
-        # we'll transpose each chain so that niters x ntemps -> ntemps x niters
-        # then stack the chains along the first axis, giving
-        # ntemps x nchains x niters
-        if item is None:
-            getter = lambda x: getattr(x, attr).T
-        else:
-            getter = lambda x: getattr(x, attr).T[item]
-        if self.ntemps == 1:
-            axis = 0
-        else:
-            axis = 1  # will give ntemps x nchains x niterations
-        return numpy.stack(map(getter, self.chains), axis=axis)
-
     @property
     def positions(self):
         """The history of positions from all of the chains."""
-        return self.concatenate_chains('positions')
+        return self._concatenate_arrays('positions')
 
     @property
     def current_positions(self):
@@ -231,12 +257,12 @@ class ParallelTemperedSampler(object):
         This will default to the start position if the chains haven't been
         run yet.
         """
-        return self.concatenate_chains('current_position')
+        return self._concatenate_dicts('current_position')
 
     @property
     def stats(self):
         """The history of stats from all of the chains."""
-        return self.concatenate_chains('stats')
+        return self._concatenate_arrays('stats')
 
     @property
     def current_stats(self):
@@ -245,13 +271,13 @@ class ParallelTemperedSampler(object):
         This will default to the stats of the start positions if the chains
         haven't been run yet.
         """
-        return self.concatenate_chains('current_stats')
+        return self._concatenate_dicts('current_stats')
 
     @property
     def blobs(self):
         """The history of all of the blobs from all of the chains."""
         if self.chains[0].hasblobs:
-            blobs = self.concatenate_chains('blobs')
+            blobs = self._concatenate_arrays('blobs')
         else:
             blobs = None
         return blobs
@@ -264,7 +290,7 @@ class ParallelTemperedSampler(object):
         chains haven't been run yet.
         """
         if self.chains[0].hasblobs:
-            blobs = self.concatenate_chains('current_blob')
+            blobs = self._concatenate_dicts('current_blob')
         else:
             blobs = None
         return blobs
@@ -272,7 +298,7 @@ class ParallelTemperedSampler(object):
     @property
     def acceptance(self):
         """The history of all acceptance stats from all of the chains."""
-        return self.concatenate_chains('acceptance')
+        return self._concatenate_arrays('acceptance')
 
     @property
     def temperature_swaps(self):
@@ -282,7 +308,7 @@ class ParallelTemperedSampler(object):
         """
         if self.ntemps == 1:
             return None
-        return self.concatenate_chains('temperature_swaps')
+        return self._concatenate_arrays('temperature_swaps')
 
     @property
     def state(self):
