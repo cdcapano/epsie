@@ -20,7 +20,6 @@ from __future__ import absolute_import
 import numpy
 from scipy.stats import uniform as randuniform
 
-from epsie import array2dict
 from epsie.proposals import JointProposal
 
 from .base import BaseChain
@@ -258,21 +257,42 @@ class Chain(BaseChain):
     @property
     def positions(self):
         """The history of all of the positions, as a structred array."""
-        return self._positions[:len(self)]
+        try:
+            return self._positions[:len(self)]
+        except TypeError as e:
+            if self._positions.data is None:
+                raise ValueError("No positions as chain hasn't been stepped "
+                                 "yet; run step() at least once")
+            else:
+                raise TypeError(e)
 
     @property
     def stats(self):
         """The log likelihoods and log priors of the positions, as a structured
         array.
         """
-        return self._stats[:len(self)]
+        try:
+            return self._stats[:len(self)]
+        except TypeError as e:
+            if self._stats.data is None:
+                raise ValueError("No stats as chain hasn't been stepped "
+                                 "yet; run step() at least once")
+            else:
+                raise TypeError(e)
 
     @property
     def acceptance(self):
         """The history of all of acceptance ratios and accepted booleans,
         as a structred array.
         """
-        return self._acceptance[:len(self)]
+        try:
+            return self._acceptance[:len(self)]
+        except TypeError as e:
+            if self._acceptance.data is None:
+                raise ValueError("No acceptance as chain hasn't been stepped "
+                                 "yet; run step() at least once")
+            else:
+                raise TypeError(e)
 
     @property
     def blobs(self):
@@ -280,9 +300,17 @@ class Chain(BaseChain):
 
         If the model does not return blobs, this is just ``None``.
         """
-        blobs = self._blobs
-        if blobs is not None:
-            blobs = blobs[:len(self)]
+        if self.hasblobs:
+            try:
+                blobs = self._blobs[:len(self)]
+            except TypeError as e:
+                if self._blobs.data is None:
+                    raise ValueError("No blobs as chain hasn't been stepped "
+                                     "yet; run step() at least once")
+                else:
+                    raise TypeError(e)
+        else:
+            blobs = None
         return blobs
 
     @property
@@ -378,11 +406,11 @@ class Chain(BaseChain):
         state['chain_id'] = self.chain_id
         state['proposal_dist'] = self.proposal_dist.state
         state['iteration'] = self.iteration
-        state['current_position'] = array2dict(self.current_position)
-        state['current_stats'] = array2dict(self.current_stats)
+        state['current_position'] = self.current_position
+        state['current_stats'] = self.current_stats
         state['hasblobs'] = self._hasblobs
         if self._hasblobs:
-            blob = array2dict(self.current_blob)
+            blob = self.current_blob
         else:
             blob = None
         state['current_blob'] = blob
