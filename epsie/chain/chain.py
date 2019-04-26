@@ -257,42 +257,30 @@ class Chain(BaseChain):
     @property
     def positions(self):
         """The history of all of the positions, as a structred array."""
-        try:
-            return self._positions[:len(self)]
-        except TypeError as e:
-            if self._positions.data is None:
-                raise ValueError("No positions as chain hasn't been stepped "
-                                 "yet; run step() at least once")
-            else:
-                raise TypeError(e)
+        if self.iteration == 0:
+            raise ValueError("No positions as chain hasn't been stepped "
+                             "yet; run step() at least once")
+        return self._positions[:len(self)]
 
     @property
     def stats(self):
         """The log likelihoods and log priors of the positions, as a structured
         array.
         """
-        try:
-            return self._stats[:len(self)]
-        except TypeError as e:
-            if self._stats.data is None:
-                raise ValueError("No stats as chain hasn't been stepped "
-                                 "yet; run step() at least once")
-            else:
-                raise TypeError(e)
+        if self.iteration == 0:
+            raise ValueError("No stats as chain hasn't been stepped "
+                             "yet; run step() at least once")
+        return self._stats[:len(self)]
 
     @property
     def acceptance(self):
         """The history of all of acceptance ratios and accepted booleans,
         as a structred array.
         """
-        try:
-            return self._acceptance[:len(self)]
-        except TypeError as e:
-            if self._acceptance.data is None:
-                raise ValueError("No acceptance as chain hasn't been stepped "
-                                 "yet; run step() at least once")
-            else:
-                raise TypeError(e)
+        if self.iteration == 0:
+            raise ValueError("No acceptance as chain hasn't been stepped "
+                             "yet; run step() at least once")
+        return self._acceptance[:len(self)]
 
     @property
     def blobs(self):
@@ -300,15 +288,11 @@ class Chain(BaseChain):
 
         If the model does not return blobs, this is just ``None``.
         """
+        if self.iteration == 0:
+            raise ValueError("No blobs as chain hasn't been stepped "
+                             "yet; run step() at least once")
         if self.hasblobs:
-            try:
-                blobs = self._blobs[:len(self)]
-            except TypeError as e:
-                if self._blobs.data is None:
-                    raise ValueError("No blobs as chain hasn't been stepped "
-                                     "yet; run step() at least once")
-                else:
-                    raise TypeError(e)
+            blobs = self._blobs[:len(self)]
         else:
             blobs = None
         return blobs
