@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 import numpy
+import copy
 from scipy.stats import uniform as randuniform
 
 import epsie
@@ -59,11 +60,32 @@ class ParallelTemperedChain(BaseChain):
         random variates. If an int or None is provided, a BRNG will be
         created instead using ``brng`` as a seed.
     chain_id : int, optional
-        An interger identifying which chain this is. Optional; if not provided,
-        the ``chain_id`` attribute will just be set to None.
+        An interger identifying which chain this is. Default is 0.
+
+    Attributes
+    ----------
+    iteration
+    lastclear
+    scratchlen
+    positions
+    stats
+    acceptance
+    blobs
+    start_position
+    stats0
+    blob0
+    current_position
+    current_stats
+    current_blob
+    brng
+    random_state
+    state
+    hasblobs
+    chain_id : int or None
+        Integer identifying the chain.
     """
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
-                 brng=None, chain_id=None):
+                 brng=None, chain_id=0):
         # store the temp
         self._betas = None
         self.betas = betas
@@ -76,15 +98,89 @@ class ParallelTemperedChain(BaseChain):
                 ['acceptance_ratio', 'swap_index'],
                 dtypes={'acceptance_ratio': float, 'swap_index': int},
                 ntemps=self.ntemps-1)
+        self.chain_id = chain_id
         # make sure all parallel tempered chains use the same brng
-        if brng is None:
-            brng = epsie.create_brng(None, stream=chain_id)
+        self._brng = None
+        self.brng = brng
         # create a chain for each temperature
         self.chains = [Chain(parameters, model,
                              [copy.copy(p) for p in proposals],
-                             brng=brng, chain_id=chain_id,
+                             brng=self.brng, chain_id=chain_id,
                              beta=beta)
                         for beta in betas]
+
+    @property
+    def brng(self):
+        """The basic random number generator (BRNG) instance being used."""
+        return self._brng
+
+    @brng.setter
+    def brng(self, brng=None):
+        """Sets the BRNG.
+
+        Parameters
+        ----------
+        brng : :py:class:`randomgen.PGC64` instance, optional
+            Use the given basic random number generator (BRNG) for generating
+            random variates. If an int or None is provided, a BRNG will be
+            created instead using ``brng`` as a seed.
+        """
+        if brng is None:
+            brng = epsie.create_brng(None, stream=self.chain_id)
+        self._brng = brng
+
+    @property
+    def random_generator(self):
+        """Returns the random number generator."""
+        return self.brng.generator
+
+    @property
+    def random_state(self):
+        """The current state of the basic random number generator (BRNG).
+        """
+        return self.brng.state
+
+    @random_state.setter
+    def random_state(self, state):
+        """Sets the state of brng.
+        
+        Parameters
+        ----------
+        state : dict
+            Dictionary giving the state to set.
+        """
+        self.brng.state = state
+
+    @property
+    def state(self):
+        """Returns the current state of the chain.
+
+        The state consists of everything needed such that setting a chain's
+        state using another's state will result in identical results.
+
+        Returns
+        -------
+        dict :
+            Dictionary of ``tk -> chains[tk].state``, where ``tk`` is the
+            index of each temperature chain.
+        """
+        return {tk: chain.state for tk, chain in enumerate(self.chains)}
+
+    def set_state(self, state):
+        """Sets the state of the chain using the given dict.
+
+        .. warning::
+           Running this will clear the chain's current memory, and replace its
+           current position with what is saved in the state.
+
+        Parameters
+        ----------
+        state : dict
+            Dictionary of ``tk -> dict`` mapping indices of the temperature
+            chains to the state they should be set to.
+        """
+        for tk in state:
+            self.chains[tk].set_state(state[tk])
 
     @property
     def iteration(self):
@@ -161,23 +257,220 @@ class ParallelTemperedChain(BaseChain):
         return len(self.betas)
 
     @property
-    def temperature_swaps(self):
-        """The history of all of the temperature swaps."""
-        return self._temperature_swaps[:len(self)]
+    def start_position(self):
+        """Dictionary mapping parameters to their start position.
 
-    def swap_temperatures(self, ii):
-        """Computes acceptance ratio between temperatures and swaps them.
+        If the start position hasn't been set, raises a ``ValueError``.
+        """
+        if self._start is None:
+            raise ValueError("Starting position not set!")
+        return self._start
+
+    @start_position.setter
+    def start_position(self, position):
+        """Sets the starting position.
+
+        This also evaulates the log likelihood and log prior at the starting
+        position, as well as determine if the model returns blob data.
 
         Parameters
         ----------
-        ii : int
-            The iteration to do the swaps on.
+        position : dict
+            Dictionary mapping parameters to values. If ntemps > 1, values
+            should be numpy arrays with length = ntemps. Otherwise, these
+            should be atomic data types.
+        """
+        self._start = position.copy()
+        for tk, chain in enumerate(self.chains):
+            if self.ntemps == 1:
+                posk = {param: position[param][tk] for param in position}
+            else:
+                posk = position
+            chain.start_position = posk
+
+    def _concatenate_dicts(self, attr):
+        """Concatenates dictionary attributes over all of the temperaturs.
+
+        Parameters
+        ----------
+        attr : str
+            The name of the attribute to get from the chains. The attribute
+            is assumed to return a dictionary.
+        """
+        # we'll create a chain data instance to stack the dictionaries
+        d = getattr(self.chains[0], attr)
+        out = ChainData(list(d.keys()), dtypes=detect_dtypes(d))
+        out.extend(self.ntemps)
+        for tk, chain in enumerate(self.chains):
+            out[tk] = getattr(chain, attr)
+        return out.asdict()
+
+    def _concatenate_arrays(self, attr, item=None):
+        """Concatenates array attributes over all of the temperatures.
+
+        Returned array has shape ``[ntemps x] niterations``.
+        """
+        if item is None:
+            getter = lambda x: getattr(x, attr)
+        else:
+            getter = lambda x: getattr(x, attr)[item]
+        return numpy.stack(map(getter, self.chains))
+
+    @property
+    def stats0(self):
+        """Dictionary of the log likelihood and log prior at the start
+        position.
+
+        The values of the returned dictionary are arrays of length ``ntemps``,
+        ordered by increasing temperature.
+        
+        Raises a ``ValueError`` if the start position has not been set yet.
+        """
+        return self._concatenate_dicts('stats0')
+
+    @property
+    def blob0(self):
+        """The blob data of the starting position, as a dictionary.
+
+        If ``hasblobs`` is False, just returns None. Otherwise,  the values of
+        the returned dictionary are arrays of length ``ntemps``, ordered by
+        increasing temperature.
+
+        Raises a ``ValueError`` if ``set_start`` has not been run yet.
+        """
+        if self.hasblobs:
+            blob = self._concatenate_dicts('blob0')
+        else:
+            blob = None
+        return blob
+
+    @property
+    def positions(self):
+        """The history of all of the positions, as a structred array.
+        
+        If ``ntemps > 1``, the returned array has shape
+        ``ntemps x niterations``. Otherwise, the returned array has shape
+        ``niterations``.
+        """
+        return self._concatenate_arrays('positions')
+
+    @property
+    def stats(self):
+        """The history of all of the stats, as a structred array.
+        
+        If ``ntemps > 1``, the returned array has shape
+        ``ntemps x niterations``. Otherwise, the returned array has shape
+        ``niterations``.
+        """
+        return self._concatenate_arrays('stats')
+
+    @property
+    def acceptance(self):
+        """The history of all of acceptance ratios and accepted booleans,
+        as a structred array.
+
+        If ``ntemps > 1``, the returned array has shape
+        ``ntemps x niterations``. Otherwise, the returned array has shape
+        ``niterations``.
+        """
+        return self._concatenate_arrays('acceptance')
+
+    @property
+    def temperature_swaps(self):
+        """The history of all of the temperature swaps.
+        
+        If ``ntemps > 1``, the returned array has shape
+        ``ntemps x niterations``. Otherwise, the returned array has shape
+        ``niterations``.
+        """
+        return self._temperature_swaps[:len(self)].T
+
+    @property
+    def blobs(self):
+        """The history of all of the blob data, as a structured array.
+
+        If the model does not return blobs, this is just ``None``.
+
+        If ``ntemps > 1``, the returned array has shape
+        ``ntemps x niterations``. Otherwise, the returned array has shape
+        ``niterations``.
+        """
+        if self.hasblobs:
+            blobs = self._concatenate_arrays('blobs')
+        else:
+            blobs = None
+        return blobs
+
+    @property
+    def current_position(self):
+        """Dictionary of the current position of the chain."""
+        if len(self) == 0:
+            pos = self.start_position
+        else:
+            return self._concatenate_dicts('current_position')
+
+    @property
+    def current_stats(self):
+        """Dictionary giving the log likelihood and log prior of the current
+        position.
+        """
+        return self._concatenate_dicts('current_stats')
+
+    @property
+    def current_blob(self):
+        """Dictionary of the blob data of the current position.
+
+        If the model does not return blobs, just returns ``None``.
+        """
+        if not self.hasblobs:
+            blob = None
+        else:
+            blob = self._concatenate_dicts('current_blob')
+        return blob
+
+    def clear(self):
+        """Clears memory of the current chain, and sets start position to the
+        current position.
+        
+        New scratch space will be created with length equal to ``scratch_len``.
+        """
+        for chain in self.chains:
+            chain.clear()
+        # clear temperature swaps
+        if self.ntemps > 1:
+            self._temperature_swaps.clear(self.scratchlen)
+
+    def __getitem__(self, index):
+        """Returns all of the chain data at the requested index."""
+        out = {'positions': self.positions[index],
+               'stats': self.stats[index],
+               'acceptance': self.acceptance[index]
+               }
+        if self.ntemps > 1:
+            out['temperature_swaps'] = self.temperature_swaps[index]
+        if self._hasblobs:
+            out['blobs'] = self.blobs[index]
+        return out
+
+    def step(self):
+        """Evolves all of the temperatures by one iteration.
+        """
+        for chain in self.chains:
+            chain.step()
+        # do temperature swaps
+        if self.ntemps > 1 and self.iteration % self.swap_interval == 0:
+            self.swap_temperatures()
+
+    def swap_temperatures(self):
+        """Computes acceptance ratio between temperatures and swaps them.
+
+        The positions, stats, and (if they exist) blobs are swapped. The
+        acceptance is not swapped, however.
         """
         # get values of all temps at current step
-        position = self._positions[ii, :]
-        stats = self._stats[ii, :]
-        if self._hasblobs:
-            blob = self._blobs[ii, :]
+        stats = self.current_stats
+        if self.hasblobs:
+            blob = self.current_blob
         # we'll create an array of indices to keep track of where things
         # will go after all of the swaps have been done
         swap_index = numpy.arange(self.ntemps, dtype=int)
@@ -213,85 +506,23 @@ class ParallelTemperedChain(BaseChain):
             # store the acceptance ratio
             ars[tj] = ar
         # now do the swaps and store
-        self._positions[ii] = position[swap_index]
-        self._stats[ii] = stats[swap_index]
-        if self._hasblobs:
-            self._blobs[ii] = blob[swap_index]
+        new_positions = [self.chains[swk].current_position
+                         for swk in swap_index]
+        new_stats = [self.chains[swk].current_stats
+                     for swk in swap_index]
+        if self.hasblobs:
+            new_blobs = [self.chains[swk].current_blob
+                         for swk in swap_index]
+        # note: we're not swapping the acceptance ratios
+        ii = self.iteration - 1
+        for (tk, chain) in enumerate(self.chains):
+            chain._positions[ii] = new_positions[tk]
+            chain._stats[ii] = new_stats[tk]
+            if self.hasblobs:
+                chain._blobs[ii] = new_blobs[tk]
         # since we have ntemps-1 acceptance ratios, we won't store the
         # hottest swap index, since it can be inferred from the other
         # swap indices
         self._temperature_swaps[ii] = {'acceptance_ratio': ars,
                                        'swap_index': swap_index[:-1]}
 
-    @start_position.setter
-    def start_position(self, position):
-        """Sets the starting position.
-
-        This also evaulates the log likelihood and log prior at the starting
-        position, as well as determine if the model returns blob data.
-
-        Parameters
-        ----------
-        position : dict
-            Dictionary mapping parameters to values. If ntemps > 1, values
-            should be numpy arrays with length = ntemps. Otherwise, these
-            should be atomic data types.
-        """
-        for tk, chain in enumerate(self.chains):
-            if self.ntemps == 1:
-                posk = {param: position[param][tk] for param in position}
-            else:
-                posk = position
-            chain.start_position = posk
-
-    def clear(self):
-        """Clears memory of the current chain, and sets start position to the
-        current position.
-        
-        New scratch space will be created with length equal to ``scratch_len``.
-        """
-        for chain in self.chains:
-            chain.clear()
-        # clear temperature swaps
-        if self.ntemps > 1:
-            self._temperature_swaps.clear(self.scratchlen)
-
-    def __getitem__(self, index):
-        """Returns all of the chain data at the requested index."""
-        index = (-1)**(index < 0) * (index % len(self))
-        out = {'positions': self._positions[index],
-               'stats': self._stats[index],
-               'acceptance': self._acceptance[index]
-               }
-        if self.ntemps > 1:
-            out['temperature_swaps'] = self._temperature_swaps[index]
-        if self._hasblobs:
-            out['blobs'] = self._blobs[index]
-        return out
-
-    def step(self):
-        """Evolves all of the temperatures by one iteration.
-        """
-        for chain in self.chains:
-            chain.step()
-        # do temperature swaps
-        if self.ntemps > 1 and ii % self.swap_interval == 0:
-            self.swap_temperatures(ii)
-
-    def concatenate_temps(self, attr, item=None):
-        """Concatenates the given attribute over all of the temperatures.
-
-        Returned array has shape ``[ntemps x] niterations``.
-        """
-        # we'll transpose each chain so that niters x ntemps -> ntemps x niters
-        # then stack the chains along the first axis, giving
-        # ntemps x nchains x niters
-        if item is None:
-            getter = lambda x: getattr(x, attr).T
-        else:
-            getter = lambda x: getattr(x, attr).T[item]
-        if self.ntemps == 1:
-            axis = 0
-        else:
-            axis = 1  # will give ntemps x niterations
-        return numpy.stack(map(getter, self.chains), axis=axis)
