@@ -59,8 +59,7 @@ class Chain(BaseChain):
         random variates. If an int or None is provided, a BRNG will be
         created instead using ``brng`` as a seed.
     chain_id : int, optional
-        An interger identifying which chain this is. Optional; if not provided,
-        the ``chain_id`` attribute will just be set to None.
+        An interger identifying which chain this is. Default is 0.
     beta : float, optional
         The inverse temperature of the chain. Default is 1.
 
@@ -83,8 +82,10 @@ class Chain(BaseChain):
     random_state
     state
     hasblobs
+    chain_id : int or None
+        Integer identifying the chain.
     """
-    def __init__(self, parameters, model, proposals, brng=None, chain_id=None,
+    def __init__(self, parameters, model, proposals, brng=None, chain_id=0,
                  beta=1.):
         self.parameters = parameters
         self.model = model
@@ -262,13 +263,15 @@ class Chain(BaseChain):
     @property
     def stats(self):
         """The log likelihoods and log priors of the positions, as a structured
-        array."""
+        array.
+        """
         return self._stats[:len(self)]
 
     @property
     def acceptance(self):
         """The history of all of acceptance ratios and accepted booleans,
-        as a structred array."""
+        as a structred array.
+        """
         return self._acceptance[:len(self)]
 
     @property

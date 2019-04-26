@@ -44,14 +44,13 @@ class BaseChain(object):
     random_state
     state
     hasblobs
+    chain_id : int
+        Integer identifying the chain. Default is 0.
     """
     __metaclass__ = ABCMeta
 
-    _positions = None
-    _stats = None
-    _acceptance = None
-    _blobs = None
     _hasblobs = False
+    chain_id = 0
 
     def __len__(self):
         return self.iteration - self.lastclear
