@@ -105,12 +105,6 @@ class BaseSampler(object):
     def chains(self, chains):
         self._chains = chains
 
-    @abstractmethod
-    def create_chains(self, nchains, **kwargs):
-        """Creates the chains to use and set the ``chains`` attribute.
-        """
-        pass
-
     @property
     def seed(self):
         """The seed used for the BRNG."""
