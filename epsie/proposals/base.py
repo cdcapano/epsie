@@ -110,7 +110,7 @@ class BaseProposal(object):
 
     @property
     def parameters(self):
-        """The parameters that jump proposals are produced for, as a tuple."""
+        """Sorted tuple of the parameters that proposals are produced for."""
         if self._parameters is None:
             raise AttributeError("no parameters set")
         return self._parameters
@@ -119,7 +119,7 @@ class BaseProposal(object):
     def parameters(self, parameters):
         """Sets the parameters.
 
-        The parameters are stored as a tuple.
+        The parameters are stored as a sorted tuple.
 
         Parameters
         ----------
@@ -129,7 +129,7 @@ class BaseProposal(object):
         """
         if isinstance(parameters, (str, unicode)):
             parameters = [parameters]
-        self._parameters = tuple(parameters)
+        self._parameters = tuple(sorted(parameters))
 
     # Py3XX: uncomment the next two lines 
     # @property
