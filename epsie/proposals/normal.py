@@ -227,7 +227,7 @@ class AdaptiveNormal(Normal):
         return self._adaptation_duration
 
     @adaptation_duration.setter
-    def adaptaton_duration(self, adaptation_duration):
+    def adaptation_duration(self, adaptation_duration):
         """Sets the adaptation duration to the given value, making sure it is
         larger than 1.
         """
@@ -240,11 +240,26 @@ class AdaptiveNormal(Normal):
         accepted or not.
         """
         dk = chain.iteration - self.start_iteration
-        if dk > 1 and chain.iteration < self.adaptation_duration:
+        if dk >= 1 and chain.iteration < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
-            if chain[-1].acceptance['accepted']:
+            if chain.acceptance[-1]['accepted']:
                 alpha = 1 - self.target_rate
             else:
                 alpha = -self.target_rate
             dsigmas = alpha * dk * self.deltas/10.
-            self._cov[numpy.diag_indices(self.ndim)] += dsigmas
+            # ensure we don't go negative
+            getidx = numpy.diag_indices(self.ndim)
+            cov = self._cov[getidx]
+            newcov = cov + dsigmas
+            lzidx = newcov < 0
+            newcov[lzidx] = cov[lzidx]
+            self._cov[getidx] = newcov
+
+    @property
+    def state(self):
+        return {'random_state': self.random_state,
+                'cov': self.cov}
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
+        self._cov = state['cov']
