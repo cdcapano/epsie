@@ -75,7 +75,7 @@ class BaseChain(object):
         """Whether the model returns blobs."""
         return self._hasblobs
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -83,7 +83,7 @@ class BaseChain(object):
         """The number of times the chain has been stepped."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -92,7 +92,7 @@ class BaseChain(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -100,7 +100,7 @@ class BaseChain(object):
         """The length of the scratch space used."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -108,7 +108,7 @@ class BaseChain(object):
         """Dictionary mapping parameters to their start position."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -116,7 +116,7 @@ class BaseChain(object):
         """Dictionary of the log likelihood and prior at the start position."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -124,7 +124,7 @@ class BaseChain(object):
         """Dictionary of the blob data at the start position."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -132,7 +132,7 @@ class BaseChain(object):
         """The history of all of the positions, as a structred array."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -142,7 +142,7 @@ class BaseChain(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -152,7 +152,7 @@ class BaseChain(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -163,7 +163,7 @@ class BaseChain(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -171,7 +171,7 @@ class BaseChain(object):
         """Dictionary of the current position of the chain."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -181,7 +181,7 @@ class BaseChain(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -204,7 +204,7 @@ class BaseChain(object):
         """Returns all of the chain data at the requested index."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -212,7 +212,7 @@ class BaseChain(object):
         """Returns basic random number generator (BRNG) being used."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -220,7 +220,7 @@ class BaseChain(object):
         """Returns the random number generator."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -228,7 +228,7 @@ class BaseChain(object):
         """Returns the current state of the BRNG."""
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line

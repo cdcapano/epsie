@@ -131,7 +131,7 @@ class BaseProposal(object):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
@@ -151,7 +151,7 @@ class BaseProposal(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
