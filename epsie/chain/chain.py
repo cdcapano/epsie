@@ -18,7 +18,6 @@
 from __future__ import absolute_import
 
 import numpy
-from scipy.stats import uniform as randuniform
 
 from epsie.proposals import JointProposal
 
@@ -335,7 +334,7 @@ class Chain(BaseChain):
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
         current position.
-        
+
         New scratch space will be created with length equal to ``scratch_len``.
         """
         if self._iteration > 0:

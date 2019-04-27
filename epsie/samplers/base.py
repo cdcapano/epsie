@@ -17,11 +17,9 @@
 
 from __future__ import absolute_import
 
-import copy
 import itertools
 from abc import (ABCMeta, abstractmethod)
 
-import epsie
 from epsie import create_seed
 from epsie.proposals import Normal
 
@@ -29,6 +27,8 @@ from epsie.proposals import Normal
 class BaseSampler(object):
     """Base class for samplers.
     """
+    __metaclass__ = ABCMeta
+
     _parameters = None
     _proposals = None
     _model = None
@@ -204,7 +204,7 @@ class BaseSampler(object):
     @property
     def start_position(self):
         """The start position of the chains.
-        
+
         Will raise a ``ValueError`` is ``set_start`` hasn't been run.
 
         Returns

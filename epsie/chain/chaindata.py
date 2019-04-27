@@ -233,7 +233,7 @@ class ChainData(object):
 
     def asdict(self, index=None):
         """Returns the data as a dictionary.
-        
+
         Parameters
         ----------
         index : slice, optional

@@ -64,7 +64,7 @@ class MetropolisHastingsSampler(BaseSampler):
 
     def create_chains(self, nchains):
         """Creates a list of :py:class:`chain.Chain`.
-        
+
         Parameters
         ----------
         nchains : int

@@ -19,10 +19,8 @@ from __future__ import absolute_import
 
 import numpy
 import copy
-from scipy.stats import uniform as randuniform
 
 import epsie
-from epsie import array2dict
 
 from .base import BaseChain
 from .chain import Chain
@@ -428,7 +426,7 @@ class ParallelTemperedChain(BaseChain):
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
         current position.
-        
+
         New scratch space will be created with length equal to ``scratch_len``.
         """
         for chain in self.chains:
@@ -466,8 +464,6 @@ class ParallelTemperedChain(BaseChain):
         """
         # get values of all temps at current step
         stats = self.current_stats
-        if self.hasblobs:
-            blob = self.current_blob
         # we'll create an array of indices to keep track of where things
         # will go after all of the swaps have been done
         swap_index = numpy.arange(self.ntemps, dtype=int)
