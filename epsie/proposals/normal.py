@@ -83,7 +83,6 @@ class Normal(BaseProposal):
             raise ValueError("dimension of covariance matrix does not match "
                              "given number of parameters")
         self._cov = cov
-    
 
     @property
     def state(self):

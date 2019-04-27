@@ -80,8 +80,8 @@ class BaseSampler(object):
             default_proposal = Normal
         if default_proposal_args is None:
             default_proposal_args = {}
-        missing_props =  tuple(set(self.parameters)
-                               - set(itertools.chain(*proposals.keys())))
+        missing_props = tuple(set(self.parameters)
+                              - set(itertools.chain(*proposals.keys())))
         if missing_props:
             proposals[missing_props] = default_proposal(
                 missing_props, **default_proposal_args)

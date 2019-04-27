@@ -201,7 +201,7 @@ class Chain(BaseChain):
     def stats0(self):
         """Dictionary of the log likelihood and log prior at the start
         position.
-        
+
         Raises a ``ValueError`` if the start position has not been set yet.
         """
         # check if the start position is set
@@ -226,7 +226,7 @@ class Chain(BaseChain):
     @property
     def blob0(self):
         """The blob data of the starting position, as a dictionary.
-        
+
         Raises a ``ValueError`` if ``set_start`` has not been run yet.
         """
         # check if the start position is set

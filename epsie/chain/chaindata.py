@@ -128,7 +128,7 @@ class ChainData(object):
     @property
     def data(self):
         """Returns the saved data as a numpy structered array.
-        
+
         If no data has been added yet, and an initial length was not specified,
         returns ``None``.
         """
@@ -212,7 +212,7 @@ class ChainData(object):
 
     def clear(self, newlen=None):
         """Clears the memory.
-        
+
         Parameters
         ----------
         newlen : int, optional
@@ -282,4 +282,4 @@ def detect_dtypes(data):
     if not isinstance(data, dict):  # assume it's a numpy.void or numpy.ndarray
         data = array2dict(data)
     return {p: val.dtype if isinstance(val, numpy.ndarray) else type(val)
-            for p,val in data.items()}
+            for (p, val) in data.items()}

@@ -20,7 +20,8 @@ from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal)
 
-proposals = {JointProposal.name: JointProposal,
-             Normal.name: Normal,
-             AdaptiveNormal.name: AdaptiveNormal,
-            }
+proposals = {
+    JointProposal.name: JointProposal,
+    Normal.name: Normal,
+    AdaptiveNormal.name: AdaptiveNormal,
+}

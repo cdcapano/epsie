@@ -103,11 +103,12 @@ class ParallelTemperedChain(BaseChain):
         self._brng = None
         self.brng = brng
         # create a chain for each temperature
-        self.chains = [Chain(parameters, model,
-                             [copy.deepcopy(p) for p in proposals],
-                             brng=self.brng, chain_id=chain_id,
-                             beta=beta)
-                        for beta in self.betas]
+        self.chains = [
+            Chain(parameters, model,
+                  [copy.deepcopy(p) for p in proposals],
+                  brng=self.brng, chain_id=chain_id,
+                  beta=beta)
+            for beta in self.betas]
 
     @property
     def brng(self):
@@ -143,7 +144,7 @@ class ParallelTemperedChain(BaseChain):
     @random_state.setter
     def random_state(self, state):
         """Sets the state of brng.
-        
+
         Parameters
         ----------
         state : dict
@@ -279,10 +280,10 @@ class ParallelTemperedChain(BaseChain):
         Returned array has shape ``[ntemps x] niterations``.
         """
         if item is None:
-            getter = lambda x: getattr(x, attr)
+            arrs = map(lambda x: getattr(x, attr), self.chains)
         else:
-            getter = lambda x: getattr(x, attr)[item]
-        return numpy.stack(map(getter, self.chains))
+            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+        return numpy.stack(arrs)
 
     @property
     def start_position(self):
@@ -321,7 +322,7 @@ class ParallelTemperedChain(BaseChain):
 
         The values of the returned dictionary are arrays of length ``ntemps``,
         ordered by increasing temperature.
-        
+
         Raises a ``ValueError`` if the start position has not been set yet.
         """
         return self._concatenate_dicts('stats0')
@@ -345,7 +346,7 @@ class ParallelTemperedChain(BaseChain):
     @property
     def positions(self):
         """The history of all of the positions, as a structred array.
-        
+
         If ``ntemps > 1``, the returned array has shape
         ``ntemps x niterations``. Otherwise, the returned array has shape
         ``niterations``.
@@ -355,7 +356,7 @@ class ParallelTemperedChain(BaseChain):
     @property
     def stats(self):
         """The history of all of the stats, as a structred array.
-        
+
         If ``ntemps > 1``, the returned array has shape
         ``ntemps x niterations``. Otherwise, the returned array has shape
         ``niterations``.
@@ -376,7 +377,7 @@ class ParallelTemperedChain(BaseChain):
     @property
     def temperature_swaps(self):
         """The history of all of the temperature swaps.
-        
+
         If ``ntemps > 1``, the returned array has shape
         ``ntemps x niterations``. Otherwise, the returned array has shape
         ``niterations``.
@@ -518,4 +519,3 @@ class ParallelTemperedChain(BaseChain):
         # swap indices
         self._temperature_swaps[ii] = {'acceptance_ratio': ars,
                                        'swap_index': swap_index[:-1]}
-
