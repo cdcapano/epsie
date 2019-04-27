@@ -74,7 +74,7 @@ class MetropolisHastingsSampler(BaseSampler):
             raise ValueError("nchains must be >= 1")
         self._chains = [Chain(
             self.parameters, self.model,
-            [copy.copy(p) for p in self.proposals.values()],
+            [copy.deepcopy(p) for p in self.proposals.values()],
             brng=create_brng(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
