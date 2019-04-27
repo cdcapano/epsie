@@ -109,7 +109,7 @@ class ParallelTemperedChain(BaseChain):
                              [copy.deepcopy(p) for p in proposals],
                              brng=self.brng, chain_id=chain_id,
                              beta=beta)
-                        for beta in betas]
+                        for beta in self.betas]
 
     @property
     def brng(self):
