@@ -104,7 +104,7 @@ class BaseChain(object):
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
-    def start_position(self, position):
+    def start_position(self):
         """Dictionary mapping parameters to their start position."""
         pass
 
