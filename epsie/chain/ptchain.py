@@ -86,6 +86,8 @@ class ParallelTemperedChain(BaseChain):
     """
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
                  brng=None, chain_id=0):
+        self.parameters = parameters
+        self.model = model
         # store the temp
         self._betas = None
         self.betas = betas
@@ -104,7 +106,7 @@ class ParallelTemperedChain(BaseChain):
         self.brng = brng
         # create a chain for each temperature
         self.chains = [Chain(parameters, model,
-                             [copy.copy(p) for p in proposals],
+                             [copy.deepcopy(p) for p in proposals],
                              brng=self.brng, chain_id=chain_id,
                              beta=beta)
                         for beta in betas]

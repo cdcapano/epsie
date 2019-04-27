@@ -64,6 +64,7 @@ class Chain(BaseChain):
 
     Attributes
     ----------
+    parameters
     iteration
     lastclear
     scratchlen

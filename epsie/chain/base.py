@@ -27,6 +27,7 @@ class BaseChain(object):
 
     Attributes
     ----------
+    parameters
     iteration
     lastclear
     scratchlen
@@ -51,6 +52,20 @@ class BaseChain(object):
 
     _hasblobs = False
     chain_id = 0
+
+    @property
+    def parameters(self):
+        """The sampled parameters.
+
+        The parameters are stored as a sorted tuple.
+        """
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters):
+        if isinstance(parameters, (str, unicode)):
+            parameters = [parameters]
+        self._parameters = tuple(sorted(parameters))
 
     def __len__(self):
         return self.iteration - self.lastclear
