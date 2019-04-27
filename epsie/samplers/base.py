@@ -43,7 +43,9 @@ class BaseSampler(object):
 
     @parameters.setter
     def parameters(self, parameters):
-        self._parameters = tuple(parameters)
+        if isinstance(parameters, (str, unicode)):
+            parameters = [parameters]
+        self._parameters = tuple(sorted(parameters))
 
     @property
     def proposals(self):
