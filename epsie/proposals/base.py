@@ -24,9 +24,35 @@ import epsie
 
 
 class BaseProposal(object):
-    """Abstract base class for all proposal classes."""
+    """Abstract base class for all proposal classes.
+
+    All proposals must inherit from this class, as it handles random number
+    generation, and lays out all of the functions/attributes that a sampler
+    will try to access.
+
+    .. warning ::
+        All proposals must use the random number generator provided by this
+        class (see the ``random_generator`` attribute) for creating random
+        numbers. **Do not attempt to use scipy/numpy's random number
+        generator.** Use of any other generator may result in chains not being
+        independent of each other when run in a parallel environment.
+
+    In addition to the abstract methods/properties, all samplers must set
+    a ``parameters`` attribute. This is a list of the names of the parameters
+    the proposal produces jumps for.
+
+    Attributes
+    ----------
+    brng
+    random_generator
+    random_state
+    parameters
+    symmetric
+    state
+    """
     __metaclass__ = ABCMeta
     name = None
+    _parameters = None
 
     @property
     def brng(self):
@@ -37,7 +63,7 @@ class BaseProposal(object):
         try:
             return self._brng
         except AttributeError:
-            self._brng = self._create_brng()
+            self._brng = epsie.create_brng()
             return self._brng
 
     @brng.setter
@@ -82,16 +108,50 @@ class BaseProposal(object):
         """
         self.brng.state = state
 
-    # Py3XX: uncomment the next two lines 
+    @property
+    def parameters(self):
+        """Sorted tuple of the parameters that proposals are produced for."""
+        if self._parameters is None:
+            raise AttributeError("no parameters set")
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters):
+        """Sets the parameters.
+
+        The parameters are stored as a sorted tuple.
+
+        Parameters
+        ----------
+        parameters : (list of) str
+            The names of the parameters. This may either be a list of strings,
+            or (for a single parameter), a string.
+        """
+        if isinstance(parameters, (str, unicode)):
+            parameters = [parameters]
+        self._parameters = tuple(sorted(parameters))
+
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
     def symmetric(self):
-        """Boolean indicating whether the proposal distribution is symmetric
-        from jump to jump."""
+        """Boolean indicating whether the proposal distribution is symmetric.
+
+        A jump proposal is symmetric if the proposal probability
+        density has the property that :math:`p(x'|x) = p(x|x')`,
+        where :math:`x` is the current position, :math:`x'` is the proposed
+        position. In this, case, the Metropolis-Hastings ratio simplfies to
+        just the ratio of posterior values at the two points.
+
+        Note that an adaptive proposal may still be symmetric. Symmetry only
+        means that the current state of the proposal satisfies the above
+        condition; it does not necessarily mean that transitions between states
+        be symmetric.
+        """
         pass
 
-    # Py3XX: uncomment the next two lines 
+    # Py3XX: uncomment the next two lines
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line

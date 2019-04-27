@@ -68,7 +68,7 @@ def create_seed(seed=None):
     return seed
 
 
-def create_brng(seed=None, stream=None):
+def create_brng(seed=None, stream=0):
     """Creates a an instance of :py:class:`epsie.BRNG`.
 
     Parameters
@@ -79,6 +79,7 @@ def create_brng(seed=None, stream=None):
     stream : int, optional
         The stream to create the BRNG for. This allows multiple BRNGs to exist
         with the same seed, but that produce different sets of random numbers.
+        Default is 0.
     """
     if seed is None:
         seed = create_seed(seed)

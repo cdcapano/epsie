@@ -15,10 +15,17 @@
 
 from __future__ import absolute_import
 
-from .ptsampler import ParallelTemperedSampler
+import numpy
+import copy
+
+from epsie import create_brng
+from epsie.chain import Chain
+from epsie.chain.chaindata import (ChainData, detect_dtypes)
+
+from .base import BaseSampler
 
 
-class MetropolisHastingsSampler(ParallelTemperedSampler):
+class MetropolisHastingsSampler(BaseSampler):
     """A standard Metropolis-Hastings sampler.
 
     Parameters
@@ -35,6 +42,8 @@ class MetropolisHastingsSampler(ParallelTemperedSampler):
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
+    default_proposal_args : dict, optional
+        Dictionary of arguments to pass to the default proposal.
     seed : int, optional
         Seed for the random number generator. If None provided, will create
         one.
@@ -44,8 +53,81 @@ class MetropolisHastingsSampler(ParallelTemperedSampler):
     """
 
     def __init__(self, parameters, model, nchains, proposals=None,
-                 default_proposal=None, seed=None, pool=None):
-        # just call the parallel tempered sampler with 1 temperature
-        super(MetropolisHastingsSampler, self).__init__(
-            parameters, model, nchains, betas=1, proposals=proposals,
-            default_proposal=default_proposal, seed=seed, pool=pool)
+                 default_proposal=None, default_proposal_args=None, seed=None,
+                 pool=None):
+        self.parameters = parameters
+        self.model = model
+        self.set_proposals(proposals, default_proposal, default_proposal_args)
+        self.seed = seed
+        self.set_map(pool)
+        self.create_chains(nchains)
+
+    def create_chains(self, nchains):
+        """Creates a list of :py:class:`chain.Chain`.
+
+        Parameters
+        ----------
+        nchains : int
+            The number of Markov chains to create.
+        """
+        if nchains < 1:
+            raise ValueError("nchains must be >= 1")
+        self._chains = [Chain(
+            self.parameters, self.model,
+            [copy.deepcopy(p) for p in self.proposals.values()],
+            brng=create_brng(self.seed, stream=cid),
+            chain_id=cid)
+            for cid in range(nchains)]
+
+    def _concatenate_dicts(self, attr):
+        """Concatenates dictionary attributes over all of the chains.
+
+        This is a convenience function used by properties such as
+        ``current_positions`` to gather all of the dictionary attributes from
+        the chains.
+
+        Parameters
+        ----------
+        attr : str
+            The name of the attribute to get from the chains. The attribute
+            is assumed to return a dictionary.
+
+        Returns
+        -------
+        dict :
+            Dictionary mapping parameters to arrays. The arrays have shape
+            ``nchains``.
+        """
+        # we'll create a chain data instance to stack the dictionaries
+        d = getattr(self.chains[0], attr)
+        out = ChainData(list(d.keys()), dtypes=detect_dtypes(d))
+        out.extend(self.nchains)
+        for ii, chain in enumerate(self.chains):
+            out[ii] = getattr(chain, attr)
+        return out.asdict()
+
+    def _concatenate_arrays(self, attr, item=None):
+        """Concatenates the given attribute over all of the chains.
+
+        This is a convenience function used by properties such as ``positions``
+        to gather all of the array attributes from the chains.
+
+        Parameters
+        ----------
+        attr : str
+            The name of the attribute to get from the chains. The attribute
+            is assumed to return a (structred) array.
+        item : str or array index, optional
+            Get a particular item from the (structred) array from each chain
+            before concatenating.
+
+        Returns
+        -------
+        array :
+            The returned array has shape ``nchains x niterations``.
+        """
+        if item is None:
+            arrs = map(lambda x: getattr(x, attr), self.chains)
+        else:
+            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+        return numpy.stack(arrs)

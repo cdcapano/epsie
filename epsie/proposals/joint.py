@@ -38,8 +38,8 @@ class JointProposal(BaseProposal):
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, *proposals, **kwargs):
         brng = kwargs.pop('brng', None)  # Py3XX: delete line
-        self.parameters = tuple(itertools.chain(*[prop.parameters
-                                                  for prop in proposals]))
+        self.parameters = itertools.chain(*[prop.parameters
+                                            for prop in proposals])
         # check that we don't have multiple proposals for the same parameter
         if len(set(self.parameters)) != len(self.parameters):
             # get the repeated parameters
@@ -81,14 +81,6 @@ class JointProposal(BaseProposal):
     def state(self):
         # get all of the proposals state
         state = {params: prop.state for params, prop in self.proposals.items()}
-        state = {}
-        for params, prop in self.proposals.items():
-            s = prop.state
-            # remove the random state, as it will be the same as this class's
-            # state, which we will set below 
-            s.pop('random_state', None)
-            if s:
-                state[params] = state
         # add the global random state
         state['random_state'] = self.random_state
         return state
@@ -96,9 +88,6 @@ class JointProposal(BaseProposal):
     def set_state(self, state):
         # set each proposals' state
         for params, prop in self.proposals.items():
-            # if a proposal only needs the random state set, then there won't
-            # be anything to set for it
-            if params in state:
-                prop.set_state(state[params])
+            prop.set_state(state[params])
         # set the state of the random number generator
         self.random_state = state['random_state']
