@@ -303,16 +303,12 @@ class ParallelTemperedChain(BaseChain):
         Parameters
         ----------
         position : dict
-            Dictionary mapping parameters to values. If ntemps > 1, values
-            should be numpy arrays with length = ntemps. Otherwise, these
-            should be atomic data types.
+            Dictionary mapping parameters to values. Values
+            should be numpy arrays with length = ntemps.
         """
         self._start = position.copy()
         for tk, chain in enumerate(self.chains):
-            if self.ntemps > 1:
-                posk = {param: position[param][tk] for param in position}
-            else:
-                posk = position
+            posk = {param: position[param][tk] for param in position}
             chain.start_position = posk
 
     @property
