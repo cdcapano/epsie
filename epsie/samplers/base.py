@@ -216,11 +216,11 @@ class BaseSampler(object):
         Parameters
         ----------
         positions : dict
-            Dictionary mapping parameter names to arrays of values. The chains
-            must have length equal to the number of chains.
+            Dictionary mapping parameter names to arrays of values. The arrays
+            must have shape ``[ntemps x] nchains``.
         """
         for (ii, chain) in enumerate(self.chains):
-            chain.start_position = {p: positions[p][ii, ...]
+            chain.start_position = {p: positions[p][..., ii]
                                     for p in positions}
 
     def run(self, niterations):
