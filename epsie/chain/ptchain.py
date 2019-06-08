@@ -184,6 +184,11 @@ class ParallelTemperedChain(BaseChain):
             self.chains[tk].set_state(state[tk])
 
     @property
+    def hasblobs(self):
+        """Whether the model returns blobs."""
+        return self.chains[0].hasblobs
+
+    @property
     def iteration(self):
         """The number of times the chain has been stepped."""
         return self.chains[0].iteration

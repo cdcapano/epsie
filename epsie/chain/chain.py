@@ -108,6 +108,11 @@ class Chain(BaseChain):
         self._blob0 = None
 
     @property
+    def hasblobs(self):
+        """Whether the model returns blobs."""
+        return self._hasblobs
+
+    @property
     def iteration(self):
         """The number of times the chain has been stepped."""
         return self._iteration

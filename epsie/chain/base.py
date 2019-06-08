@@ -50,7 +50,6 @@ class BaseChain(object):
     """
     __metaclass__ = ABCMeta
 
-    _hasblobs = False
     chain_id = 0
 
     @property
@@ -70,10 +69,13 @@ class BaseChain(object):
     def __len__(self):
         return self.iteration - self.lastclear
 
-    @property
+    # Py3XX: uncomment the next two lines
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
     def hasblobs(self):
         """Whether the model returns blobs."""
-        return self._hasblobs
+        pass
 
     # Py3XX: uncomment the next two lines
     # @property
