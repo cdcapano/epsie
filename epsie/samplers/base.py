@@ -19,6 +19,7 @@ from __future__ import absolute_import
 
 import itertools
 from abc import (ABCMeta, abstractmethod)
+import hickle
 
 from epsie import create_seed
 from epsie.proposals import Normal
@@ -325,6 +326,40 @@ class BaseSampler(object):
         for ii, chain in enumerate(self.chains):
             chain.set_state(state[ii])
 
+    def checkpoint(self, fp, path='/'):
+        """Checkpoints the sampler to an HDF file.
+
+        This will save the sampler's state to the given file.
+
+        Parameters
+        ----------
+        fp : filename or open hdf file handler
+            The name or file object to dump to. Must be an h5py.File type.
+        path : str, optional
+            What group to store the file to in the hdf file. Default is the
+            top-level ('/').
+        """
+        # FIXME: remove the _long2str wrapper once hickle has been fixed to
+        # deal with long ints
+        state = _long2str(self.state)
+        return hickle.dump(state, fp, path=path)
+
+    def set_state_from_checkpoint(self, fp, path='/'):
+        """Loads a state from an HDF file.
+
+        Parameters
+        ----------
+        fp : filename or open hdf file handler
+            The name or file object to dump to. Must be an h5py.File type.
+        path : str, optional
+            What group to store the file to in the hdf file. Default is the
+            top-level ('/').
+        """
+        # FIXME: remove the _str2long wrapper once hickle has been fixed to
+        # deal with long ints
+        state = _str2long(hickle.load(fp, path=path))
+        self.set_state(state)
+
 
 def _evolve_chain(niterations_chain):
     """Evolves a chain for some number of iterations.
@@ -343,3 +378,33 @@ def _evolve_chain(niterations_chain):
     for _ in range(niterations):
         chain.step()
     return chain
+
+
+def _long2str(statedict):
+    """Hickle has a bug in it that prevents long ints from being dumped.
+
+    This gets around that by casting longs to strings.
+    """
+    out = {}
+    for param, val in statedict.items():
+        if isinstance(val, long):
+            val = str('{}LONGINT'.format(val))
+        elif isinstance(val, dict):
+            val = _long2str(val)
+        out[param] = val
+    return out
+
+def _str2long(statedict):
+    """Hickle has a bug in it that prevents long ints from being dumped.
+
+    When loading a hickle file, this will look for strings that were converted
+    from long ints, converting them back to ints.
+    """
+    out = {}
+    for param, val in statedict.items():
+        if isinstance(val, str) and val.endswith('LONGINT'):
+            val = int(val.replace('LONGINT', ''))
+        elif isinstance(val, dict):
+            val = _str2long(val)
+        out[param] = val
+    return out

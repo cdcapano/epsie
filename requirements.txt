@@ -1,3 +1,4 @@
 numpy
 scipy>=0.16.0
 randomgen
+hickle
