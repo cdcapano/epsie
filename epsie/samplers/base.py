@@ -339,10 +339,7 @@ class BaseSampler(object):
             What group to store the file to in the hdf file. Default is the
             top-level ('/').
         """
-        # FIXME: remove the _long2str wrapper once hickle has been fixed to
-        # deal with long ints
-        state = _long2str(self.state)
-        return hickle.dump(state, fp, path=path)
+        return dump_state(self.state, fp, path=path)
 
     def set_state_from_checkpoint(self, fp, path='/'):
         """Loads a state from an HDF file.
@@ -355,10 +352,7 @@ class BaseSampler(object):
             What group to store the file to in the hdf file. Default is the
             top-level ('/').
         """
-        # FIXME: remove the _str2long wrapper once hickle has been fixed to
-        # deal with long ints
-        state = _str2long(hickle.load(fp, path=path))
-        self.set_state(state)
+        self.set_state(load_state(fp, path=path))
 
 
 def _evolve_chain(niterations_chain):
@@ -378,6 +372,22 @@ def _evolve_chain(niterations_chain):
     for _ in range(niterations):
         chain.step()
     return chain
+
+
+def dump_state(state, fp, path='/'):
+    """Dumps the given state to a file."""
+    # FIXME: remove the _long2str wrapper once hickle has been fixed to
+    # deal with long ints
+    state = _long2str(state)
+    return hickle.dump(state, fp, path=path)
+
+
+def load_state(fp, path='/'):
+    """Loads a sampler state from the given file name/object.
+    """
+    # FIXME: remove the _str2long wrapper once hickle has been fixed to
+    # deal with long ints
+    return _str2long(hickle.load(fp, path=path))
 
 
 def _long2str(statedict):
