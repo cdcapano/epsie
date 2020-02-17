@@ -377,7 +377,7 @@ class Chain(BaseChain):
     @property
     def random_generator(self):
         """Returns the random number generator."""
-        return self.brng.generator
+        return self.proposal_dist.random_generator
 
     @property
     def random_state(self):

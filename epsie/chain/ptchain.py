@@ -101,6 +101,7 @@ class ParallelTemperedChain(BaseChain):
         self.chain_id = chain_id
         # make sure all parallel tempered chains use the same brng
         self._brng = None
+        self._random_generator = None
         self.brng = brng
         # create a chain for each temperature
         self.chains = [
@@ -133,7 +134,7 @@ class ParallelTemperedChain(BaseChain):
     @property
     def random_generator(self):
         """Returns the random number generator."""
-        return self.brng.generator
+        return self.chains[0].random_generator
 
     @property
     def random_state(self):
@@ -285,9 +286,9 @@ class ParallelTemperedChain(BaseChain):
         Returned array has shape ``[ntemps x] niterations``.
         """
         if item is None:
-            arrs = map(lambda x: getattr(x, attr), self.chains)
+            arrs = list(map(lambda x: getattr(x, attr), self.chains))
         else:
-            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+            arrs = list(map(lambda x: getattr(x, attr)[item], self.chains))
         return numpy.stack(arrs)
 
     @property

@@ -127,7 +127,7 @@ class MetropolisHastingsSampler(BaseSampler):
             The returned array has shape ``nchains x niterations``.
         """
         if item is None:
-            arrs = map(lambda x: getattr(x, attr), self.chains)
+            arrs = list(map(lambda x: getattr(x, attr), self.chains))
         else:
-            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+            arrs = list(map(lambda x: getattr(x, attr)[item], self.chains))
         return numpy.stack(arrs)

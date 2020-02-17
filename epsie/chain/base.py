@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 from abc import (ABCMeta, abstractmethod, abstractproperty)
+import numpy
 
 
 class BaseChain(object):
@@ -62,7 +63,7 @@ class BaseChain(object):
 
     @parameters.setter
     def parameters(self, parameters):
-        if isinstance(parameters, (str, unicode)):
+        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 

@@ -255,7 +255,7 @@ class ChainData(object):
             elem = self._data[index]
         # if value is a dictionary and index is not a string, then we're
         # setting values in the array by dictionary
-        if isinstance(value, dict) and not isinstance(index, (str, unicode)):
+        if isinstance(value, dict) and not isinstance(index, str):
             for p in value:
                 elem[p] = value[p]
         # otherwise, just fall back to using the structred array's setitem

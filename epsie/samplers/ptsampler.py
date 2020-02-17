@@ -177,9 +177,9 @@ class ParallelTemperedSampler(BaseSampler):
             The returned array has shape ``ntemps x nchains x niterations``.
         """
         if item is None:
-            arrs = map(lambda x: getattr(x, attr), self.chains)
+            arrs = list(map(lambda x: getattr(x, attr), self.chains))
         else:
-            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+            arrs = list(map(lambda x: getattr(x, attr)[item], self.chains))
         return numpy.stack(arrs, axis=1)
 
     @property

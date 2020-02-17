@@ -19,6 +19,7 @@ from __future__ import absolute_import
 
 import itertools
 from abc import (ABCMeta, abstractmethod)
+import numpy
 import hickle
 
 from epsie import create_seed
@@ -44,7 +45,7 @@ class BaseSampler(object):
 
     @parameters.setter
     def parameters(self, parameters):
-        if isinstance(parameters, (str, unicode)):
+        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 
@@ -237,7 +238,7 @@ class BaseSampler(object):
             c.scratchlen += max(niterations - (c.scratchlen - len(c)), 0)
         # construct arguments for passing to the pool
         args = zip([niterations]*len(self.chains), self.chains)
-        self.chains = self.map(_evolve_chain, args)
+        self.chains = list(self.map(_evolve_chain, args))
 
     def clear(self):
         """Clears all of the chains."""
