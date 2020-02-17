@@ -263,10 +263,9 @@ class AdaptiveNormal(Normal):
                 alpha = -self.target_rate
             dsigmas = alpha * dk * self.deltas/10.
             # ensure we don't go negative
-            cov = self._cov[getidx]
-            newcov = cov + dsigmas
+            newcov = self._cov + dsigmas
             lzidx = newcov < 0
-            newcov[lzidx] = cov[lzidx]
+            newcov[lzidx] = self._cov[lzidx]
             self._cov = newcov
 
     @property
