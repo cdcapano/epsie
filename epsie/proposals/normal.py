@@ -93,7 +93,8 @@ class Normal(BaseProposal):
 
     def jump(self, fromx):
         if self.ndim == 1:
-            newpt = self.random_generator.normal(fromx[p], self.cov)
+            p = self.parameters[0]
+            newpt = self.random_generator.normal(fromx[p], self.cov[0,0])
             jump = {p: newpt}
         else:
             newpt = self.random_generator.multivariate_normal(
