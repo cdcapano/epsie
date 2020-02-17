@@ -107,12 +107,10 @@ class Normal(BaseProposal):
         if self.isdiagonal:
             mu = [fromx[p] for p in self.parameters]
             newpt = self.random_generator.normal(mu, self._cov)
-            jump = {p: newpt}
         else:
             newpt = self.random_generator.multivariate_normal(
                 [fromx[p] for p in self.parameters], self.cov)
-            jump = {p: newpt[ii] for ii, p in enumerate(self.parameters)}
-        return jump
+        return dict(zip(self.parameters, newpt))
 
 
     def logpdf(self, xi, givenx):
