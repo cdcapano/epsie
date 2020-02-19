@@ -23,6 +23,7 @@ from __future__ import absolute_import
 from ._version import __version__
 
 import os
+import sys
 import numpy
 from randomgen import PCG64
 
@@ -37,7 +38,7 @@ from randomgen import PCG64
 # The class used for all basic random number generation.
 # Users may change this, but it has to be something recognized by randomgen
 # and have the ability to accept streams; i.e., it must have calling structure
-# class(seed, stream), with default stream set to None.
+# class(seed, stream, mode), with default stream set to None.
 BRNG = PCG64
 
 
@@ -59,12 +60,12 @@ def create_seed(seed=None):
         # use os.urandom to get a string of random 4 bytes
         bseed = os.urandom(4)
         # convert to int
-        seed = sum([ord(c) << (i * 8) for i, c in enumerate(bseed[::-1])])
-        # Py3XX: this conversion using a method suggested here:
-        # https://stackoverflow.com/questions/444591/how-to-convert-a-string-of-bytes-into-an-int-in-python
-        # As stated in the answers there, in python 3.2 and later, can use
-        # the following instead:
-        # seed = int.from_bytes(bseed, byteorder='big')
+        if sys.version_info < (3,):
+            # py27
+            seed = sum([ord(c) << (i * 8) for i, c in enumerate(bseed[::-1])])
+        else:
+            # Py3XX
+            seed = int.from_bytes(bseed, byteorder='big')
     return seed
 
 
@@ -83,7 +84,7 @@ def create_brng(seed=None, stream=0):
     """
     if seed is None:
         seed = create_seed(seed)
-    return BRNG(seed, stream)
+    return BRNG(seed, stream, mode="sequence")
 
 
 def create_brngs(seed, nrngs):
@@ -92,7 +93,7 @@ def create_brngs(seed, nrngs):
     The BRNGs are different streams with the same seed. They are all
     statistically independent of each other, while still being reproducable.
     """
-    return [BRNG(seed, ii) for ii in range(nrngs)]
+    return [BRNG(seed, ii, mode="sequence") for ii in range(nrngs)]
 
 
 #

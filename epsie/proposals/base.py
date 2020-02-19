@@ -17,7 +17,10 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy
-from randomgen import RandomGenerator
+try:
+    from randomgen import RandomGenerator
+except ImportError:
+    from randomgen import Generator as RandomGenerator
 from scipy import stats
 
 import epsie
@@ -86,10 +89,10 @@ class BaseProposal(object):
         """The random number generator.
 
         This is an instance of :py:class:`randgen.RandomGenerator` that is
-        derived from the BRNG. It provides has methods to create random
+        derived from the BRNG. It provides methods to create random
         draws from various distributions.
         """
-        return self.brng.generator
+        return RandomGenerator(self.brng)
 
     @property
     def random_state(self):
@@ -127,7 +130,7 @@ class BaseProposal(object):
             The names of the parameters. This may either be a list of strings,
             or (for a single parameter), a string.
         """
-        if isinstance(parameters, (str, unicode)):
+        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 

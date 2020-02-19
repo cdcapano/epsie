@@ -398,10 +398,18 @@ def _long2str(statedict):
     """
     out = {}
     for param, val in statedict.items():
-        if isinstance(val, long):
-            val = str('{}LONGINT'.format(val))
-        elif isinstance(val, dict):
+        if isinstance(val, dict):
             val = _long2str(val)
+        else:
+            try:
+                bitlen = val.bit_length()
+            except AttributeError:
+                # will get this if val isn't an integer; in that case just set
+                # bitlen to zero so we don't try to cast it
+                bitlen = 0
+            if bitlen >= 64:
+                # long integer
+                val = str('{}LONGINT'.format(val))
         out[param] = val
     return out
 
