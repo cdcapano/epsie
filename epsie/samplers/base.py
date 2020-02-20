@@ -388,13 +388,15 @@ def dump_state(state, fp, path=None, dsetname='sampler_state'):
     memfp = BytesIO()
     pickle.dump(state, memfp)
     memfp.seek(0)
-    bdata = b''.join(memfp.readlines())
+    bdata = numpy.frombuffer(memfp.read(), dtype='S1')
     if path is not None:
         fp = fp[path]
-    if dsetname in fp:
-        fp[dsetname][()] = numpy.void(bdata)
-    else:
-        fp[dsetname] = numpy.void(bdata)
+    if dsetname not in fp:
+        fp.create_dataset(dsetname, shape=bdata.shape, maxshape=(None,),
+                          dtype=bdata.dtype)
+    elif bdata.size != fp[dsetname].shape[0]:
+        fp[dsetname].resize((bdata.size,))
+    fp[dsetname][:] = bdata
 
 
 def load_state(fp, path=None, dsetname='sampler_state'):
@@ -402,5 +404,5 @@ def load_state(fp, path=None, dsetname='sampler_state'):
     """
     if path is not None:
         fp = fp[path]
-    memfp = BytesIO(fp[dsetname][()])
-    return pickle.load(memfp)
+    bdata = fp[dsetname][()].tobytes()
+    return pickle.load(BytesIO(bdata))
