@@ -90,14 +90,17 @@ class ParallelTemperedChain(BaseChain):
         self._betas = None
         self.betas = betas
         self.swap_interval = swap_interval
+        self._temperature_acceptance = None
         self._temperature_swaps = None
         if self.ntemps > 1:
             # we pass ntemps=ntemps-1 here because there will be ntemps-1
             # acceptance ratios for ntemp levels
-            self._temperature_swaps = ChainData(
-                ['acceptance_ratio', 'swap_index'],
-                dtypes={'acceptance_ratio': float, 'swap_index': int},
+            self._temperature_acceptance = ChainData(
+                ['acceptance_ratio'], dtypes={'acceptance_ratio': float},
                 ntemps=self.ntemps-1)
+            self._temperature_swaps = ChainData(
+                ['swap_index'], dtypes={'swap_index': int},
+                ntemps=self.ntemps)
         self.chain_id = chain_id
         # make sure all parallel tempered chains use the same bit_generator
         self._bit_generator = None
@@ -223,7 +226,8 @@ class ParallelTemperedChain(BaseChain):
             chain.scratchlen = n
         if self.ntemps > 1:
             try:
-                self._temperature_swaps.set_len(n)
+                self._temperature_swaps.set_len(n//self.swap_interval)
+                self._temperature_acceptance.set_len(n//self.swap_interval)
             except ValueError:
                 pass
 
@@ -377,14 +381,37 @@ class ParallelTemperedChain(BaseChain):
         return self._concatenate_arrays('acceptance')
 
     @property
+    def temperature_acceptance(self):
+        """The history of the acceptance ratios between temperatures.
+
+        The returned array has shape
+        ``ntemps-1 x (niterations/swap_interval)`` if ``ntemps > 1``.
+        Otherwise, returns None.
+
+        .. note::
+           This does not return a structured array, since there is only
+           one field.
+        """
+        if self._temperature_acceptance is None:
+            return None
+        out = self._temperature_acceptance[:(len(self)//self.swap_interval)]
+        return out['acceptance_ratio'].T 
+
+    @property
     def temperature_swaps(self):
         """The history of all of the temperature swaps.
 
-        If ``ntemps > 1``, the returned array has shape
-        ``ntemps x niterations``. Otherwise, the returned array has shape
-        ``niterations``.
+        The returned array has shape ``ntemps x (niterations/swap_interval)``
+        if ``ntemps > 1``. Otherwise, returns None.
+
+        .. note::
+           This does not return a structured array, since there is only
+           one field.
         """
-        return self._temperature_swaps[:len(self)].T
+        if self._temperature_swaps is None:
+            return None
+        out = self._temperature_swaps[:(len(self)//self.swap_interval)]
+        return out['swap_index'].T
 
     @property
     def blobs(self):
@@ -436,7 +463,9 @@ class ParallelTemperedChain(BaseChain):
             chain.clear()
         # clear temperature swaps
         if self.ntemps > 1:
-            self._temperature_swaps.clear(self.scratchlen)
+            tlen = self.scratchlen//self.swap_interval
+            self._temperature_acceptance.clear(tlen)
+            self._temperature_swaps.clear(tlen)
 
     def __getitem__(self, index):
         """Returns all of the chain data at the requested index."""
@@ -445,7 +474,10 @@ class ParallelTemperedChain(BaseChain):
                'acceptance': self.acceptance[index]
                }
         if self.ntemps > 1:
-            out['temperature_swaps'] = self.temperature_swaps[index]
+            out['temperature_swaps'] = \
+                self.temperature_swaps[index//self.swap_interval]
+            out['temperature_acceptance'] = \
+                self.temperature_acceptance[index//self.swap_interval]
         if self._hasblobs:
             out['blobs'] = self.blobs[index]
         return out
@@ -516,8 +548,7 @@ class ParallelTemperedChain(BaseChain):
             chain._stats[ii] = new_stats[tk]
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
-        # since we have ntemps-1 acceptance ratios, we won't store the
-        # hottest swap index, since it can be inferred from the other
-        # swap indices
-        self._temperature_swaps[ii] = {'acceptance_ratio': ars,
-                                       'swap_index': swap_index[:-1]}
+        self._temperature_acceptance[ii//self.swap_interval] = {
+            'acceptance_ratio': ars}
+        self._temperature_swaps[ii//self.swap_interval] = {
+            'swap_index': swap_index}

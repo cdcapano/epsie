@@ -183,10 +183,28 @@ class ParallelTemperedSampler(BaseSampler):
         return numpy.stack(arrs, axis=1)
 
     @property
+    def temperature_acceptance(self):
+        """The history of the temperature acceptance from all of the chains.
+        
+        If ntemps is 1, just returns None.
+
+        .. note::
+           This does not return a structured array, since there is only
+           one field.
+        """
+        if self.ntemps == 1:
+            return None
+        return self._concatenate_arrays('temperature_acceptance')
+
+    @property
     def temperature_swaps(self):
         """The history of all the temperature swaps from all of the chains.
         
         If ntemps is 1, just returns None.
+
+        .. note::
+           This does not return a structured array, since there is only
+           one field.
         """
         if self.ntemps == 1:
             return None
