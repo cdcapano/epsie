@@ -109,7 +109,7 @@ class BaseSampler(object):
 
     @property
     def seed(self):
-        """The seed used for the BRNG."""
+        """The seed used for the random bit generator."""
         return self._seed
 
     @seed.setter

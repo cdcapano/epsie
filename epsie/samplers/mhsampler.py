@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 import copy
 
-from epsie import create_brng
+from epsie import create_bit_generator
 from epsie.chain import Chain
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
@@ -75,7 +75,7 @@ class MetropolisHastingsSampler(BaseSampler):
         self._chains = [Chain(
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals.values()],
-            brng=create_brng(self.seed, stream=cid),
+            bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
 

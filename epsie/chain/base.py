@@ -44,7 +44,7 @@ class BaseChain(object):
     current_position
     current_stats
     current_blob
-    brng
+    bit_generator
     random_state
     state
     hasblobs
@@ -211,8 +211,8 @@ class BaseChain(object):
     # @property
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
-    def brng(self):
-        """Returns basic random number generator (BRNG) being used."""
+    def bit_generator(self):
+        """The random bit generator being used."""
         pass
 
     # Py3XX: uncomment the next two lines
@@ -228,7 +228,7 @@ class BaseChain(object):
     # @abstractmethod
     @abstractproperty  # Py3XX: delete line
     def random_state(self):
-        """Returns the current state of the BRNG."""
+        """The current state of the random bit generator."""
         pass
 
     # Py3XX: uncomment the next two lines
