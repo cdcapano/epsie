@@ -44,6 +44,9 @@ class ParallelTemperedSampler(BaseSampler):
         The betas (= 1 / temperatures) to use. All betas must be between [0,1].
         Must provide at least one. If one is not included in the betas, a
         warning will be printed.
+    swap_interval : int, optional
+        How often to calculate temperature swaps. Default is 1 (= swap on every
+        iteration).
     proposals : dict, optional
         Dictionary mapping parameter names to proposal classes. Any parameters
         not listed will use the ``default_propsal``.
@@ -59,7 +62,8 @@ class ParallelTemperedSampler(BaseSampler):
         Specify a process pool to use for parallelization. Default is to use a
         single core.
     """
-    def __init__(self, parameters, model, nchains, betas, proposals=None,
+    def __init__(self, parameters, model, nchains, betas, swap_interval=1,
+                 proposals=None,
                  default_proposal=None, default_proposal_args=None, seed=None,
                  pool=None):
         self.parameters = parameters
@@ -79,9 +83,9 @@ class ParallelTemperedSampler(BaseSampler):
             logging.warn("No betas = 1 found. This means that the normal "
                          "posterior (i.e., likelihood * prior) will not be "
                          "sampled by any chain.")
-        self.create_chains(nchains, betas)
+        self.create_chains(nchains, betas, swap_interval)
 
-    def create_chains(self, nchains, betas):
+    def create_chains(self, nchains, betas, swap_interval=1):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -91,13 +95,16 @@ class ParallelTemperedSampler(BaseSampler):
         betas : array
             Array of inverse temperatures to use for each parallel tempered
             chain.
+        swap_interval : int, optional
+            How often to calculate temperature swaps. Default is 1 (= swap on
+            every iteration).
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals.values()],
-            betas=betas,
+            betas=betas, swap_interval=swap_interval,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
