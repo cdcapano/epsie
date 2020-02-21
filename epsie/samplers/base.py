@@ -22,7 +22,6 @@ from abc import (ABCMeta, abstractmethod)
 from six import add_metaclass
 import pickle
 from io import BytesIO
-import h5py
 import numpy
 
 from epsie import create_seed
@@ -330,15 +329,14 @@ class BaseSampler(object):
         for ii, chain in enumerate(self.chains):
             chain.set_state(state[ii])
 
-    def checkpoint(self, filename, path=None, dsetname='sampler_state'):
-        """Checkpoints the sampler to an HDF file.
-
-        This will save the sampler's state to the given file.
+    def checkpoint(self, fp, path=None, dsetname='sampler_state'):
+        """Save the sampler's state to an HDF file.
 
         Parameters
         ----------
-        filename : str
-            The name of the file to dump to.
+        fp : :py:class:h5py.File
+            Open file handler to an hdf5 file. The file handler must have
+            write permission.
         path : str, optional
             What group to write the state to in the hdf file. Default is the
             top-level.
@@ -346,22 +344,20 @@ class BaseSampler(object):
             The name of dataset to store the state to. Default is
             "sampler_state".
         """
-        with h5py.File(filename, 'a') as fp:
-            dump_state(self.state, fp, path=path, dsetname=dsetname)
+        dump_state(self.state, fp, path=path, dsetname=dsetname)
 
-    def set_state_from_checkpoint(self, filename, path=None):
+    def set_state_from_checkpoint(self, fp, path=None):
         """Loads a state from an HDF file.
 
         Parameters
         ----------
-        filename : str
-            The name of the file to dump to.
+        fp : :py:class:h5py.File
+            Open file handler to an hdf5 file.
         path : str, optional
             What group to store the file to in the hdf file. Default is the
             top-level ('/').
         """
-        with h5py.File(filename, 'a') as fp:
-            self.set_state(load_state(fp, path=path))
+        self.set_state(load_state(fp, path=path))
 
 
 def _evolve_chain(niterations_chain):
