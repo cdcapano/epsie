@@ -15,6 +15,7 @@
 
 # Py3XX: delete abstractproperty
 from abc import ABCMeta, abstractmethod, abstractproperty
+from six import add_metaclass
 
 import numpy
 try:
@@ -26,6 +27,7 @@ from scipy import stats
 import epsie
 
 
+@add_metaclass(ABCMeta)
 class BaseProposal(object):
     """Abstract base class for all proposal classes.
 
@@ -53,7 +55,6 @@ class BaseProposal(object):
     symmetric
     state
     """
-    __metaclass__ = ABCMeta
     name = None
     _parameters = None
 

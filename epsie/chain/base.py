@@ -18,9 +18,11 @@
 from __future__ import absolute_import
 
 from abc import (ABCMeta, abstractmethod, abstractproperty)
+from six import add_metaclass
 import numpy
 
 
+@add_metaclass(ABCMeta)
 class BaseChain(object):
     """Abstract base class for Markov chains.
 
@@ -49,8 +51,6 @@ class BaseChain(object):
     chain_id : int
         Integer identifying the chain. Default is 0.
     """
-    __metaclass__ = ABCMeta
-
     chain_id = 0
 
     @property

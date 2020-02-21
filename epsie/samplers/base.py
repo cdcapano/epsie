@@ -19,6 +19,7 @@ from __future__ import absolute_import
 
 import itertools
 from abc import (ABCMeta, abstractmethod)
+from six import add_metaclass
 import numpy
 import hickle
 
@@ -26,11 +27,10 @@ from epsie import create_seed
 from epsie.proposals import Normal
 
 
+@add_metaclass(ABCMeta)
 class BaseSampler(object):
     """Base class for samplers.
     """
-    __metaclass__ = ABCMeta
-
     _parameters = None
     _proposals = None
     _model = None
