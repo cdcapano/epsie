@@ -24,7 +24,9 @@ import setuptools
 
 install_requires = ["numpy",
                     "scipy>=0.16.0",
-                    "randomgen",
+                    'randomgen<1.17; python_version < "3.0"',
+                    'randomgen>=1.18; python_version >= "3.0"',
+                    'six>1.10.0',
                    ]
 
 with open("README.md", "r") as fh:
@@ -56,6 +58,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
         'Intended Audience :: Science/Research',
