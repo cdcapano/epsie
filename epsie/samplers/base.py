@@ -238,6 +238,7 @@ class BaseSampler(object):
             c.scratchlen += max(niterations - (c.scratchlen - len(c)), 0)
         # construct arguments for passing to the pool
         args = zip([niterations]*len(self.chains), self.chains)
+        # pylint: disable=locally-disabled, not-callable
         self.chains = list(self.map(_evolve_chain, args))
 
     def clear(self):
