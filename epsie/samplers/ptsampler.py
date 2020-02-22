@@ -192,7 +192,7 @@ class ParallelTemperedSampler(BaseSampler):
     @property
     def temperature_acceptance(self):
         """The history of the temperature acceptance from all of the chains.
-        
+
         If ntemps is 1, just returns None.
 
         .. note::

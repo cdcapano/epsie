@@ -395,7 +395,7 @@ class ParallelTemperedChain(BaseChain):
         if self._temperature_acceptance is None:
             return None
         out = self._temperature_acceptance[:(len(self)//self.swap_interval)]
-        return out['acceptance_ratio'].T 
+        return out['acceptance_ratio'].T
 
     @property
     def temperature_swaps(self):
