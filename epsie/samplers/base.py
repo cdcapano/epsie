@@ -20,8 +20,9 @@ from __future__ import absolute_import
 import itertools
 from abc import (ABCMeta, abstractmethod)
 from six import add_metaclass
+import pickle
+from io import BytesIO
 import numpy
-import hickle
 
 from epsie import create_seed
 from epsie.proposals import Normal
@@ -328,28 +329,30 @@ class BaseSampler(object):
         for ii, chain in enumerate(self.chains):
             chain.set_state(state[ii])
 
-    def checkpoint(self, fp, path='/'):
-        """Checkpoints the sampler to an HDF file.
-
-        This will save the sampler's state to the given file.
+    def checkpoint(self, fp, path=None, dsetname='sampler_state'):
+        """Save the sampler's state to an HDF file.
 
         Parameters
         ----------
-        fp : filename or open hdf file handler
-            The name or file object to dump to. Must be an h5py.File type.
+        fp : :py:class:h5py.File
+            Open file handler to an hdf5 file. The file handler must have
+            write permission.
         path : str, optional
-            What group to store the file to in the hdf file. Default is the
-            top-level ('/').
+            What group to write the state to in the hdf file. Default is the
+            top-level.
+        dsetname : str, optional
+            The name of dataset to store the state to. Default is
+            "sampler_state".
         """
-        return dump_state(self.state, fp, path=path)
+        dump_state(self.state, fp, path=path, dsetname=dsetname)
 
-    def set_state_from_checkpoint(self, fp, path='/'):
+    def set_state_from_checkpoint(self, fp, path=None):
         """Loads a state from an HDF file.
 
         Parameters
         ----------
-        fp : filename or open hdf file handler
-            The name or file object to dump to. Must be an h5py.File type.
+        fp : :py:class:h5py.File
+            Open file handler to an hdf5 file.
         path : str, optional
             What group to store the file to in the hdf file. Default is the
             top-level ('/').
@@ -376,55 +379,26 @@ def _evolve_chain(niterations_chain):
     return chain
 
 
-def dump_state(state, fp, path='/'):
-    """Dumps the given state to a file."""
-    # FIXME: remove the _long2str wrapper once hickle has been fixed to
-    # deal with long ints
-    state = _long2str(state)
-    return hickle.dump(state, fp, path=path)
+def dump_state(state, fp, path=None, dsetname='sampler_state'):
+    """Dumps the given state to an hdf5 file object."""
+    memfp = BytesIO()
+    pickle.dump(state, memfp)
+    memfp.seek(0)
+    bdata = numpy.frombuffer(memfp.read(), dtype='S1')
+    if path is not None:
+        fp = fp[path]
+    if dsetname not in fp:
+        fp.create_dataset(dsetname, shape=bdata.shape, maxshape=(None,),
+                          dtype=bdata.dtype)
+    elif bdata.size != fp[dsetname].shape[0]:
+        fp[dsetname].resize((bdata.size,))
+    fp[dsetname][:] = bdata
 
 
-def load_state(fp, path='/'):
-    """Loads a sampler state from the given file name/object.
+def load_state(fp, path=None, dsetname='sampler_state'):
+    """Loads a sampler state from the given hdf5 file object.
     """
-    # FIXME: remove the _str2long wrapper once hickle has been fixed to
-    # deal with long ints
-    return _str2long(hickle.load(fp, path=path))
-
-
-def _long2str(statedict):
-    """Hickle has a bug in it that prevents long ints from being dumped.
-
-    This gets around that by casting longs to strings.
-    """
-    out = {}
-    for param, val in statedict.items():
-        if isinstance(val, dict):
-            val = _long2str(val)
-        else:
-            try:
-                bitlen = val.bit_length()
-            except AttributeError:
-                # will get this if val isn't an integer; in that case just set
-                # bitlen to zero so we don't try to cast it
-                bitlen = 0
-            if bitlen >= 64:
-                # long integer
-                val = str('{}LONGINT'.format(val))
-        out[param] = val
-    return out
-
-def _str2long(statedict):
-    """Hickle has a bug in it that prevents long ints from being dumped.
-
-    When loading a hickle file, this will look for strings that were converted
-    from long ints, converting them back to ints.
-    """
-    out = {}
-    for param, val in statedict.items():
-        if isinstance(val, str) and val.endswith('LONGINT'):
-            val = int(val.replace('LONGINT', ''))
-        elif isinstance(val, dict):
-            val = _str2long(val)
-        out[param] = val
-    return out
+    if path is not None:
+        fp = fp[path]
+    bdata = fp[dsetname][()].tobytes()
+    return pickle.load(BytesIO(bdata))
