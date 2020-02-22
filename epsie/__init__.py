@@ -23,6 +23,7 @@ from __future__ import absolute_import
 from ._version import __version__
 
 import os
+import sys
 import numpy
 from randomgen import PCG64
 
@@ -34,11 +35,11 @@ from randomgen import PCG64
 # =============================================================================
 #
 
-# The class used for all basic random number generation.
+# The bit generator used for all random number generation.
 # Users may change this, but it has to be something recognized by randomgen
 # and have the ability to accept streams; i.e., it must have calling structure
-# class(seed, stream), with default stream set to None.
-BRNG = PCG64
+# class(seed, stream, mode), with default stream set to None.
+BIT_GENERATOR = PCG64
 
 
 def create_seed(seed=None):
@@ -59,17 +60,17 @@ def create_seed(seed=None):
         # use os.urandom to get a string of random 4 bytes
         bseed = os.urandom(4)
         # convert to int
-        seed = sum([ord(c) << (i * 8) for i, c in enumerate(bseed[::-1])])
-        # Py3XX: this conversion using a method suggested here:
-        # https://stackoverflow.com/questions/444591/how-to-convert-a-string-of-bytes-into-an-int-in-python
-        # As stated in the answers there, in python 3.2 and later, can use
-        # the following instead:
-        # seed = int.from_bytes(bseed, byteorder='big')
+        if sys.version_info < (3,):
+            # py27
+            seed = sum([ord(c) << (i * 8) for i, c in enumerate(bseed[::-1])])
+        else:
+            # Py3XX
+            seed = int.from_bytes(bseed, byteorder='big')
     return seed
 
 
-def create_brng(seed=None, stream=0):
-    """Creates a an instance of :py:class:`epsie.BRNG`.
+def create_bit_generator(seed=None, stream=0):
+    """Creates a an instance of :py:class:`epsie.BIT_GENERATOR`.
 
     Parameters
     ----------
@@ -77,22 +78,32 @@ def create_brng(seed=None, stream=0):
         The seed to use. If seed is None (the default), will create a seed
         using ``create_seed``.
     stream : int, optional
-        The stream to create the BRNG for. This allows multiple BRNGs to exist
-        with the same seed, but that produce different sets of random numbers.
-        Default is 0.
+        The stream to create the bit generator for. This allows multiple
+        generators to exist with the same seed, but that produce different sets
+        of random numbers. Default is 0.
     """
     if seed is None:
         seed = create_seed(seed)
-    return BRNG(seed, stream)
+    try:
+        return BIT_GENERATOR(seed, stream, mode="sequence")
+    except TypeError as e:
+        # eaerlier versions of randomgen (used for py27) did not support a
+        # mode argument
+        import randomgen
+        if float('.'.join(randomgen.__version__.split('.')[:2])) < 1.17:
+            return BIT_GENERATOR(seed, stream)
+        else:
+            raise e
 
 
-def create_brngs(seed, nrngs):
-    """Creates a collection of basic random number generators (BRNGs).
+def create_bit_generators(seed, ngenerators):
+    """Creates a collection of random bit generators.
 
-    The BRNGs are different streams with the same seed. They are all
+    The bit generators are different streams with the same seed. They are all
     statistically independent of each other, while still being reproducable.
     """
-    return [BRNG(seed, ii) for ii in range(nrngs)]
+    return [BIT_GENERATOR(seed, ii, mode="sequence")
+            for ii in range(ngenerators)]
 
 
 #

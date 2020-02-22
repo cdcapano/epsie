@@ -52,10 +52,10 @@ class Chain(BaseChain):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
-    brng : :py:class:`randomgen.PGC64` instance, optional
-        Use the given basic random number generator (BRNG) for generating
-        random variates. If an int or None is provided, a BRNG will be
-        created instead using ``brng`` as a seed.
+    bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
+        Use the given random bit generator for generating random variates. If
+        an int or None is provided, a generator will be created instead using
+        ``bit_generator`` as a seed.
     chain_id : int, optional
         An interger identifying which chain this is. Default is 0.
     beta : float, optional
@@ -77,19 +77,20 @@ class Chain(BaseChain):
     current_position
     current_stats
     current_blob
-    brng
+    bit_generator
     random_state
     state
     hasblobs
     chain_id : int or None
         Integer identifying the chain.
     """
-    def __init__(self, parameters, model, proposals, brng=None, chain_id=0,
-                 beta=1.):
+    def __init__(self, parameters, model, proposals, bit_generator=None,
+                 chain_id=0, beta=1.):
         self.parameters = parameters
         self.model = model
         # combine the proposals into a joint proposal
-        self.proposal_dist = JointProposal(*proposals, brng=brng)
+        self.proposal_dist = JointProposal(*proposals,
+                                           bit_generator=bit_generator)
         # store the temp
         self.beta = beta
         self.chain_id = chain_id
@@ -370,18 +371,18 @@ class Chain(BaseChain):
         return out
 
     @property
-    def brng(self):
-        """Returns basic random number generator (BRNG) being used."""
-        return self.proposal_dist.brng
+    def bit_generator(self):
+        """The random bit generator being used."""
+        return self.proposal_dist.bit_generator
 
     @property
     def random_generator(self):
         """Returns the random number generator."""
-        return self.brng.generator
+        return self.proposal_dist.random_generator
 
     @property
     def random_state(self):
-        """Returns the current state of the BRNG."""
+        """Returns the current state of the bit generator."""
         return self.proposal_dist.random_state
 
     @property

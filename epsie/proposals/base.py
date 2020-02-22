@@ -15,14 +15,19 @@
 
 # Py3XX: delete abstractproperty
 from abc import ABCMeta, abstractmethod, abstractproperty
+from six import add_metaclass
 
 import numpy
-from randomgen import RandomGenerator
+try:
+    from randomgen import RandomGenerator
+except ImportError:
+    from randomgen import Generator as RandomGenerator
 from scipy import stats
 
 import epsie
 
 
+@add_metaclass(ABCMeta)
 class BaseProposal(object):
     """Abstract base class for all proposal classes.
 
@@ -43,70 +48,69 @@ class BaseProposal(object):
 
     Attributes
     ----------
-    brng
+    bit_generator
     random_generator
     random_state
     parameters
     symmetric
     state
     """
-    __metaclass__ = ABCMeta
     name = None
     _parameters = None
 
     @property
-    def brng(self):
-        """The basic random number generator (BRNG) instance being used.
+    def bit_generator(self):
+        """The random bit generator instance being used.
 
-        A BRNG will be created if it doesn't exist yet.
+        A bit generator will be created if it doesn't exist yet.
         """
         try:
-            return self._brng
+            return self._bit_generator
         except AttributeError:
-            self._brng = epsie.create_brng()
-            return self._brng
+            self._bit_generator = epsie.create_bit_generator()
+            return self._bit_generator
 
-    @brng.setter
-    def brng(self, brng):
-        """Sets the basic random number generator (BRNG) to use.
+    @bit_generator.setter
+    def bit_generator(self, bit_generator):
+        """Sets the random bit generator.
 
         Parameters
         ----------
-        brng : :py:class:`epsie.BRNG`, int, or None
-            Either the BRNG to use or an integer/None. If the latter, a
-            BRNG will be created by passing ``brng`` as the ``seed`` argument
-            to :py:func:`epsie.create_brng`.
+        bit_generator : :py:class:`epsie.BIT_GENERATOR`, int, or None
+            Either the bit generator to use or an integer/None. If the latter,
+            a generator will be created by passing ``bit_generator`` as the
+            ``seed`` argument to :py:func:`epsie.create_bit_generator`.
         """
-        if not isinstance(brng, epsie.BRNG):
-            brng = epsie.create_brng(brng)
-        self._brng = brng
+        if not isinstance(bit_generator, epsie.BIT_GENERATOR):
+            bit_generator = epsie.create_bit_generator(bit_generator)
+        self._bit_generator = bit_generator
 
     @property
     def random_generator(self):
         """The random number generator.
 
         This is an instance of :py:class:`randgen.RandomGenerator` that is
-        derived from the BRNG. It provides has methods to create random
+        derived from the bit generator. It provides methods to create random
         draws from various distributions.
         """
-        return self.brng.generator
+        return RandomGenerator(self.bit_generator)
 
     @property
     def random_state(self):
-        """The current state of the basic random number generator (BRNG).
+        """The current state of the random bit generator.
         """
-        return self.brng.state
+        return self.bit_generator.state
 
     @random_state.setter
     def random_state(self, state):
-        """Sets the state of brng.
+        """Sets the state of bit_generator.
         
         Parameters
         ----------
         state : dict
             Dictionary giving the state to set.
         """
-        self.brng.state = state
+        self.bit_generator.state = state
 
     @property
     def parameters(self):
@@ -127,7 +131,7 @@ class BaseProposal(object):
             The names of the parameters. This may either be a list of strings,
             or (for a single parameter), a string.
         """
-        if isinstance(parameters, (str, unicode)):
+        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 

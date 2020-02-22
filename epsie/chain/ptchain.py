@@ -53,10 +53,10 @@ class ParallelTemperedChain(BaseChain):
     swap_interval : int, optional
         For a parallel tempered chain, how often to calculate temperature
         swaps. Default is 1 (= swap on every iteration).
-    brng : :py:class:`randomgen.PGC64` instance, optional
-        Use the given basic random number generator (BRNG) for generating
-        random variates. If an int or None is provided, a BRNG will be
-        created instead using ``brng`` as a seed.
+    bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
+        Use the given random bit generator for generating random variates. If
+        an int or None is provided, a generator will be created instead using
+        ``bit_generator`` as a seed.
     chain_id : int, optional
         An interger identifying which chain this is. Default is 0.
 
@@ -75,7 +75,7 @@ class ParallelTemperedChain(BaseChain):
     current_position
     current_stats
     current_blob
-    brng
+    bit_generator
     random_state
     state
     hasblobs
@@ -83,7 +83,7 @@ class ParallelTemperedChain(BaseChain):
         Integer identifying the chain.
     """
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
-                 brng=None, chain_id=0):
+                 bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
         # store the temp
@@ -99,58 +99,59 @@ class ParallelTemperedChain(BaseChain):
                 dtypes={'acceptance_ratio': float, 'swap_index': int},
                 ntemps=self.ntemps-1)
         self.chain_id = chain_id
-        # make sure all parallel tempered chains use the same brng
-        self._brng = None
-        self.brng = brng
+        # make sure all parallel tempered chains use the same bit_generator
+        self._bit_generator = None
+        self._random_generator = None
+        self.bit_generator = bit_generator
         # create a chain for each temperature
         self.chains = [
             Chain(parameters, model,
                   [copy.deepcopy(p) for p in proposals],
-                  brng=self.brng, chain_id=chain_id,
+                  bit_generator=self.bit_generator, chain_id=chain_id,
                   beta=beta)
             for beta in self.betas]
 
     @property
-    def brng(self):
-        """The basic random number generator (BRNG) instance being used."""
-        return self._brng
+    def bit_generator(self):
+        """The random bit generator being used."""
+        return self._bit_generator
 
-    @brng.setter
-    def brng(self, brng=None):
-        """Sets the BRNG.
+    @bit_generator.setter
+    def bit_generator(self, bit_generator=None):
+        """Sets the random bit generator
 
         Parameters
         ----------
-        brng : :py:class:`randomgen.PGC64` instance, optional
-            Use the given basic random number generator (BRNG) for generating
-            random variates. If an int or None is provided, a BRNG will be
-            created instead using ``brng`` as a seed.
+        bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
+            Use the given random bit generator for generating random variates.
+            If an int or None is provided, a generator will be created instead
+            using ``bit_generator`` as a seed.
         """
-        if brng is None:
-            brng = epsie.create_brng(None, stream=self.chain_id)
-        self._brng = brng
+        if bit_generator is None:
+            bit_generator = epsie.create_bit_generator(None,
+                                                       stream=self.chain_id)
+        self._bit_generator = bit_generator
 
     @property
     def random_generator(self):
         """Returns the random number generator."""
-        return self.brng.generator
+        return self.chains[0].random_generator
 
     @property
     def random_state(self):
-        """The current state of the basic random number generator (BRNG).
-        """
-        return self.brng.state
+        """The current state of the random bit generator."""
+        return self.bit_generator.state
 
     @random_state.setter
     def random_state(self, state):
-        """Sets the state of brng.
+        """Sets the state of bit_generator.
 
         Parameters
         ----------
         state : dict
             Dictionary giving the state to set.
         """
-        self.brng.state = state
+        self.bit_generator.state = state
 
     @property
     def state(self):
@@ -285,9 +286,9 @@ class ParallelTemperedChain(BaseChain):
         Returned array has shape ``[ntemps x] niterations``.
         """
         if item is None:
-            arrs = map(lambda x: getattr(x, attr), self.chains)
+            arrs = list(map(lambda x: getattr(x, attr), self.chains))
         else:
-            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+            arrs = list(map(lambda x: getattr(x, attr)[item], self.chains))
         return numpy.stack(arrs)
 
     @property

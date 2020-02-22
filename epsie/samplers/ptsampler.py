@@ -21,7 +21,7 @@ import numpy
 import logging
 import copy
 
-from epsie import create_brng
+from epsie import create_bit_generator
 from epsie.chain import ParallelTemperedChain
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
@@ -98,7 +98,7 @@ class ParallelTemperedSampler(BaseSampler):
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals.values()],
             betas=betas,
-            brng=create_brng(self.seed, stream=cid),
+            bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
 
@@ -177,9 +177,9 @@ class ParallelTemperedSampler(BaseSampler):
             The returned array has shape ``ntemps x nchains x niterations``.
         """
         if item is None:
-            arrs = map(lambda x: getattr(x, attr), self.chains)
+            arrs = list(map(lambda x: getattr(x, attr), self.chains))
         else:
-            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+            arrs = list(map(lambda x: getattr(x, attr)[item], self.chains))
         return numpy.stack(arrs, axis=1)
 
     @property

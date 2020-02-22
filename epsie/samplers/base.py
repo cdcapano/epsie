@@ -19,17 +19,18 @@ from __future__ import absolute_import
 
 import itertools
 from abc import (ABCMeta, abstractmethod)
+from six import add_metaclass
+import numpy
 import hickle
 
 from epsie import create_seed
 from epsie.proposals import Normal
 
 
+@add_metaclass(ABCMeta)
 class BaseSampler(object):
     """Base class for samplers.
     """
-    __metaclass__ = ABCMeta
-
     _parameters = None
     _proposals = None
     _model = None
@@ -44,7 +45,7 @@ class BaseSampler(object):
 
     @parameters.setter
     def parameters(self, parameters):
-        if isinstance(parameters, (str, unicode)):
+        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 
@@ -108,7 +109,7 @@ class BaseSampler(object):
 
     @property
     def seed(self):
-        """The seed used for the BRNG."""
+        """The seed used for the random bit generator."""
         return self._seed
 
     @seed.setter
@@ -237,7 +238,8 @@ class BaseSampler(object):
             c.scratchlen += max(niterations - (c.scratchlen - len(c)), 0)
         # construct arguments for passing to the pool
         args = zip([niterations]*len(self.chains), self.chains)
-        self.chains = self.map(_evolve_chain, args)
+        # pylint: disable=locally-disabled, not-callable
+        self.chains = list(self.map(_evolve_chain, args))
 
     def clear(self):
         """Clears all of the chains."""
@@ -397,10 +399,18 @@ def _long2str(statedict):
     """
     out = {}
     for param, val in statedict.items():
-        if isinstance(val, long):
-            val = str('{}LONGINT'.format(val))
-        elif isinstance(val, dict):
+        if isinstance(val, dict):
             val = _long2str(val)
+        else:
+            try:
+                bitlen = val.bit_length()
+            except AttributeError:
+                # will get this if val isn't an integer; in that case just set
+                # bitlen to zero so we don't try to cast it
+                bitlen = 0
+            if bitlen >= 64:
+                # long integer
+                val = str('{}LONGINT'.format(val))
         out[param] = val
     return out
 

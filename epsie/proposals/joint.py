@@ -29,15 +29,16 @@ class JointProposal(BaseProposal):
     ----------
     \*proposals :
         The arguments should provide the constituent proposals to use.
-    brng : :py:class:`epsie.BRNG` instance or int, optional
-        The basic random number generator (BRNG) to use, or an integer/None. If
-        the latter, a BRNG will be created using :py:func:`epsie.create_brng`.
+    bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
+        The random bit generator to use, or an integer/None. If the latter, a
+        bit generator will be created using
+        :py:func:`epsie.create_bit_generator`.
     """
     name = 'joint'
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, *proposals, **kwargs):
-        brng = kwargs.pop('brng', None)  # Py3XX: delete line
+        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         self.parameters = itertools.chain(*[prop.parameters
                                             for prop in proposals])
         # check that we don't have multiple proposals for the same parameter
@@ -50,11 +51,11 @@ class JointProposal(BaseProposal):
         # the joint proposal is symmetric only if all of the constitutent
         # proposals are also
         self._symmetric = all(prop.symmetric for prop in proposals)
-        # set the BRNG
-        self.brng = brng
+        # set the bit generator
+        self.bit_generator = bit_generator
         # have all of the proposals use the same random state
         for prop in proposals:
-            prop.brng = self.brng
+            prop.bit_generator = self.bit_generator
         # store the proposals as a dict of parameters -> proposal; we can do
         # this since the mapping of parameters to proposals is one/many:one
         self.proposals = {prop.parameters: prop for prop in proposals}
