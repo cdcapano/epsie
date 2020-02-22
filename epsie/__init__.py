@@ -84,7 +84,16 @@ def create_bit_generator(seed=None, stream=0):
     """
     if seed is None:
         seed = create_seed(seed)
-    return BIT_GENERATOR(seed, stream, mode="sequence")
+    try:
+        return BIT_GENERATOR(seed, stream, mode="sequence")
+    except TypeError as e:
+        # eaerlier versions of randomgen (used for py27) did not support a
+        # mode argument
+        import randomgen
+        if float('.'.join(randomgen.__version__.split('.')[:2])) < 1.17:
+            return BIT_GENERATOR(seed, stream)
+        else:
+            raise e
 
 
 def create_bit_generators(seed, ngenerators):
