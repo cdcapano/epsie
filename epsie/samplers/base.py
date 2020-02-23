@@ -20,11 +20,10 @@ from __future__ import absolute_import
 import itertools
 from abc import (ABCMeta, abstractmethod)
 from six import add_metaclass
-import pickle
 from io import BytesIO
 import numpy
 
-from epsie import create_seed
+from epsie import (create_seed, dump_state, load_state)
 from epsie.proposals import Normal
 
 
@@ -377,28 +376,3 @@ def _evolve_chain(niterations_chain):
     for _ in range(niterations):
         chain.step()
     return chain
-
-
-def dump_state(state, fp, path=None, dsetname='sampler_state'):
-    """Dumps the given state to an hdf5 file object."""
-    memfp = BytesIO()
-    pickle.dump(state, memfp)
-    memfp.seek(0)
-    bdata = numpy.frombuffer(memfp.read(), dtype='S1')
-    if path is not None:
-        fp = fp[path]
-    if dsetname not in fp:
-        fp.create_dataset(dsetname, shape=bdata.shape, maxshape=(None,),
-                          dtype=bdata.dtype)
-    elif bdata.size != fp[dsetname].shape[0]:
-        fp[dsetname].resize((bdata.size,))
-    fp[dsetname][:] = bdata
-
-
-def load_state(fp, path=None, dsetname='sampler_state'):
-    """Loads a sampler state from the given hdf5 file object.
-    """
-    if path is not None:
-        fp = fp[path]
-    bdata = fp[dsetname][()].tobytes()
-    return pickle.load(BytesIO(bdata))
