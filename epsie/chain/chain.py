@@ -434,7 +434,7 @@ class Chain(BaseChain):
         """Evolves the chain by a single step."""
         # in case the any of the proposals need information about the history
         # of the chain:
-        self.proposal_dist.update(self)
+        self.proposal_dist.update_before_jump(self)
         # get the current position; if this is the first step and set_start
         # hasn't been run, this will raise a ValueError
         current_pos = self.current_position
@@ -480,4 +480,7 @@ class Chain(BaseChain):
         if self._hasblobs:
             self._blobs[index] = blob
         self._iteration += 1
+        # in case the any of the proposals need information about the history
+        # of the chain after the jump:
+        self.proposal_dist.update_after_jump(self)
         return self

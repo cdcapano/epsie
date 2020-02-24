@@ -67,10 +67,15 @@ class JointProposal(BaseProposal):
     def logpdf(self, xi, givenx):
         return sum(p.logpdf(xi, givenx) for p in self.proposals.values())
 
-    def update(self, chain):
+    def update_before_jump(self, chain):
         # update each of the proposals
         for prop in self.proposals.values():
-            prop.update(chain)
+            prop.update_before_jump(chain)
+
+    def update_after_jump(self, chain):
+        # update each of the proposals
+        for prop in self.proposals.values():
+            prop.update_after_jump(chain)
 
     def jump(self, fromx):
         out = {}

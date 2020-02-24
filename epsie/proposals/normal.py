@@ -200,10 +200,12 @@ class AdaptiveNormal(Normal):
         # figure out initial variance to use
         self._deltas = None
         self.prior_widths = prior_widths
+        self._adaptation_duration = None
         self.adaptation_duration = adaptation_duration
         if adaptation_decay is None:
             adaptation_decay = 1./numpy.log10(self.adaptation_duration)
         self.adaptation_decay = adaptation_decay
+        self._start_iteration = None
         self.start_iteration = start_iteration
         self.target_rate = target_rate
         if initial_var is None:
@@ -237,6 +239,18 @@ class AdaptiveNormal(Normal):
         return self._deltas
 
     @property
+    def start_iteration(self):
+        """The iteration that the adaption begins."""
+        return self._start_iteration
+
+    @start_iteration.setter
+    def start_iteration(self, start_iteration):
+        """Sets the start iteration, making sure it is >= 1."""
+        if start_iteration < 1:
+            raise ValueError("start_iteration must be >= 1")
+        self._start_iteration = start_iteration
+
+    @property
     def adaptation_duration(self):
         """The adaptation duration used."""
         return self._adaptation_duration
@@ -250,12 +264,15 @@ class AdaptiveNormal(Normal):
             raise ValueError("adaptation duration must be >= 1")
         self._adaptation_duration = adaptation_duration
 
-    def update(self, chain):
-        """Updates the adaptation based on whether the last iteration was
-        accepted or not.
+    def update_after_jump(self, chain):
+        """Updates the adaptation based on whether the last jump was accepted.
+
+        This prepares the proposal for the next jump.
         """
-        dk = chain.iteration - self.start_iteration
-        if dk >= 1 and chain.iteration < self.adaptation_duration:
+        # subtact 1 from the start iteration, since the update happens after
+        # the jump
+        dk = chain.iteration - (self.start_iteration - 1)
+        if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
                 alpha = 1 - self.target_rate
