@@ -18,7 +18,6 @@
 from __future__ import absolute_import
 
 import numpy
-import logging
 import copy
 
 from epsie import create_bit_generator
@@ -79,10 +78,6 @@ class ParallelTemperedSampler(BaseSampler):
             # betas is probably a list or tuple; convert to array so we can use
             # numpy functions
             betas = numpy.array(betas)
-        if not (betas == 1.).any():
-            logging.warn("No betas = 1 found. This means that the normal "
-                         "posterior (i.e., likelihood * prior) will not be "
-                         "sampled by any chain.")
         self.create_chains(nchains, betas, swap_interval)
 
     def create_chains(self, nchains, betas, swap_interval=1):

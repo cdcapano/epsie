@@ -17,6 +17,7 @@
 
 from __future__ import absolute_import
 
+import logging
 import numpy
 import copy
 
@@ -248,9 +249,9 @@ class ParallelTemperedChain(BaseChain):
             # numpy functions
             betas = numpy.array(betas)
         if not (betas == 1.).any():
-            logging.warn("No betas = 1 found. This means that the normal "
-                         "posterior (i.e., likelihood * prior) will not be "
-                         "sampled by the chain.")
+            logging.warning("No betas = 1 found. This means that the normal "
+                            "posterior (i.e., likelihood * prior) will not be "
+                            "sampled by the chain.")
         # check that all betas are in [0, 1]
         if not ((0 <= betas) & (betas <= 1)).all():
             raise ValueError("all betas must be in range [0, 1]")
