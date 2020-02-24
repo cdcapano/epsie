@@ -25,6 +25,7 @@ from ._version import __version__
 import os
 import sys
 import pickle
+from io import BytesIO
 import numpy
 from randomgen import PCG64
 
