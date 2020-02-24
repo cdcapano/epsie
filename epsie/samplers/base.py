@@ -20,7 +20,6 @@ from __future__ import absolute_import
 import itertools
 from abc import (ABCMeta, abstractmethod)
 from six import add_metaclass
-from io import BytesIO
 import numpy
 
 from epsie import (create_seed, dump_state, load_state)
