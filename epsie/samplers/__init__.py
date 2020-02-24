@@ -16,6 +16,9 @@
 
 from __future__ import absolute_import
 
+# promote load functions
+from .base import (load_state, dump_state)
+
 # promote sampler classes to "samplers" namespace
 from .ptsampler import ParallelTemperedSampler
 from .mhsampler import MetropolisHastingsSampler

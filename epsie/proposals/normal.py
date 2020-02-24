@@ -50,6 +50,7 @@ class Normal(BaseProposal):
     def __init__(self, parameters, cov=None):
         self.parameters = parameters
         self.ndim = len(parameters)
+        self.isdiagonal = False
         self._cov = None
         self.cov = cov
 
@@ -57,7 +58,7 @@ class Normal(BaseProposal):
     def cov(self):
         """The covariance matrix used.
         """
-        return self._cov
+        return numpy.diag(self._cov)
 
     @cov.setter
     def cov(self, cov):
@@ -74,14 +75,23 @@ class Normal(BaseProposal):
             cov = 1.
         if not isinstance(cov, numpy.ndarray):
             cov = numpy.array(cov)
-        if cov.ndim <= 1:
-            cov = numpy.repeat(cov, len(self.parameters))
-        if cov.ndim < 2:
-            cov = numpy.diag(cov)
-        # check that dimensionality makes sense
-        if cov.shape != (self.ndim, self.ndim):
-            raise ValueError("dimension of covariance matrix does not match "
-                             "given number of parameters")
+        # make sure cov is atleast 1D array
+        if cov.ndim < 1 or cov.size == 1:
+            cov = numpy.repeat(cov.item(), len(self.parameters))
+        # if its a 1D array, means diagonal covariance
+        if cov.ndim == 1:
+            self.isdiagonal = True
+        else:
+            # check that dimensionality makes sense
+            if cov.shape != (self.ndim, self.ndim):
+                raise ValueError("dimension of covariance matrix does not "
+                                 "match given number of parameters")
+            # check if off-diagonal terms are all zero, if so, just store
+            # the diagonals
+            self.isdiagonal = (
+                cov[~numpy.eye(cov.shape[0], dtype=bool)] == 0).all()
+            if self.isdiagonal:
+                cov = cov[numpy.diag_indices(cov.shape[0])]
         self._cov = cov
 
     @property
@@ -92,26 +102,24 @@ class Normal(BaseProposal):
         self.random_state = state['random_state']
 
     def jump(self, fromx):
-        if self.ndim == 1:
-            newpt = self.random_generator.normal(fromx[p], self.cov)
-            jump = {p: newpt}
+        # the normal RVS is much faster than the multivariate one, so use it
+        # if we can
+        if self.isdiagonal:
+            mu = [fromx[p] for p in self.parameters]
+            newpt = self.random_generator.normal(mu, self._cov)
         else:
             newpt = self.random_generator.multivariate_normal(
                 [fromx[p] for p in self.parameters], self.cov)
-            jump = {p: newpt[ii] for ii, p in enumerate(self.parameters)}
-        return jump
-                    
+        return dict(zip(self.parameters, newpt))
+
 
     def logpdf(self, xi, givenx):
         means = [givenx[p] for p in self.parameters]
-        if self.ndim == 1:
-            p = self.parameters[0]
-            logp = stats.normal.logpdf(xi[p], loc=givenx[p], scale=self.cov)
+        xi = [xi[p] for p in self.parameters]
+        if self.isdiagonal:
+            logp = stats.normal.logpdf(xi, loc=means, scale=self._cov)
         else:
-            logp = stats.multivariate_normal(
-                [xi[p] for p in self.parameters],
-                mean=[givenx[p] for p in self.parameters],
-                cov=self.cov)
+            logp = stats.multivariate_normal(xi, mean=means, cov=self._cov)
         return logp
 
 
@@ -122,6 +130,9 @@ class AdaptiveNormal(Normal):
     The size of the variance at each step is based on the width of the prior
     and whether or not the previous proposal was accepted or not. See Notes
     for more details.
+
+    Multiple parameters may be given. However, currently, only independent
+    variables are supported (i.e., the covariance matrix must be diagonal).
 
     Parameters
     ----------
@@ -181,13 +192,20 @@ class AdaptiveNormal(Normal):
                  initial_var=None):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormal, self).__init__(parameters)
+        # check that a diagonal covariance was provided
+        if not self.isdiagonal:
+            raise ValueError("Only independent variables are supported "
+                             "(all off-diagonal terms in the covariance "
+                             "must be zero)")
         # figure out initial variance to use
         self._deltas = None
         self.prior_widths = prior_widths
+        self._adaptation_duration = None
         self.adaptation_duration = adaptation_duration
         if adaptation_decay is None:
             adaptation_decay = 1./numpy.log10(self.adaptation_duration)
         self.adaptation_decay = adaptation_decay
+        self._start_iteration = None
         self.start_iteration = start_iteration
         self.target_rate = target_rate
         if initial_var is None:
@@ -221,6 +239,18 @@ class AdaptiveNormal(Normal):
         return self._deltas
 
     @property
+    def start_iteration(self):
+        """The iteration that the adaption begins."""
+        return self._start_iteration
+
+    @start_iteration.setter
+    def start_iteration(self, start_iteration):
+        """Sets the start iteration, making sure it is >= 1."""
+        if start_iteration < 1:
+            raise ValueError("start_iteration must be >= 1")
+        self._start_iteration = start_iteration
+
+    @property
     def adaptation_duration(self):
         """The adaptation duration used."""
         return self._adaptation_duration
@@ -234,12 +264,15 @@ class AdaptiveNormal(Normal):
             raise ValueError("adaptation duration must be >= 1")
         self._adaptation_duration = adaptation_duration
 
-    def update(self, chain):
-        """Updates the adaptation based on whether the last iteration was
-        accepted or not.
+    def update_after_jump(self, chain):
+        """Updates the adaptation based on whether the last jump was accepted.
+
+        This prepares the proposal for the next jump.
         """
-        dk = chain.iteration - self.start_iteration
-        if dk >= 1 and chain.iteration < self.adaptation_duration:
+        # subtact 1 from the start iteration, since the update happens after
+        # the jump
+        dk = chain.iteration - (self.start_iteration - 1)
+        if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
                 alpha = 1 - self.target_rate
@@ -247,17 +280,15 @@ class AdaptiveNormal(Normal):
                 alpha = -self.target_rate
             dsigmas = alpha * dk * self.deltas/10.
             # ensure we don't go negative
-            getidx = numpy.diag_indices(self.ndim)
-            cov = self._cov[getidx]
-            newcov = cov + dsigmas
+            newcov = self._cov + dsigmas
             lzidx = newcov < 0
-            newcov[lzidx] = cov[lzidx]
-            self._cov[getidx] = newcov
+            newcov[lzidx] = self._cov[lzidx]
+            self._cov = newcov
 
     @property
     def state(self):
         return {'random_state': self.random_state,
-                'cov': self.cov}
+                'cov': self._cov}
 
     def set_state(self, state):
         self.random_state = state['random_state']

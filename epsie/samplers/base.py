@@ -19,16 +19,17 @@ from __future__ import absolute_import
 
 import itertools
 from abc import (ABCMeta, abstractmethod)
+from six import add_metaclass
+import numpy
 
-from epsie import create_seed
+from epsie import (create_seed, dump_state, load_state)
 from epsie.proposals import Normal
 
 
+@add_metaclass(ABCMeta)
 class BaseSampler(object):
     """Base class for samplers.
     """
-    __metaclass__ = ABCMeta
-
     _parameters = None
     _proposals = None
     _model = None
@@ -43,7 +44,7 @@ class BaseSampler(object):
 
     @parameters.setter
     def parameters(self, parameters):
-        if isinstance(parameters, (str, unicode)):
+        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
             parameters = [parameters]
         self._parameters = tuple(sorted(parameters))
 
@@ -107,7 +108,7 @@ class BaseSampler(object):
 
     @property
     def seed(self):
-        """The seed used for the BRNG."""
+        """The seed used for the random bit generator."""
         return self._seed
 
     @seed.setter
@@ -216,11 +217,11 @@ class BaseSampler(object):
         Parameters
         ----------
         positions : dict
-            Dictionary mapping parameter names to arrays of values. The chains
-            must have length equal to the number of chains.
+            Dictionary mapping parameter names to arrays of values. The arrays
+            must have shape ``[ntemps x] nchains``.
         """
         for (ii, chain) in enumerate(self.chains):
-            chain.start_position = {p: positions[p][ii, ...]
+            chain.start_position = {p: positions[p][..., ii]
                                     for p in positions}
 
     def run(self, niterations):
@@ -236,7 +237,8 @@ class BaseSampler(object):
             c.scratchlen += max(niterations - (c.scratchlen - len(c)), 0)
         # construct arguments for passing to the pool
         args = zip([niterations]*len(self.chains), self.chains)
-        self.chains = self.map(_evolve_chain, args)
+        # pylint: disable=locally-disabled, not-callable
+        self.chains = list(self.map(_evolve_chain, args))
 
     def clear(self):
         """Clears all of the chains."""
@@ -324,6 +326,36 @@ class BaseSampler(object):
         """
         for ii, chain in enumerate(self.chains):
             chain.set_state(state[ii])
+
+    def checkpoint(self, fp, path=None, dsetname='sampler_state'):
+        """Save the sampler's state to an HDF file.
+
+        Parameters
+        ----------
+        fp : :py:class:h5py.File
+            Open file handler to an hdf5 file. The file handler must have
+            write permission.
+        path : str, optional
+            What group to write the state to in the hdf file. Default is the
+            top-level.
+        dsetname : str, optional
+            The name of dataset to store the state to. Default is
+            "sampler_state".
+        """
+        dump_state(self.state, fp, path=path, dsetname=dsetname)
+
+    def set_state_from_checkpoint(self, fp, path=None):
+        """Loads a state from an HDF file.
+
+        Parameters
+        ----------
+        fp : :py:class:h5py.File
+            Open file handler to an hdf5 file.
+        path : str, optional
+            What group to store the file to in the hdf file. Default is the
+            top-level ('/').
+        """
+        self.set_state(load_state(fp, path=path))
 
 
 def _evolve_chain(niterations_chain):

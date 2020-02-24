@@ -18,10 +18,9 @@
 from __future__ import absolute_import
 
 import numpy
-import logging
 import copy
 
-from epsie import create_brng
+from epsie import create_bit_generator
 from epsie.chain import ParallelTemperedChain
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
@@ -44,6 +43,9 @@ class ParallelTemperedSampler(BaseSampler):
         The betas (= 1 / temperatures) to use. All betas must be between [0,1].
         Must provide at least one. If one is not included in the betas, a
         warning will be printed.
+    swap_interval : int, optional
+        How often to calculate temperature swaps. Default is 1 (= swap on every
+        iteration).
     proposals : dict, optional
         Dictionary mapping parameter names to proposal classes. Any parameters
         not listed will use the ``default_propsal``.
@@ -59,7 +61,8 @@ class ParallelTemperedSampler(BaseSampler):
         Specify a process pool to use for parallelization. Default is to use a
         single core.
     """
-    def __init__(self, parameters, model, nchains, betas, proposals=None,
+    def __init__(self, parameters, model, nchains, betas, swap_interval=1,
+                 proposals=None,
                  default_proposal=None, default_proposal_args=None, seed=None,
                  pool=None):
         self.parameters = parameters
@@ -75,13 +78,9 @@ class ParallelTemperedSampler(BaseSampler):
             # betas is probably a list or tuple; convert to array so we can use
             # numpy functions
             betas = numpy.array(betas)
-        if not (betas == 1.).any():
-            logging.warn("No betas = 1 found. This means that the normal "
-                         "posterior (i.e., likelihood * prior) will not be "
-                         "sampled by any chain.")
-        self.create_chains(nchains, betas)
+        self.create_chains(nchains, betas, swap_interval)
 
-    def create_chains(self, nchains, betas):
+    def create_chains(self, nchains, betas, swap_interval=1):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -91,14 +90,17 @@ class ParallelTemperedSampler(BaseSampler):
         betas : array
             Array of inverse temperatures to use for each parallel tempered
             chain.
+        swap_interval : int, optional
+            How often to calculate temperature swaps. Default is 1 (= swap on
+            every iteration).
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals.values()],
-            betas=betas,
-            brng=create_brng(self.seed, stream=cid),
+            betas=betas, swap_interval=swap_interval,
+            bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
 
@@ -177,16 +179,34 @@ class ParallelTemperedSampler(BaseSampler):
             The returned array has shape ``ntemps x nchains x niterations``.
         """
         if item is None:
-            arrs = map(lambda x: getattr(x, attr), self.chains)
+            arrs = list(map(lambda x: getattr(x, attr), self.chains))
         else:
-            arrs = map(lambda x: getattr(x, attr)[item], self.chains)
+            arrs = list(map(lambda x: getattr(x, attr)[item], self.chains))
         return numpy.stack(arrs, axis=1)
+
+    @property
+    def temperature_acceptance(self):
+        """The history of the temperature acceptance from all of the chains.
+
+        If ntemps is 1, just returns None.
+
+        .. note::
+           This does not return a structured array, since there is only
+           one field.
+        """
+        if self.ntemps == 1:
+            return None
+        return self._concatenate_arrays('temperature_acceptance')
 
     @property
     def temperature_swaps(self):
         """The history of all the temperature swaps from all of the chains.
         
         If ntemps is 1, just returns None.
+
+        .. note::
+           This does not return a structured array, since there is only
+           one field.
         """
         if self.ntemps == 1:
             return None
