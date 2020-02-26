@@ -52,17 +52,37 @@ class Normal(BaseProposal):
         self.ndim = len(parameters)
         self.isdiagonal = False
         self._cov = None
+        self._std = None
         self.cov = cov
 
     @property
     def cov(self):
         """The covariance matrix used.
         """
-        return numpy.diag(self._cov)
+        if self.isdiagonal:
+            cov = numpy.diag(self._std**2)
+        else:
+            cov = self._cov
+        return cov
+
+    @property
+    def std(self):
+        """The standard deviation.
+
+        Raises a ``ValueError`` if the covariance matrix is not diagonal.
+        """
+        if not self.isdiagonal:
+            raise ValueError("standard deviation is undefined for "
+                             "multivariate normal distribution with a "
+                             "non-diagonal covariance matrix")
+        return self._std
 
     @cov.setter
     def cov(self, cov):
-        """Sets the covariance matrix.
+        """Sets the covariance matrix and the isdiagonal attribute.
+
+        If a diagonal covariance, the standard deviation (`std`) attribute is
+        also set.
 
         If a single float or a 1D array is given, will use a diagonal
         covariance matrix (i.e., all parameters are independent of each other).
@@ -92,7 +112,11 @@ class Normal(BaseProposal):
                 cov[~numpy.eye(cov.shape[0], dtype=bool)] == 0).all()
             if self.isdiagonal:
                 cov = cov[numpy.diag_indices(cov.shape[0])]
-        self._cov = cov
+        if self.isdiagonal:
+            # for diagonal, we'll store the std instead
+            self._std = cov**0.5
+        else:
+            self._cov = cov
 
     @property
     def state(self):
@@ -106,18 +130,17 @@ class Normal(BaseProposal):
         # if we can
         if self.isdiagonal:
             mu = [fromx[p] for p in self.parameters]
-            newpt = self.random_generator.normal(mu, self._cov)
+            newpt = self.random_generator.normal(mu, self._std)
         else:
             newpt = self.random_generator.multivariate_normal(
                 [fromx[p] for p in self.parameters], self.cov)
         return dict(zip(self.parameters, newpt))
 
-
     def logpdf(self, xi, givenx):
         means = [givenx[p] for p in self.parameters]
         xi = [xi[p] for p in self.parameters]
         if self.isdiagonal:
-            logp = stats.normal.logpdf(xi, loc=means, scale=self._cov)
+            logp = stats.normal.logpdf(xi, loc=means, scale=self._std)
         else:
             logp = stats.multivariate_normal(xi, mean=means, cov=self._cov)
         return logp
@@ -154,14 +177,14 @@ class AdaptiveNormal(Normal):
         equation below). Must be greater than zero. Default is 1.
     target_rate : float, optional
         The target acceptance rate. Default is 0.234.
-    initial_var : array, optional
-        The initial variance to use. Default is to use
+    initial_std : array, optional
+        The initial standard deviation to use. Default is to use
         `(1 - target_rate)*0.09*prior_widths`.
 
     Notes
     -----
-    For a given parameter, the variance of the :math:`k`th iteration is given
-    by [1]_:
+    For a given parameter, the standard deviation of the :math:`k`th iteration
+    is given by [1]_:
 
     .. math::
 
@@ -172,9 +195,9 @@ class AdaptiveNormal(Normal):
     accpeted and :math:`\alpha_{k-1} = -\xi` if the previous iteration was
     rejected. Here, :math:`\xi` is the target acceptance rate, :math:`\Delta`
     is the prior width, :math:`\beta` is the adaptation decay, and :math:`k_0`
-    gives the iteration after which the adaptation begins. The initial variance
-    :math:`\sigma_0` to use is a free parameter. The default in this function
-    is to use :math:`\sigma_0 = (1-\xi)0.09\Delta`.
+    gives the iteration after which the adaptation begins. The initial standard
+    deviation :math:`\sigma_0` to use is a free parameter. The default in this
+    function is to use :math:`\sigma_0 = (1-\xi)0.09\Delta`.
 
 
     References
@@ -189,7 +212,7 @@ class AdaptiveNormal(Normal):
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  adaptation_decay=None, start_iteration=1, target_rate=0.234,
-                 initial_var=None):
+                 initial_std=None):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormal, self).__init__(parameters)
         # check that a diagonal covariance was provided
@@ -208,10 +231,10 @@ class AdaptiveNormal(Normal):
         self._start_iteration = None
         self.start_iteration = start_iteration
         self.target_rate = target_rate
-        if initial_var is None:
-            initial_var = numpy.diag((1 - self.target_rate)*0.09*self.deltas)
+        if initial_std is None:
+            initial_std = (1 - self.target_rate)*0.09*self.deltas
         # set the covariance to the initial
-        self.cov = initial_var
+        self.cov = initial_std**2
 
     @property
     def prior_widths(self):
@@ -280,16 +303,17 @@ class AdaptiveNormal(Normal):
                 alpha = -self.target_rate
             dsigmas = alpha * dk * self.deltas/10.
             # ensure we don't go negative
-            newcov = self._cov + dsigmas
-            lzidx = newcov < 0
-            newcov[lzidx] = self._cov[lzidx]
-            self._cov = newcov
+            sigmas = self._std
+            newsigmas = sigmas + dsigmas
+            lzidx = newsigmas < 0
+            newsigmas[lzidx] = sigmas[lzidx]
+            self._std = newsigmas
 
     @property
     def state(self):
         return {'random_state': self.random_state,
-                'cov': self._cov}
+                'std': self._std}
 
     def set_state(self, state):
         self.random_state = state['random_state']
-        self._cov = state['cov']
+        self._std = state['std']
