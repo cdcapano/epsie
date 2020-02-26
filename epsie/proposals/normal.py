@@ -264,7 +264,7 @@ class AdaptiveNormal(Normal):
             raise ValueError("adaptation duration must be >= 1")
         self._adaptation_duration = adaptation_duration
 
-    def update_after_jump(self, chain):
+    def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
         This prepares the proposal for the next jump.
