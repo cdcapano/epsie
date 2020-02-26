@@ -217,17 +217,7 @@ class BaseProposal(object):
         """
         return numpy.exp(self.logpdf(xi, givenx))
 
-    def update_before_jump(self, chain):
-        """Update the state of the proposal distribution before a jump.
-
-        This method may optionally be implemented by a proposal. It is called
-        by the Markov chains just prior to calling jump. It can be used by,
-        e.g., adaptive jump proposals that change their state depending on
-        the history of the chain.
-        """
-        pass
-
-    def update_after_jump(self, chain):
+    def update(self, chain):
         """Update the state of the proposal distribution after a jump.
 
         This method may optionally be implemented by a proposal. It is called
