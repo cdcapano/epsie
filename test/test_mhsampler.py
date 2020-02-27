@@ -103,9 +103,9 @@ class TestMHSampler(unittest.TestCase):
         # check that the current position is the same as the last in the array
         comp = _compare_dict_array(epsie.array2dict(stats[..., -1]),
                                    sampler.current_stats)
-        self.assertEqual(comp,
-                         "Last values in stats array are not the same "
-                         "as the current_stats attribute")
+        self.assertTrue(comp,
+                        "Last values in stats array are not the same "
+                        "as the current_stats attribute")
         # check that the acceptance ratios have the expected fields and shape
         acceptance = sampler.acceptance
         self._check_array(acceptance, ['acceptance_ratio', 'accepted'],
@@ -145,7 +145,7 @@ class TestMHSampler(unittest.TestCase):
                             "current_blobs should be None since the model "
                             "does not return blobs")
         # check that each chain's random state and current values are different
-        combos = itertools.combinations(len(sampler.chains), 2)
+        combos = itertools.combinations(range(len(sampler.chains)), 2)
         for ii, jj in combos:
             chain = sampler.chains[ii]
             other = sampler.chains[jj]
@@ -154,8 +154,8 @@ class TestMHSampler(unittest.TestCase):
             self.assertNotEqual(rstate, ostate,
                                 "Chains should all have different "
                                 "random states")
-            comp = _compare_dict_array(chain.current_positions,
-                                       other.current_positions)
+            comp = _compare_dict_array(chain.current_position,
+                                       other.current_position)
             self.assertFalse(comp,
                              "Chains should all have different current "
                              "positions")
@@ -171,8 +171,8 @@ class TestMHSampler(unittest.TestCase):
                 # in utils.py return the value of the log likelihood in
                 # each parameter for the blobs, so we expect them to be
                 # different in this case
-                comp = _compare_dict_array(chain.current_blobs,
-                                           other.current_blobs)
+                comp = _compare_dict_array(chain.current_blob,
+                                           other.current_blob)
                 self.assertFalse(comp,
                                  "Chains should all have different blobs "
                                  "since the tested model returns blob "
