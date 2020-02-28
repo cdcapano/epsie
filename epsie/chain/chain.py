@@ -83,6 +83,8 @@ class Chain(BaseChain):
     hasblobs
     chain_id : int or None
         Integer identifying the chain.
+    proposal_dist : JointProposal
+        The joint proposal used for all parameters.
     """
     def __init__(self, parameters, model, proposals, bit_generator=None,
                  chain_id=0, beta=1.):
