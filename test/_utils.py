@@ -117,3 +117,27 @@ def _anticompare_dict_array(a, b):
     assert list(a.keys()) == list(b.keys())
     # now check the values
     assert not all([(a[p] == b[p]).all() for p in a])
+
+
+def _check_chains_are_different(chain, other, test_blobs,
+                                test_state=True):
+    """Checks that two chains' random states and current positions/stats/blobs
+    are different.
+    """
+    if test_state:
+        rstate = chain.state['proposal_dist']['random_state']
+        ostate = other.state['proposal_dist']['random_state']
+        assert rstate != ostate
+    _anticompare_dict_array(chain.current_position,
+                            other.current_position)
+    _anticompare_dict_array(chain.current_stats,
+                            other.current_stats)
+    if test_blobs:
+        # note: we're checking that the blobs aren't the same, but
+        # it might happen for a model that they would be the same
+        # across chains, depending on the data. The testing models
+        # in utils.py return the value of the log likelihood in
+        # each parameter for the blobs, so we expect them to be
+        # different in this case
+        _anticompare_dict_array(chain.current_blob,
+                                other.current_blob)

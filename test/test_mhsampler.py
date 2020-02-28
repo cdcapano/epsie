@@ -25,7 +25,7 @@ import numpy
 import epsie
 from epsie.samplers import MetropolisHastingsSampler
 from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
-                    _anticompare_dict_array)
+                    _anticompare_dict_array, _check_chains_are_different)
 
 
 NCHAINS = 8
@@ -108,24 +108,8 @@ def test_chains(model_cls, nprocs):
     # check that each chain's random state and current values are different
     combos = itertools.combinations(range(len(sampler.chains)), 2)
     for ii, jj in combos:
-        chain = sampler.chains[ii]
-        other = sampler.chains[jj]
-        rstate = chain.state['proposal_dist']['random_state']
-        ostate = other.state['proposal_dist']['random_state']
-        assert rstate != ostate
-        _anticompare_dict_array(chain.current_position,
-                                other.current_position)
-        _anticompare_dict_array(chain.current_stats,
-                                other.current_stats)
-        if model.blob_params:
-            # note: we're checking that the blobs aren't the same, but
-            # it might happen for a model that they would be the same
-            # across chains, depending on the data. The testing models
-            # in utils.py return the value of the log likelihood in
-            # each parameter for the blobs, so we expect them to be
-            # different in this case
-            _anticompare_dict_array(chain.current_blob,
-                                    other.current_blob)
+        _check_chains_are_different(sampler.chains[ii], sampler.chains[jj],
+                                    test_blobs=bool(model.blob_params))
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
