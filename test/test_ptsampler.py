@@ -37,7 +37,7 @@ SEED = 2020
 
 
 def _create_sampler(model, nprocs, nchains=None, betas=None, swap_interval=1,
-                    seed=None, set_start=True):
+                    seed=None, proposals=None, set_start=True):
     """Creates a sampler."""
     if nchains is None:
         nchains = NCHAINS
@@ -51,6 +51,7 @@ def _create_sampler(model, nprocs, nchains=None, betas=None, swap_interval=1,
     sampler = ParallelTemperedSampler(model.params, model, nchains,
                                       betas=betas, seed=seed,
                                       swap_interval=swap_interval,
+                                      proposals=proposals,
                                       pool=pool)
     if set_start:
         sampler.start_position = model.prior_rvs(size=nchains*ntemps,
@@ -61,7 +62,7 @@ def _create_sampler(model, nprocs, nchains=None, betas=None, swap_interval=1,
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('swap_interval', [1, 3])
-def test_chains(model_cls, nprocs, swap_interval):
+def test_chains(model_cls, nprocs, swap_interval, proposals=None):
     """Sets up and runs a sampler for a few iterations, then performs
     the following checks:
 
@@ -78,7 +79,8 @@ def test_chains(model_cls, nprocs, swap_interval):
     """
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
-                              swap_interval=swap_interval)
+                              swap_interval=swap_interval,
+                              proposals=proposals)
     sampler.run(ITERINT)
     # check that the number of recorded iterations matches how long we
     # actually ran for
@@ -166,7 +168,7 @@ def test_chains(model_cls, nprocs, swap_interval):
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_checkpointing(model_cls, nprocs):
+def test_checkpointing(model_cls, nprocs, proposals=None):
     """Tests that resuming from checkpoint yields the same result as if
     no checkpoint happened.
 
@@ -177,12 +179,13 @@ def test_checkpointing(model_cls, nprocs):
     except ImportError:
         raise ImportError("h5py must be installed to run this test")
     model = model_cls()
-    sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED)
+    sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
+                              proposals=proposals)
     # create a second sampler for comparison; we won't bother setting
     # a seed or start position, since that shouldn't matter when loading
     # from a checkpoint
     sampler2 = _create_sampler(model, nprocs, nchains=NCHAINS, seed=None,
-                               set_start=False)
+                               proposals=proposals, set_start=False)
     sampler.run(ITERINT)
     # checkpoint to an h5py file in memory
     fp = h5py.File('test.hdf', 'w', driver='core', backing_store=False)
@@ -203,22 +206,23 @@ def test_checkpointing(model_cls, nprocs):
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_seed(model_cls, nprocs):
+def test_seed(model_cls, nprocs, proposals=None):
     """Tests that running with the same seed yields the same results,
     while running with a different seed yields different results.
     """
     model = model_cls()
-    sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED)
+    sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
+                              proposals=proposals)
     # now create another sampler with the same seed and starting position
     same_seed = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
-                                set_start=False)
+                                proposals=proposals, set_start=False)
     same_seed.start_position = sampler.start_position
     assert sampler.seed == same_seed.seed
     _compare_dict_array(sampler.start_position, same_seed.start_position)
     # we'll start the different seed from the same start position; this
     # should still yield different positions after several iterations
     diff_seed = _create_sampler(model, nprocs, nchains=NCHAINS, seed=None,
-                                set_start=False)
+                                proposals=proposals, set_start=False)
     diff_seed.start_position = sampler.start_position
     # not passing a seed should result in a different seed; check that
     assert sampler.seed != diff_seed.seed
@@ -242,15 +246,16 @@ def test_seed(model_cls, nprocs):
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('swap_interval', [1, 3])
-def test_clear_memory(model_cls, nprocs, swap_interval):
+def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
     """Tests that clearing memory and running yields the same result as if
     the memory had not been cleared.
     """
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
-                              swap_interval=swap_interval)
+                              swap_interval=swap_interval, proposals=proposals)
     sampler2 = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
-                               swap_interval=swap_interval, set_start=False)
+                               swap_interval=swap_interval,
+                               proposals=proposals, set_start=False)
     sampler2.start_position = sampler.start_position
     # run both for a few iterations
     sampler.run(ITERINT)
