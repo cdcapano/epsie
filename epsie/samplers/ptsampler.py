@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import numpy
 import copy
 
-from epsie import create_bit_generator
+from epsie import (create_bit_generator, array2dict)
 from epsie.chain import ParallelTemperedChain
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
@@ -156,7 +156,7 @@ class ParallelTemperedSampler(BaseSampler):
         out.extend(self.nchains)
         for ii, chain in enumerate(self.chains):
             out[ii] = getattr(chain, attr)
-        return out.asdict()
+        return array2dict(out.data.T)
 
     def _concatenate_arrays(self, attr, item=None):
         """Concatenates the given attribute over all of the chains.
