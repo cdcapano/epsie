@@ -14,8 +14,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Utilities for carrying out tests."""
 
+
 import numpy
 from scipy import stats
+import epsie
+
 
 class Model(object):
     """A simple model for testing the samplers.
@@ -82,3 +85,35 @@ class ModelWithBlobs(Model):
             logl, blob = self.loglikelihood(**kwargs)
         return logl, logp, blob
 
+
+def _check_array(array, expected_params, expected_shape):
+    """Helper function to test arrays returned by the sampler."""
+    # check that the fields are the same as the model's
+    assert sorted(array.dtype.names) == sorted(expected_params)
+    # check that the shape is what's expected
+    assert array.shape == expected_shape
+    # check that we can turn this into a dictionary
+    adict = epsie.array2dict(array)
+    assert sorted(adict.keys()) == sorted(expected_params)
+    for param, val in adict.items():
+        assert val.shape == expected_shape
+
+
+def _compare_dict_array(a, b):
+    """Helper function to test if two dictionaries of arrays are the
+    same.
+    """
+    # first check that keys are the same
+    assert list(a.keys()) == list(b.keys())
+    # now check the values
+    assert all([(a[p] == b[p]).all() for p in a])
+
+
+def _anticompare_dict_array(a, b):
+    """Helper function to test if two dictionaries of arrays are the
+    not the same.
+    """
+    # first check that keys are the same
+    assert list(a.keys()) == list(b.keys())
+    # now check the values
+    assert not all([(a[p] == b[p]).all() for p in a])
