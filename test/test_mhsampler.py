@@ -157,7 +157,7 @@ def test_seed(model_cls, nprocs):
     """
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED)
-    # now create a nother sampler with the same seed and starting position
+    # now create another sampler with the same seed and starting position
     same_seed = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                                 set_start=False)
     same_seed.start_position = sampler.start_position
