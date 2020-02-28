@@ -54,7 +54,7 @@ def test_std_changes(nprocs):
     # use the test model
     model = Model()
     # create an adaptive normal instance
-    proposal = _setup_proposal(model) 
+    proposal = _setup_proposal(model)
     # check the proposal's parameters option matches the model's
     assert sorted(proposal.parameters) == sorted(model.params)
     # we'll just use the PTSampler default setup from the ptsampler tests
@@ -76,7 +76,7 @@ def test_std_changes(nprocs):
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
             thisprop = subchain.proposal_dist.proposals[tuple(model.params)]
-            current_std[ii, jj, :] = thisprop.std 
+            current_std[ii, jj, :] = thisprop.std
     assert (initial_std != current_std).all()
     # now run past the adaptation duration; since we have gone past it, the
     # standard deviations should no longer change
@@ -86,7 +86,7 @@ def test_std_changes(nprocs):
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
             thisprop = subchain.proposal_dist.proposals[tuple(model.params)]
-            current_std[ii, jj, :] = thisprop.std 
+            current_std[ii, jj, :] = thisprop.std
     assert (previous_std == current_std).all()
 
 
@@ -96,7 +96,7 @@ def test_chains(nprocs):
     proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model) 
+    proposal = _setup_proposal(model)
     _test_chains(Model, nprocs, SWAP_INTERVAL,
                  proposals={tuple(model.params): proposal})
 
@@ -107,7 +107,7 @@ def test_checkpointing(nprocs):
     the adaptive normal proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model) 
+    proposal = _setup_proposal(model)
     _test_checkpointing(Model, nprocs,
                         proposals={tuple(model.params): proposal})
 
@@ -117,7 +117,7 @@ def test_seed(nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model) 
+    proposal = _setup_proposal(model)
     _test_seed(Model, nprocs,
                proposals={tuple(model.params): proposal})
 
@@ -128,6 +128,6 @@ def test_clear_memory(nprocs):
     proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model) 
+    proposal = _setup_proposal(model)
     _test_clear_memory(Model, nprocs, SWAP_INTERVAL,
                        proposals={tuple(model.params): proposal})

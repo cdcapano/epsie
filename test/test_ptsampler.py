@@ -113,7 +113,7 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
     _check_array(acceptance, ['acceptance_ratio', 'accepted'], expected_shape)
     # check that the temperature swaps have the expected shape
     temperature_swaps = sampler.temperature_swaps
-    assert temperature_swaps.shape == (NTEMPS, NCHAINS, ITERINT//swap_interval) 
+    assert temperature_swaps.shape == (NTEMPS, NCHAINS, ITERINT//swap_interval)
     # ditto for the temperature acceptance
     temperature_acceptance = sampler.temperature_acceptance
     assert temperature_acceptance.shape == (NTEMPS-1, NCHAINS,
@@ -163,7 +163,6 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
             for ll in range(NTEMPS):
                 _check_chains_are_different(chain.chains[kk], other.chains[ll],
                                             test_blobs=bool(model.blob_params))
-
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -285,10 +284,10 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
         _check_array(sampler2.blobs, model.blob_params, expected_shape2)
     # check that the swaps have the expected shape
     temperature_swaps = sampler.temperature_swaps
-    assert temperature_swaps.shape == (NTEMPS, NCHAINS, ITERINT//swap_interval) 
+    assert temperature_swaps.shape == (NTEMPS, NCHAINS, ITERINT//swap_interval)
     temperature_swaps = sampler2.temperature_swaps
     assert temperature_swaps.shape == (NTEMPS, NCHAINS,
-                                       (2*ITERINT)//swap_interval) 
+                                       (2*ITERINT)//swap_interval)
     # ditto for the temperature acceptance
     temperature_acceptance = sampler.temperature_acceptance
     assert temperature_acceptance.shape == (NTEMPS-1, NCHAINS,

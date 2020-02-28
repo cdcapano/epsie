@@ -48,14 +48,14 @@ class Model(object):
     def prior_rvs(self, size=None, shape=None):
         return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
                 for p in self.params}
-    
+
     def logprior(self, **kwargs):
         return sum([self.prior_dist[p].logpdf(kwargs[p]) for p in self.params])
-    
+
     def loglikelihood(self, **kwargs):
         return self.likelihood_dist.logpdf([kwargs[p]
                                             for p in self.params]).sum()
-    
+
     def __call__(self, **kwargs):
         logp = self.logprior(**kwargs)
         if logp == -numpy.inf:
@@ -76,7 +76,7 @@ class ModelWithBlobs(Model):
     def loglikelihood(self, **kwargs):
         xlogl, ylogl = self.likelihood_dist.logpdf([kwargs['x'], kwargs['y']])
         return xlogl+ylogl, {'xlogl': xlogl, 'ylogl': ylogl}
-    
+
     def __call__(self, **kwargs):
         logp = self.logprior(**kwargs)
         if logp == -numpy.inf:
