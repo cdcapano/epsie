@@ -75,7 +75,7 @@ class BoundedNormal(Normal):
         each parameter in ``parameters``.
         """
         try:
-            self._boundaries = {p: boundaries[p])
+            self._boundaries = {p: boundaries[p]
                                 for p in self.parameters}
         except KeyError:
             raise ValueError("must provide a boundary for every parameter")

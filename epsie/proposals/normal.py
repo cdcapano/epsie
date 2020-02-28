@@ -93,7 +93,7 @@ class Normal(BaseProposal):
             val = numpy.repeat(val.item(), len(self.parameters))
         # make sure the dimensionality makes sense
         if (val.ndim == 1 and val.size != self.ndim) or (
-            val.shape != (self.ndim, self.ndim)):
+            val.ndim != 1 and val.shape != (self.ndim, self.ndim)):
             raise ValueError("must provide a value for every parameter")
         return val
 
