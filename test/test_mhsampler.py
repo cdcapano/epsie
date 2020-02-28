@@ -1,20 +1,37 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2020  Collin Capano
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Performs unit tests on the MetropolisHastings sampler."""
+
 from __future__ import (print_function, absolute_import)
 
 import itertools
 import multiprocessing
 import pytest
 import numpy
-import randomgen
 import epsie
 from epsie.samplers import MetropolisHastingsSampler
-from _utils import (Model, ModelWithBlobs)
+from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
+                    _anticompare_dict_array)
 
 
 NCHAINS = 8
 ITERINT = 32
 SEED = 11001001
+
 
 def _create_sampler(model, nprocs, nchains=None, seed=None, set_start=True):
     """Creates a sampler."""
@@ -30,39 +47,6 @@ def _create_sampler(model, nprocs, nchains=None, seed=None, set_start=True):
     if set_start:
         sampler.start_position = model.prior_rvs(size=nchains)
     return sampler
-
-
-def _check_array(array, expected_params, expected_shape):
-    """Helper function to test arrays returned by the sampler."""
-    # check that the fields are the same as the model's
-    assert sorted(array.dtype.names) == sorted(expected_params)
-    # check that the shape is what's expected
-    assert array.shape == expected_shape
-    # check that we can turn this into a dictionary
-    adict = epsie.array2dict(array)
-    assert sorted(adict.keys()) == sorted(expected_params)
-    for param, val in adict.items():
-        assert val.shape == expected_shape
-
-
-def _compare_dict_array(a, b):
-    """Helper function to test if two dictionaries of arrays are the
-    same.
-    """
-    # first check that keys are the same
-    assert list(a.keys()) == list(b.keys())
-    # now check the values
-    assert all([(a[p] == b[p]).all() for p in a])
-
-
-def _anticompare_dict_array(a, b):
-    """Helper function to test if two dictionaries of arrays are the
-    not the same.
-    """
-    # first check that keys are the same
-    assert list(a.keys()) == list(b.keys())
-    # now check the values
-    assert not all([(a[p] == b[p]).all() for p in a])
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -85,25 +69,25 @@ def test_chains(model_cls, nprocs):
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED)
     sampler.run(ITERINT)
+    # check that the number of recorded iterations matches how long we
+    # actually ran for
+    assert sampler.niterations == ITERINT
     # check that we get the positions back in the expected format
     positions = sampler.positions
     expected_shape = (NCHAINS, ITERINT)
-    _check_array(positions, model.params,
-                      expected_shape)
+    _check_array(positions, model.params, expected_shape)
     # check that the current position is the same as the last in the array
     _compare_dict_array(epsie.array2dict(positions[..., -1]),
                         sampler.current_positions)
     # check that the stats have the expected fields and shape
     stats = sampler.stats
-    _check_array(stats, ['logl', 'logp'],
-                 expected_shape)
+    _check_array(stats, ['logl', 'logp'], expected_shape)
     # check that the current position is the same as the last in the array
     _compare_dict_array(epsie.array2dict(stats[..., -1]),
                         sampler.current_stats)
     # check that the acceptance ratios have the expected fields and shape
     acceptance = sampler.acceptance
-    _check_array(acceptance, ['acceptance_ratio', 'accepted'],
-                 expected_shape)
+    _check_array(acceptance, ['acceptance_ratio', 'accepted'], expected_shape)
     # check the individual chains
     for ii, chain in enumerate(sampler.chains):
         # check that the length matches the number of iterations
@@ -236,6 +220,24 @@ def test_clear_memory(model_cls, nprocs):
     # now run both for a few more iterations
     sampler.run(ITERINT)
     sampler2.run(ITERINT)
+    # check that the number of recorded iterations matches how long we
+    # actually ran for
+    assert sampler.niterations == 2*ITERINT
+    assert sampler2.niterations == 2*ITERINT
+    # but that the lengths of the stored arrays differ
+    expected_shape = (NCHAINS, ITERINT)
+    expected_shape2 = (NCHAINS, 2*ITERINT)
+    _check_array(sampler.positions, model.params, expected_shape)
+    _check_array(sampler2.positions, model.params, expected_shape2)
+    _check_array(sampler.stats, ['logl', 'logp'], expected_shape)
+    _check_array(sampler2.stats, ['logl', 'logp'], expected_shape2)
+    _check_array(sampler.acceptance, ['acceptance_ratio', 'accepted'],
+                 expected_shape)
+    _check_array(sampler2.acceptance, ['acceptance_ratio', 'accepted'],
+                 expected_shape2)
+    if model.blob_params:
+        _check_array(sampler.blobs, model.blob_params, expected_shape)
+        _check_array(sampler2.blobs, model.blob_params, expected_shape2)
     # they should be in the same place
     _compare_dict_array(sampler.current_positions, sampler2.current_positions)
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
