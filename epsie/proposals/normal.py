@@ -92,8 +92,8 @@ class Normal(BaseProposal):
         if val.ndim < 1 or val.size == 1:
             val = numpy.repeat(val.item(), len(self.parameters))
         # make sure the dimensionality makes sense
-        if (val.ndim == 1 and val.size != self.ndim) or (
-            val.ndim != 1 and val.shape != (self.ndim, self.ndim)):
+        if ((val.ndim == 1 and val.size != self.ndim) or (
+             val.ndim != 1 and val.shape != (self.ndim, self.ndim))):
             raise ValueError("must provide a value for every parameter")
         return val
 
@@ -229,7 +229,7 @@ class AdaptiveSupport(object):
                          adaptation_decay=None, start_iteration=1,
                          target_rate=0.234,
                          initial_std=None):
-        """Sets up the adaptation parameters.
+        r"""Sets up the adaptation parameters.
 
         Parameters
         ----------

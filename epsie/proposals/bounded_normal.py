@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .base import BaseProposal
 from .normal import (Normal)
 
 
