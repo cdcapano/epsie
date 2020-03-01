@@ -174,9 +174,10 @@ class Normal(BaseProposal):
         means = [givenx[p] for p in self.parameters]
         xi = [xi[p] for p in self.parameters]
         if self.isdiagonal:
-            logp = stats.normal.logpdf(xi, loc=means, scale=self._std)
+            logp = stats.norm.logpdf(xi, loc=means, scale=self._std).sum()
         else:
-            logp = stats.multivariate_normal(xi, mean=means, cov=self._cov)
+            logp = stats.multivariate_normal.logpdf(xi, mean=means,
+                                                    cov=self._cov)
         return logp
 
 

@@ -196,14 +196,19 @@ class BaseProposal(object):
         ----------
         xi : dict
             Dictionary mapping parameter names to values to evaluate.
-        givenx : dict, optional
+        givenx : dict
             Dictionary mapping parameter names to values of the point from
             which ``xi`` is evaluated.
+
+        Returns
+        -------
+        float :
+            The log pdf of jumping from ``givenx`` to ``xi``.
         """
         pass
 
     def pdf(self, xi, givenx):
-        """The pdf of proposal at the given values.
+        """The pdf of the proposal at the given values.
 
         This just expoentiates ``logpdf``.
 
@@ -214,6 +219,11 @@ class BaseProposal(object):
         givenx : dict, optional
             Dictionary mapping parameter names to values of the point from
             which ``xi`` is evaluated.
+
+        Returns
+        -------
+        float :
+            The pdf of jumping from ``givenx`` to ``xi``.
         """
         return numpy.exp(self.logpdf(xi, givenx))
 
