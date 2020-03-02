@@ -19,9 +19,11 @@ from __future__ import absolute_import
 from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal)
+from .bounded_normal import BoundedNormal
 
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
     AdaptiveNormal.name: AdaptiveNormal,
+    BoundedNormal.name: BoundedNormal,
 }
