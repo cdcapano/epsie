@@ -125,6 +125,6 @@ class BoundedNormal(Normal):
         mu = numpy.array([givenx[p] for p in self.parameters])
         xi = numpy.array([xi[p] for p in self.parameters])
         scale = 1./self._std
-        return stats.truncnorm.logpdf((xi-mu)*scale,
-                                      (self._lowerbnd-mu)*scale,
-                                      (self._upperbnd-mu)*scale)
+        return stats.truncnorm.logpdf(xi-mu, self._lowerbnd-mu,
+                                      self._upperbnd-mu,
+                                      scale=self._std).sum()
