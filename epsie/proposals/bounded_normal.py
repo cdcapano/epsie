@@ -42,10 +42,9 @@ class BoundedNormal(Normal):
     cov : array, optional
         The covariance matrix of the parameters. May provide either a single
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
-        where ``ndim`` = the number of parameters given. If a single float or
-        a 1D array is given, will use a diagonal covariance matrix (i.e., all
-        parameters are independent of each other). Default (None) is to use
-        unit variance for all parameters.
+        where ``ndim`` = the number of parameters given. If 2D array is given,
+        the off-diagonal terms must be zero. If not provided, will use
+        1/10 of each parameter's boundary width for the standard deviation.
     """
     name = 'bounded_normal'
     symmetric = False
@@ -62,6 +61,9 @@ class BoundedNormal(Normal):
         self._lowerbnd = None
         self._upperbnd = None
         self.boundaries = boundaries
+        if cov is None:
+            # reset the standard deviation to 1/10 the boundary widths
+            self.std = abs(self._upperbnd - self._lowerbnd)/10.
 
     @property
     def boundaries(self):
@@ -124,7 +126,6 @@ class BoundedNormal(Normal):
     def logpdf(self, xi, givenx):
         mu = numpy.array([givenx[p] for p in self.parameters])
         xi = numpy.array([xi[p] for p in self.parameters])
-        scale = 1./self._std
-        return stats.truncnorm.logpdf(xi-mu, self._lowerbnd-mu,
-                                      self._upperbnd-mu,
-                                      scale=self._std).sum()
+        a = (self._lowerbnd - mu)/self._std
+        b = (self._upperbnd - mu)/self._std
+        return stats.truncnorm.logpdf(xi, a, b, loc=mu, scale=self._std).sum()
