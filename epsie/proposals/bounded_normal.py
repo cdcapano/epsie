@@ -43,8 +43,7 @@ class BoundedNormal(Normal):
         The covariance matrix of the parameters. May provide either a single
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
-        the off-diagonal terms must be zero. If not provided, will use
-        1/10 of each parameter's boundary width for the standard deviation.
+        the off-diagonal terms must be zero. Default is 1 for all parameters.
     """
     name = 'bounded_normal'
     symmetric = False
@@ -61,9 +60,6 @@ class BoundedNormal(Normal):
         self._lowerbnd = None
         self._upperbnd = None
         self.boundaries = boundaries
-        if cov is None:
-            # reset the standard deviation to 1/10 the boundary widths
-            self.std = abs(self._upperbnd - self._lowerbnd)/10.
 
     @property
     def boundaries(self):
