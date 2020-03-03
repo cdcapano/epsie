@@ -16,7 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the Normal proposal."""
 
-from __future__ import (print_function, absolute_import, division)
+from __future__ import (absolute_import, division)
 
 import itertools
 import pytest
@@ -24,7 +24,6 @@ import numpy
 from scipy import stats
 
 from epsie.proposals import Normal
-from _utils import Model
 
 
 SEED = 8341
