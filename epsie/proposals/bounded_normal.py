@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal)
+from .normal import (Normal, AdaptiveSupport)
 
 
 class BoundedNormal(Normal):
@@ -72,7 +72,7 @@ class BoundedNormal(Normal):
         each parameter in ``parameters``.
         """
         try:
-            self._boundaries = {p: boundaries[p]
+            self._boundaries = {p: Boundaries(boundaries[p])
                                 for p in self.parameters}
         except KeyError:
             raise ValueError("must provide a boundary for every parameter")
@@ -125,3 +125,73 @@ class BoundedNormal(Normal):
         a = (self._lowerbnd - mu)/self._std
         b = (self._upperbnd - mu)/self._std
         return stats.truncnorm.logpdf(xi, a, b, loc=mu, scale=self._std).sum()
+
+
+class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
+    r"""A bounded normal proposoal with adaptive variance.
+
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. The boundaries will be used for the
+        prior widths in the adaptation algorithm.
+    adaptation_duration : int
+        The number of iterations over which to apply the adaptation. No more
+        adaptation will be done once a chain exceeds this value.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_bounded_ormal'
+    symmetric = False
+
+    def __init__(self, parameters, boundaries, adaptation_duration,
+                 **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveBoundedNormal, self).__init__(parameters,
+                                                    boundaries)
+        # set up the adaptation parameters
+        self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
+
+
+class Boundaries(tuple):
+    """Support class for bounded proposals.
+
+    This is basically a length-2 tuple with an abs function. Also has lower
+    and upper attributes to get the first and second item.
+
+    Example
+    --------
+    >>> b = Boundaries((-1, 1))
+    >>> b[0], b[1]
+    (-1, 1)
+    >>> b.lower, b.upper
+    (-1, 1)
+    >>> abs(b)
+    2
+    """
+    def __new__(cls, args):
+        self = tuple.__new__(cls, args)
+        if len(args) != 2:
+            raise ValueError("must provide only a lower and upper bound")
+        return self
+
+    def __abs__(self):
+        """Returns the absolute value of the difference in the boundaries."""
+        return abs(self[1] - self[0])
+
+    @property
+    def lower(self):
+        """The lower bound."""
+        return self[0]
+
+    @property
+    def upper(self):
+        """The upper bound."""
+        return self[1]
