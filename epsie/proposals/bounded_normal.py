@@ -148,7 +148,7 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_bounded_ormal'
+    name = 'adaptive_bounded_normal'
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
