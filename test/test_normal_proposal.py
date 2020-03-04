@@ -34,11 +34,10 @@ numpy.random.seed(NUMPY_SEED)
 
 
 @pytest.mark.parametrize("params,cov",
-                          [(['x'], 1),
-                           (['x', 'y'], 3.14),
-                           (['x', 'y'], [1, 2]),
-                           (['foo', 'bar'], [[2., 1.414], [1.414, 2.]])]
-                           )
+                         [(['x'], 1),
+                          (['x', 'y'], 3.14),
+                          (['x', 'y'], [1, 2]),
+                          (['foo', 'bar'], [[2., 1.414], [1.414, 2.]])])
 def test_logpdf(params, cov):
     """Tests that the logpdf function returns expected values at various test
     points.

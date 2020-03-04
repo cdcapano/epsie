@@ -58,7 +58,7 @@ def _setup_proposal(name, parameters, boundaries, cov=None,
                           ('bounded_normal', 4),
                           ('adaptive_bounded_normal', None)])
 @pytest.mark.parametrize('xmin,xmax',
-                          [(-1, 1), (1.2, 2.8), (-42, -23)])
+                         [(-1, 1), (1.2, 2.8), (-42, -23)])
 def test_jumps_in_bounds(proposal_name, cov, xmin, xmax):
     """Tests that all jumps are in the given bounds."""
     proposal = _setup_proposal(proposal_name, ['x'], {'x': (xmin, xmax)}, cov)
@@ -68,7 +68,7 @@ def test_jumps_in_bounds(proposal_name, cov, xmin, xmax):
     njumps = 1000
     jumps = numpy.zeros((len(test_points), njumps))
     for ii, xi in enumerate(test_points):
-        jumps[ii,:] = numpy.array([proposal.jump({'x': xi})['x']
+        jumps[ii, :] = numpy.array([proposal.jump({'x': xi})['x']
                                    for _ in range(njumps)])
     assert ((jumps >= xmin) & (jumps <= xmax)).all()
 
