@@ -5,9 +5,9 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install .
-  - pip install pytest pytest-cov h5py
-  - pip install coveralls
+  - pip install pytest h5py coveralls
 script:
-  - pytest --cov=epsie test
+  - coverage run $(which pytest) test
 after_success:
+  - coverage report
   - coveralls
