@@ -59,7 +59,7 @@ class MetropolisHastingsSampler(BaseSampler):
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
         self.seed = seed
-        self.set_map(pool)
+        self.pool = pool
         self.create_chains(nchains)
 
     def create_chains(self, nchains):

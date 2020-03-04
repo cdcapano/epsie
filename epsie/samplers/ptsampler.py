@@ -69,7 +69,7 @@ class ParallelTemperedSampler(BaseSampler):
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
         self.seed = seed
-        self.set_map(pool)
+        self.pool = pool
         if isinstance(betas, (float, int)):
             # only single temperature; turn into list so things below won't
             # break
