@@ -110,6 +110,10 @@ def test_chains(model_cls, nprocs):
     for ii, jj in combos:
         _check_chains_are_different(sampler.chains[ii], sampler.chains[jj],
                                     test_blobs=bool(model.blob_params))
+    # terminate the multiprocessing pool so we don't end up with too many
+    # open processes
+    if sampler.pool is not None:
+        sampler.pool.close()
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -147,6 +151,11 @@ def test_checkpointing(model_cls, nprocs):
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
+    # terminate the multiprocessing pools so we don't end up with too many
+    # open processes
+    if sampler.pool is not None:
+        sampler.pool.close()
+        sampler2.pool.close()
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -183,7 +192,10 @@ def test_seed(model_cls, nprocs):
     if model.blob_params:
         _anticompare_dict_array(sampler.current_blobs,
                                 diff_seed.current_blobs)
-
+    if sampler.pool is not None:
+        sampler.pool.close()
+        same_seed.pool.close()
+        diff_seed.pool.close()
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -227,3 +239,6 @@ def test_clear_memory(model_cls, nprocs):
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
+    if sampler.pool is not None:
+        sampler.pool.close()
+        sampler2.pool.close()

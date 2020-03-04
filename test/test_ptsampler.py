@@ -163,6 +163,8 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
             for ll in range(NTEMPS):
                 _check_chains_are_different(chain.chains[kk], other.chains[ll],
                                             test_blobs=bool(model.blob_params))
+    if sampler.pool is not None:
+        sampler.pool.close()
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -201,6 +203,9 @@ def test_checkpointing(model_cls, nprocs, proposals=None):
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
+    if sampler.pool is not None:
+        sampler.pool.close()
+        sampler2.pool.close()
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -240,6 +245,10 @@ def test_seed(model_cls, nprocs, proposals=None):
     if model.blob_params:
         _anticompare_dict_array(sampler.current_blobs,
                                 diff_seed.current_blobs)
+    if sampler.pool is not None:
+        sampler.pool.close()
+        same_seed.pool.close()
+        diff_seed.pool.close()
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -300,3 +309,6 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
+    if sampler.pool is not None:
+        sampler.pool.close()
+        sampler2.pool.close()
