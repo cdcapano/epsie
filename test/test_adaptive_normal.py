@@ -47,14 +47,16 @@ def _setup_proposal(model, adaptation_duration=None):
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_std_changes(nprocs):
+def test_std_changes(nprocs, proposal=None, model=None):
     """Tests that the standard deviation of the proposal changes after a few
     jumps.
     """
     # use the test model
-    model = Model()
-    # create an adaptive normal instance
-    proposal = _setup_proposal(model)
+    if model is None:
+        model = Model()
+    if proposal is None:
+        # create an adaptive normal instance
+        proposal = _setup_proposal(model)
     # check the proposal's parameters option matches the model's
     assert sorted(proposal.parameters) == sorted(model.params)
     # we'll just use the PTSampler default setup from the ptsampler tests
