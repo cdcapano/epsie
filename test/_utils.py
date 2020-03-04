@@ -18,6 +18,7 @@
 import numpy
 from scipy import stats
 import epsie
+from epsie.proposals import Boundaries
 
 
 class Model(object):
@@ -36,14 +37,12 @@ class Model(object):
         self.std = numpy.array([1., 2.])
         self.likelihood_dist = stats.norm(loc=self.mean, scale=self.std)
         # we'll just use a uniform prior
-        self.prior_bounds = {'x': (-20., 20.),
-                             'y': (-40., 40.)}
-        xmin = self.prior_bounds['x'][0]
-        dx = self.prior_bounds['x'][1] - xmin
-        ymin = self.prior_bounds['y'][0]
-        dy = self.prior_bounds['y'][1] - ymin
-        self.prior_dist = {'x': stats.uniform(xmin, dx),
-                           'y': stats.uniform(ymin, dy)}
+        xbnds = Boundaries((-20., 20.))
+        ybnds = Boundaries((-40., 40.))
+        self.prior_bounds = {'x': xbnds,
+                             'y': ybnds}
+        self.prior_dist = {'x': stats.uniform(xbnds.lower, abs(xbnds)),
+                           'y': stats.uniform(ybnds.lower, abs(ybnds))}
 
     def prior_rvs(self, size=None, shape=None):
         return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
