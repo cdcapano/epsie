@@ -90,6 +90,9 @@ def test_std_changes(nprocs, proposal=None, model=None):
             thisprop = subchain.proposal_dist.proposals[tuple(model.params)]
             current_std[ii, jj, :] = thisprop.std
     assert (previous_std == current_std).all()
+    # close the multiprocessing pool
+    if sampler.pool is not None:
+        sampler.pool.close()
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])

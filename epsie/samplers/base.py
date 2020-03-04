@@ -35,6 +35,7 @@ class BaseSampler(object):
     _model = None
     _chains = None
     _seed = None
+    _pool = None
     _map = None
 
     @property
@@ -119,24 +120,19 @@ class BaseSampler(object):
         self._seed = seed
 
     @property
-    def map(self):
-        """The function used for parallelizing chain evolution."""
-        return self._map
+    def pool(self):
+        """The pool being used for parallelization."""
+        return self._pool
 
-    def set_map(self, pool=None):
-        """Sets the map function using the given pool.
-
-        Parameters
-        ----------
-        pool : Pool object, optional
-            The pool of processes to use for parallelization. Must have a
-            map function. If none provided, will use the builtin ``map`` (i.e.,
-            no parallelization will be used).
-        """
+    @pool.setter
+    def pool(self, pool):
+        self._pool = pool
+        # set the map function
         if pool is None:
-            self._map = map
+            map_func = map
         else:
-            self._map = pool.map
+            map_func = pool.map
+        self._map = map_func
 
     @property
     def nchains(self):
@@ -238,7 +234,7 @@ class BaseSampler(object):
         # construct arguments for passing to the pool
         args = zip([niterations]*len(self.chains), self.chains)
         # pylint: disable=locally-disabled, not-callable
-        self.chains = list(self.map(_evolve_chain, args))
+        self.chains = list(self._map(_evolve_chain, args))
 
     def clear(self):
         """Clears all of the chains."""
