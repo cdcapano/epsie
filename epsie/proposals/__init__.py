@@ -19,7 +19,8 @@ from __future__ import absolute_import
 from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal)
-from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal)
+# we'll also promote the Boundaries class to the top-level
+from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries)
 
 proposals = {
     JointProposal.name: JointProposal,
