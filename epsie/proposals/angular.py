@@ -54,44 +54,46 @@ class Angular(Normal):
 
     def __init__(self, parameters, cov=None):
         super(Angular, self).__init__(parameters, cov=cov)
-        # the boundaries; we'll do things in terms of factors of pi
-        self._lower = 0.
-        self._mid = 1.
-        self._upper = 2.
+        # _halfwidth is half the width of the interval, in factors of pi
+        self._halfwidth = 1.
         self._factor = numpy.pi
         # for speed up
         self._invfactor = 1./numpy.pi
+        self._logfactor = numpy.log(self._factor)
 
     def _apply_cyclic(self, value):
         r"""Applies cyclic boundaries to the given value.
 
-        This causes the value to lie within the `_lower` and `_upper` (default
-        0 and 2). For example, if the given value is 4, returned value will be
-        0; given -3.5, returns 1.5.
+        This causes the value to lie within 0 and ``2*_halfwidth``. With the
+        default ``_halfwidth`` = 1, this means the value will be within 0
+        and 2.
 
         Parameters
         ----------
         value : float
             The value to apply the boundaries to.
+        offset : float, optional
+            Offset to apply. If none provided, will use the ``_offset``
+            attribute.
 
         Returns
         -------
         float :
             The value remapped to be within the boundaries.
         """
-        return (value - self._lower) %(self._upper - self._lower)
+        return value % (2*self._halfwidth)
 
     def jump(self, fromx):
         # we'll do something similar as the bounded normal here: draw points
-        # using a bounded normal centered on pi with bounds at 0 and 2pi.
+        # using a bounded normal centered on 0 with bounds at -pi and pi.
         # we'll just use rejection sampling for this
         to_x = {}
         for ii, p in enumerate(self.parameters):
             # remove the common factor from the std
             std = self._std[ii] * self._invfactor
-            newpt = self.random_generator.normal(self._mid, std)
-            while newpt < self._lower or newpt >= self._upper:
-                newpt = self.random_generator.normal(self._mid, std)
+            newpt = self.random_generator.normal(scale=std)
+            while abs(newpt) > self._halfwidth:
+                newpt = self.random_generator.normal(scale=std)
             # add to fromx, then put back within bounds
             newpt += fromx[p] * self._invfactor
             newpt = self._apply_cyclic(newpt)
@@ -100,22 +102,26 @@ class Angular(Normal):
         return to_x
 
     def logpdf(self, xi, givenx):
-        # remove the common factor from the std
-        std = self._std * self._invfactor
-        # we will use a truncated normal centered on zero to evaluate
-        a = (self._lower - self._mid)/std
-        b = (self._upper - self._mid)/std
-        # convert to arrays and remove factor of pi
+        # convert to arrays
         xi = numpy.array([xi[p]*self._invfactor for p in self.parameters])
         givenx = numpy.array([givenx[p]*self._invfactor
-                              for p in self.parameters])
-        # apply cyclic boundaries
-        xi = self._apply_cyclic(xi)
+                              for p in self.parameters]) 
+        # make sure givenx is in bounds and figure out how far it is from the
+        # middle of the interval
         givenx = self._apply_cyclic(givenx)
-        # center on the given point
-        xi -= givenx
-        # now use a truncated normal to evaluate
-        return stats.truncnorm.logpdf(xi, a, b, scale=std).sum()
+        dx = self._halfwidth - givenx
+        # apply cyclic boundaries to xi
+        xi = self._apply_cyclic(xi)
+        # shift xi and apply cyclic boundaries again
+        xi = self._apply_cyclic(xi + dx)
+        # now evaluate using a truncated normal centered on the middle of
+        # the interval
+        # remove the common factor from the std
+        std = self._std * self._invfactor
+        b = self._halfwidth/std
+        a = -b
+        return stats.truncnorm.logpdf(xi, a, b, loc=self._halfwidth,
+                                      scale=std).sum() - self._logfactor
 
 
 class AdaptiveAngular(AdaptiveSupport, Angular):
