@@ -23,7 +23,7 @@ import pytest
 import numpy
 
 from epsie.proposals import AdaptiveNormal
-from _utils import Model
+from _utils import (Model, _get_params)
 
 from test_ptsampler import _create_sampler
 from test_ptsampler import test_chains as _test_chains
@@ -65,6 +65,11 @@ def test_std_changes(nprocs, proposal=None, model=None):
     # we'll just use the PTSampler default setup from the ptsampler tests
     sampler = _create_sampler(model, nprocs,
                               proposals={tuple(model.params): proposal})
+    # check that the number of parameters that we have proposals for
+    # matches the number of model parameters
+    samp_props = sampler.chains[0].chains[0].proposal_dist.proposals
+    prop_params = _get_params(samp_props.keys())
+    assert len(prop_params) == len(model.params)
     # check that all temperatures and all chains have the same initial
     # standard deviation as the proposal
     initial_std = numpy.zeros((sampler.nchains, sampler.ntemps,
