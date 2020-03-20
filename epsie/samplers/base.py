@@ -79,7 +79,9 @@ class BaseSampler(object):
             proposals = []
         else:
             # make a copy of the so we don't modify what was given
-            proposals = proposals.copy()
+            # Py3XX: uncomment this and drop the next line when drop 2.7
+            #proposals = proposals.copy()
+            proposals = [p for p in proposals]
         # create default proposal instances for the other parameters
         if default_proposal is None:
             default_proposal = Normal
