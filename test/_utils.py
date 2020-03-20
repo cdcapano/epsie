@@ -15,6 +15,7 @@
 """Utilities for carrying out tests."""
 
 
+import six
 import numpy
 from scipy import stats
 import epsie
@@ -24,25 +25,26 @@ from epsie.proposals import Boundaries
 class Model(object):
     """A simple model for testing the samplers.
 
-    The likelihood function is a 2D gaussian with parameters "x" and "y", which
-    have mean 2, 5 and standard deviation 1 and 2, respectively. The prior is
-    uniform in x, between -20 and 20, and uniform in y, between -40 and 40.
+    The likelihood function is a 2D gaussian with parameters "x0" and "x1",
+    which have mean 2, 5 and standard deviation 1 and 2, respectively. The
+    prior is uniform in x0, between -20 and 20, and uniform in x1, between -40
+    and 40.
     """
     blob_params = None
 
     def __init__(self):
         # we'll use a 2D Gaussian for the likelihood distribution
-        self.params = ['x', 'y']
+        self.params = ['x0', 'x1']
         self.mean = numpy.array([2., 5.])
         self.std = numpy.array([1., 2.])
         self.likelihood_dist = stats.norm(loc=self.mean, scale=self.std)
         # we'll just use a uniform prior
         xbnds = Boundaries((-20., 20.))
         ybnds = Boundaries((-40., 40.))
-        self.prior_bounds = {'x': xbnds,
-                             'y': ybnds}
-        self.prior_dist = {'x': stats.uniform(xbnds.lower, abs(xbnds)),
-                           'y': stats.uniform(ybnds.lower, abs(ybnds))}
+        self.prior_bounds = {'x0': xbnds,
+                             'x1': ybnds}
+        self.prior_dist = {'x0': stats.uniform(xbnds.lower, abs(xbnds)),
+                           'x1': stats.uniform(ybnds.lower, abs(ybnds))}
 
     def prior_rvs(self, size=None, shape=None):
         return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
@@ -73,7 +75,8 @@ class ModelWithBlobs(Model):
     blob_params = ['xlogl', 'ylogl']
 
     def loglikelihood(self, **kwargs):
-        xlogl, ylogl = self.likelihood_dist.logpdf([kwargs['x'], kwargs['y']])
+        xlogl, ylogl = self.likelihood_dist.logpdf([kwargs['x0'],
+                                                    kwargs['x1']])
         return xlogl+ylogl, {'xlogl': xlogl, 'ylogl': ylogl}
 
     def __call__(self, **kwargs):
@@ -140,3 +143,19 @@ def _check_chains_are_different(chain, other, test_blobs,
         # different in this case
         _anticompare_dict_array(chain.current_blob,
                                 other.current_blob)
+
+def _get_params(keys):
+    """Gets a flattened array of strings from the given list/tuple/array.
+
+    The given list may either contain strings or list of strings. There is
+    a way to do this using itertools.chain, which is what is used in various
+    places in the source code. This function deliberately does not use
+    itertools, as a check on the implementation in the code.
+    """
+    params = []
+    for p in keys:
+        if isinstance(p, six.string_types):
+            params.append(p)
+        else:
+            params.extend(get_params(p))
+    return params
