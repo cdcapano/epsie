@@ -19,6 +19,7 @@ from __future__ import absolute_import
 
 import itertools
 from abc import (ABCMeta, abstractmethod)
+import six
 from six import add_metaclass
 import numpy
 
@@ -82,8 +83,9 @@ class BaseSampler(object):
             default_proposal = Normal
         if default_proposal_args is None:
             default_proposal_args = {}
-        missing_props = tuple(set(self.parameters)
-                              - set(itertools.chain(*proposals.keys())))
+        given_params = set(itertools.chain(
+            *[prop.parameters for prop in proposals.values()]))
+        missing_props = tuple(set(self.parameters) - given_params)
         if missing_props:
             proposals[missing_props] = default_proposal(
                 missing_props, **default_proposal_args)
