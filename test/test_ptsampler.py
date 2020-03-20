@@ -90,6 +90,8 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
     if proposals is not None:
         # check that the proposals used by the sampler match what we gave it
         for params, prop in proposals.items():
+            if not isinstance(params, tuple):
+                params = (params,)
             assert samp_props[params].name == prop.name
     sampler.run(ITERINT)
     # check that the number of recorded iterations matches how long we
