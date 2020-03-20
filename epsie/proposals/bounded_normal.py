@@ -87,7 +87,11 @@ class BoundedNormal(Normal):
         testpt = testpt.copy()
         isin = None
         for p in self.parameters:
-            val = testpt.pop(p)
+            try:
+                val = testpt.pop(p)
+            except KeyError:
+                # we'll allow for only test a subset of the parameters
+                continue
             bnds = self.boundaries[p]
             if isinstance(val, numpy.ndarray):
                 thisisin = ((val >= bnds[0]) & (val <= bnds[1]))
