@@ -153,8 +153,7 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveAngular, self).__init__(parameters)
         # all parameters have the same (cyclic) boundaries
-        boundaries = {p: Boundaries((self._lower*self._factor,
-                                     self._upper*self._factor))
+        boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
         # set up the adaptation parameters
         self.setup_adaptation(boundaries, adaptation_duration, **kwargs)
