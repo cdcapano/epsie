@@ -15,7 +15,6 @@
 """Utilities for carrying out tests."""
 
 
-import six
 import numpy
 from scipy import stats
 import epsie
