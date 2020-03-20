@@ -78,6 +78,9 @@ class BaseSampler(object):
         """
         if proposals is None:
             proposals = {}
+        else:
+            # make a copy of the dictionary so we don't modify what was given
+            proposals = proposals.copy()
         # create default proposal instances for the other parameters
         if default_proposal is None:
             default_proposal = Normal
