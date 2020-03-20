@@ -46,12 +46,12 @@ class JointProposal(BaseProposal):
         bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         all_params = list(itertools.chain(*[prop.parameters
                                             for prop in proposals]))
-        self.parameters = all_params
         # check that we don't have multiple proposals for the same parameter
-        repeated  = [p for p in self.parameters if all_params.count(p) > 1]
+        repeated  = [p for p in set(all_params) if all_params.count(p) > 1]
         if repeated:
             raise ValueError("multiple proposals provided for parameter(s) {}"
                              .format(', '.join(repeated)))
+        self.parameters = all_params
         # the joint proposal is symmetric only if all of the constitutent
         # proposals are also
         self._symmetric = all(prop.symmetric for prop in proposals)
@@ -85,7 +85,8 @@ class JointProposal(BaseProposal):
     @property
     def state(self):
         # get all of the proposals state
-        state = {prop.parameters: prop.state for prop in self.proposals}
+        state = {frozenset(prop.parameters): prop.state
+                 for prop in self.proposals}
         # add the global random state
         state['random_state'] = self.random_state
         return state
@@ -93,6 +94,6 @@ class JointProposal(BaseProposal):
     def set_state(self, state):
         # set each proposals' state
         for prop in self.proposals:
-            prop.set_state(state[prop.parameters])
+            prop.set_state(state[frozenset(prop.parameters)])
         # set the state of the random number generator
         self.random_state = state['random_state']

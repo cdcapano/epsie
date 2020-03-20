@@ -34,7 +34,7 @@ class Model(object):
 
     def __init__(self):
         # we'll use a 2D Gaussian for the likelihood distribution
-        self.params = frozenset(['x0', 'x1'])
+        self.params = ['x0', 'x1']
         self.mean = numpy.array([2., 5.])
         self.std = numpy.array([1., 2.])
         self.likelihood_dist = stats.norm(loc=self.mean, scale=self.std)

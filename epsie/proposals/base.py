@@ -124,7 +124,7 @@ class BaseProposal(object):
     def parameters(self, parameters):
         """Sets the parameters.
 
-        The parameters are stored as a frozen set.
+        The parameters are stored as a tuple.
 
         Parameters
         ----------
@@ -134,7 +134,7 @@ class BaseProposal(object):
         """
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
-        self._parameters = frozenset(parameters)
+        self._parameters = tuple(parameters)
 
     # Py3XX: uncomment the next two lines
     # @property

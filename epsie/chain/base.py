@@ -56,17 +56,16 @@ class BaseChain(object):
 
     @property
     def parameters(self):
-        """The sampled parameters.
-
-        The parameters are stored as a frozenset.
+        """The sampled parameters, as a tuple.
         """
         return self._parameters
 
     @parameters.setter
     def parameters(self, parameters):
+        """Stores the parameters as a tuple."""
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
-        self._parameters = frozenset(parameters)
+        self._parameters = tuple(parameters)
 
     def __len__(self):
         return self.iteration - self.lastclear

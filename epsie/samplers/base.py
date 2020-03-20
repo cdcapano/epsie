@@ -41,14 +41,14 @@ class BaseSampler(object):
 
     @property
     def parameters(self):
-        """The sampled parameters as a frozenset."""
+        """The sampled parameters as a tuple."""
         return self._parameters
 
     @parameters.setter
     def parameters(self, parameters):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
-        self._parameters = frozenset(parameters)
+        self._parameters = tuple(parameters)
 
     @property
     def proposals(self):
@@ -86,10 +86,10 @@ class BaseSampler(object):
         if default_proposal_args is None:
             default_proposal_args = {}
         if proposals:
-            given_params = frozenset.union(*[p.parameters for p in proposals])
+            given_params = set.union(*[set(p.parameters) for p in proposals])
         else:
-            given_params = frozenset()
-        missing_params = self.parameters - given_params
+            given_params = set()
+        missing_params = set(self.parameters) - given_params
         if missing_params:
             proposals.append(default_proposal(missing_params,
                                               **default_proposal_args))

@@ -71,10 +71,9 @@ def test_chains(model_cls, nprocs):
     # check that the number of parameters that we have proposals for
     # matches the number of model parameters
     joint_dist = sampler.chains[0].proposal_dist
-    prop_params = frozenset.union(*[p.parameters
-                                    for p in joint_dist.proposals])
-    assert joint_dist.parameters == prop_params
-    assert prop_params == model.params
+    prop_params = set.union(*[set(p.parameters) for p in joint_dist.proposals])
+    assert set(joint_dist.parameters) == prop_params
+    assert prop_params == set(model.params)
     # run for some iterations
     sampler.run(ITERINT)
     # check that the number of recorded iterations matches how long we
