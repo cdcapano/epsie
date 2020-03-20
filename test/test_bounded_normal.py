@@ -92,9 +92,13 @@ def test_chains(proposal_name, nprocs):
     proposal.
     """
     model = Model()
-    proposal = _setup_proposal(proposal_name, model.params, model.prior_bounds)
+    # we'll just the bounded normal proposal for one of the parameters,
+    # to test that using mixed proposals works
+    param = model.params[0]
+    proposal = _setup_proposal(proposal_name, [param],
+                               {param: model.prior_bounds[param]})
     _test_chains(Model, nprocs, SWAP_INTERVAL,
-                 proposals={tuple(model.params): proposal})
+                 proposals={param: proposal})
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
