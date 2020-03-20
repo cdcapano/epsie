@@ -47,7 +47,7 @@ class JointProposal(BaseProposal):
         all_params = list(itertools.chain(*[prop.parameters
                                             for prop in proposals]))
         # check that we don't have multiple proposals for the same parameter
-        repeated  = [p for p in set(all_params) if all_params.count(p) > 1]
+        repeated = [p for p in set(all_params) if all_params.count(p) > 1]
         if repeated:
             raise ValueError("multiple proposals provided for parameter(s) {}"
                              .format(', '.join(repeated)))
