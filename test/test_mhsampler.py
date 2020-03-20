@@ -25,7 +25,8 @@ import numpy
 import epsie
 from epsie.samplers import MetropolisHastingsSampler
 from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
-                    _anticompare_dict_array, _check_chains_are_different)
+                    _anticompare_dict_array, _check_chains_are_different,
+                    _get_params)
 
 
 NCHAINS = 8
@@ -68,6 +69,11 @@ def test_chains(model_cls, nprocs):
     """
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED)
+    # check that the number of parameters that we have proposals for
+    # matches the number of model parameters
+    samp_props = sampler.chains[0].proposal_dist.proposals
+    prop_params = _get_params(samp_props.keys())
+    assert len(prop_params) == len(model.params)
     sampler.run(ITERINT)
     # check that the number of recorded iterations matches how long we
     # actually ran for

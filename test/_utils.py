@@ -157,5 +157,5 @@ def _get_params(keys):
         if isinstance(p, six.string_types):
             params.append(p)
         else:
-            params.extend(get_params(p))
+            params.extend(_get_params(p))
     return params

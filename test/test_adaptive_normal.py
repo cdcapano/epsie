@@ -37,12 +37,15 @@ ADAPTATION_DURATION = ITERINT//2
 SWAP_INTERVAL = 1
 
 
-def _setup_proposal(model, adaptation_duration=None):
+def _setup_proposal(model, params=None, adaptation_duration=None):
+    if params is None:
+        params = model.params
     if adaptation_duration is None:
         adaptation_duration = ADAPTATION_DURATION
     prior_widths = {p: abs(bnds[1] - bnds[0])
-                    for p, bnds in model.prior_bounds.items()}
-    return AdaptiveNormal(model.params, prior_widths,
+                    for p, bnds in model.prior_bounds.items()
+                    if p in params}
+    return AdaptiveNormal(params, prior_widths,
                           adaptation_duration=adaptation_duration)
 
 
@@ -101,7 +104,9 @@ def test_chains(nprocs):
     proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model)
+    # we'll just use the adaptive normal for one of the params, to test
+    # that using mixed proposals works
+    proposal = _setup_proposal(model, params=[model.params[0]])
     _test_chains(Model, nprocs, SWAP_INTERVAL,
                  proposals={tuple(model.params): proposal})
 
