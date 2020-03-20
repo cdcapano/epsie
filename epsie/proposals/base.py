@@ -15,6 +15,7 @@
 
 # Py3XX: delete abstractproperty
 from abc import ABCMeta, abstractmethod, abstractproperty
+import six
 from six import add_metaclass
 
 import numpy
@@ -123,7 +124,7 @@ class BaseProposal(object):
     def parameters(self, parameters):
         """Sets the parameters.
 
-        The parameters are stored as a sorted tuple.
+        The parameters are stored as a frozen set.
 
         Parameters
         ----------
@@ -131,9 +132,9 @@ class BaseProposal(object):
             The names of the parameters. This may either be a list of strings,
             or (for a single parameter), a string.
         """
-        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
+        if isinstance(parameters, six.string_types):
             parameters = [parameters]
-        self._parameters = tuple(sorted(parameters))
+        self._parameters = frozenset(parameters)
 
     # Py3XX: uncomment the next two lines
     # @property

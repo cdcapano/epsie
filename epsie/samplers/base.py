@@ -41,18 +41,18 @@ class BaseSampler(object):
 
     @property
     def parameters(self):
-        """The sampled parameters."""
+        """The sampled parameters as a frozenset."""
         return self._parameters
 
     @parameters.setter
     def parameters(self, parameters):
-        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
+        if isinstance(parameters, six.string_types):
             parameters = [parameters]
-        self._parameters = tuple(sorted(parameters))
+        self._parameters = frozenset(parameters)
 
     @property
     def proposals(self):
-        """Dictionary of the proposals used for the sampled parameters."""
+        """List of the proposals used for the sampled parameters."""
         return self._proposals
 
     def set_proposals(self, proposals=None, default_proposal=None,
@@ -64,10 +64,9 @@ class BaseSampler(object):
 
         Parameters
         ----------
-        proposals : dict, optional
-            A dictionary of parameter names ->
-            :py:class:`proposals.BaseProposal` instances. If none provided,
-            will use the ``default_proposal`` for all parameters.
+        proposals : list, optional
+            A list of :py:class:`proposals.BaseProposal` instances. If none
+            provided, will use the ``default_proposal`` for all parameters.
         default_proposal : proposals.BaseProposal type class, optional
             The default proposal class to use for parameters that are not
             specified in ``proposals``. Default (None) is to use
@@ -77,21 +76,23 @@ class BaseSampler(object):
             when initializing.
         """
         if proposals is None:
-            proposals = {}
+            proposals = []
         else:
-            # make a copy of the dictionary so we don't modify what was given
+            # make a copy of the so we don't modify what was given
             proposals = proposals.copy()
         # create default proposal instances for the other parameters
         if default_proposal is None:
             default_proposal = Normal
         if default_proposal_args is None:
             default_proposal_args = {}
-        given_params = set(itertools.chain(
-            *[prop.parameters for prop in proposals.values()]))
-        missing_props = tuple(set(self.parameters) - given_params)
-        if missing_props:
-            proposals[missing_props] = default_proposal(
-                missing_props, **default_proposal_args)
+        if proposals:
+            given_params = frozenset.union(*[p.parameters for p in proposals])
+        else:
+            given_params = frozenset()
+        missing_params = self.parameters - given_params
+        if missing_params:
+            proposals.append(default_proposal(missing_params,
+                                              **default_proposal_args))
         self._proposals = proposals
 
     @property

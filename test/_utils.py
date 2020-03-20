@@ -34,7 +34,7 @@ class Model(object):
 
     def __init__(self):
         # we'll use a 2D Gaussian for the likelihood distribution
-        self.params = ['x0', 'x1']
+        self.params = frozenset(['x0', 'x1'])
         self.mean = numpy.array([2., 5.])
         self.std = numpy.array([1., 2.])
         self.likelihood_dist = stats.norm(loc=self.mean, scale=self.std)
@@ -143,19 +143,3 @@ def _check_chains_are_different(chain, other, test_blobs,
         # different in this case
         _anticompare_dict_array(chain.current_blob,
                                 other.current_blob)
-
-def _get_params(keys):
-    """Gets a flattened array of strings from the given list/tuple/array.
-
-    The given list may either contain strings or list of strings. There is
-    a way to do this using itertools.chain, which is what is used in various
-    places in the source code. This function deliberately does not use
-    itertools, as a check on the implementation in the code.
-    """
-    params = []
-    for p in keys:
-        if isinstance(p, six.string_types):
-            params.append(p)
-        else:
-            params.extend(_get_params(p))
-    return params

@@ -33,19 +33,23 @@ class JointProposal(BaseProposal):
         The random bit generator to use, or an integer/None. If the latter, a
         bit generator will be created using
         :py:func:`epsie.create_bit_generator`.
+
+    Attributes
+    ----------
+    proposals : list
+        The constituent proposals.
     """
     name = 'joint'
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, *proposals, **kwargs):
         bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
-        self.parameters = list(itertools.chain(*[prop.parameters
-                                                 for prop in proposals]))
+        all_params = list(itertools.chain(*[prop.parameters
+                                            for prop in proposals]))
+        self.parameters = all_params
         # check that we don't have multiple proposals for the same parameter
-        if len(set(self.parameters)) != len(self.parameters):
-            # get the repeated parameters
-            repeated = [p for p in self.parameters
-                        if self.parameters.count(p) > 1]
+        repeated  = [p for p in self.parameters if all_params.count(p) > 1]
+        if repeated:
             raise ValueError("multiple proposals provided for parameter(s) {}"
                              .format(', '.join(repeated)))
         # the joint proposal is symmetric only if all of the constitutent
@@ -56,39 +60,39 @@ class JointProposal(BaseProposal):
         # have all of the proposals use the same random state
         for prop in proposals:
             prop.bit_generator = self.bit_generator
-        # store the proposals as a dict of parameters -> proposal; we can do
-        # this since the mapping of parameters to proposals is one/many:one
-        self.proposals = {prop.parameters: prop for prop in proposals}
+        # store the proposals
+        self.proposals = proposals
 
     @property
     def symmetric(self):
         return self._symmetric
 
     def logpdf(self, xi, givenx):
-        return sum(p.logpdf(xi, givenx) for p in self.proposals.values())
+        return sum(p.logpdf(xi, givenx) for p in self.proposals)
 
     def update(self, chain):
         # update each of the proposals
-        for prop in self.proposals.values():
+        for prop in self.proposals:
             prop.update(chain)
 
     def jump(self, fromx):
         out = {}
-        for prop in self.proposals.values():
-            out.update(prop.jump(fromx))
+        for prop in self.proposals:
+            # we'll only pass the parameters that the proposal needs
+            out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
         return out
 
     @property
     def state(self):
         # get all of the proposals state
-        state = {params: prop.state for params, prop in self.proposals.items()}
+        state = {prop.parameters: prop.state for prop in self.proposals}
         # add the global random state
         state['random_state'] = self.random_state
         return state
 
     def set_state(self, state):
         # set each proposals' state
-        for params, prop in self.proposals.items():
-            prop.set_state(state[params])
+        for prop in self.proposals:
+            prop.set_state(state[prop.parameters])
         # set the state of the random number generator
         self.random_state = state['random_state']
