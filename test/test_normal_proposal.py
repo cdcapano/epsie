@@ -43,6 +43,7 @@ def test_logpdf(params, cov):
     points.
     """
     proposal = Normal(params, cov=cov)
+    print(proposal.parameters)
     # test that the logpdf returns what scipy stats does
     test_points = {}
     ntestpts = 1000

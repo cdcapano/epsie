@@ -46,9 +46,9 @@ class ParallelTemperedSampler(BaseSampler):
     swap_interval : int, optional
         How often to calculate temperature swaps. Default is 1 (= swap on every
         iteration).
-    proposals : dict, optional
-        Dictionary mapping parameter names to proposal classes. Any parameters
-        not listed will use the ``default_propsal``.
+    proposals : list, optional
+        List of proposals to use. Any parameters that do not have a proposal
+        provided will use the ``default_propsal``.
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
@@ -98,7 +98,7 @@ class ParallelTemperedSampler(BaseSampler):
             raise ValueError("nchains must be >= 1")
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals.values()],
+            [copy.deepcopy(p) for p in self.proposals],
             betas=betas, swap_interval=swap_interval,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)

@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 from abc import (ABCMeta, abstractmethod, abstractproperty)
+import six
 from six import add_metaclass
 import numpy
 
@@ -55,17 +56,16 @@ class BaseChain(object):
 
     @property
     def parameters(self):
-        """The sampled parameters.
-
-        The parameters are stored as a sorted tuple.
+        """The sampled parameters, as a tuple.
         """
         return self._parameters
 
     @parameters.setter
     def parameters(self, parameters):
-        if not isinstance(parameters, (list, tuple, numpy.ndarray)):
+        """Stores the parameters as a tuple."""
+        if isinstance(parameters, six.string_types):
             parameters = [parameters]
-        self._parameters = tuple(sorted(parameters))
+        self._parameters = tuple(parameters)
 
     def __len__(self):
         return self.iteration - self.lastclear

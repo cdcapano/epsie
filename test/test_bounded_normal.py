@@ -92,9 +92,12 @@ def test_chains(proposal_name, nprocs):
     proposal.
     """
     model = Model()
-    proposal = _setup_proposal(proposal_name, model.params, model.prior_bounds)
-    _test_chains(Model, nprocs, SWAP_INTERVAL,
-                 proposals={tuple(model.params): proposal})
+    # we'll just the bounded normal proposal for one of the parameters,
+    # to test that using mixed proposals works
+    param = list(model.params)[0]
+    proposal = _setup_proposal(proposal_name, [param],
+                               {param: model.prior_bounds[param]})
+    _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
@@ -106,8 +109,7 @@ def test_checkpointing(proposal_name, nprocs):
     """
     model = Model()
     proposal = _setup_proposal(proposal_name, model.params, model.prior_bounds)
-    _test_checkpointing(Model, nprocs,
-                        proposals={tuple(model.params): proposal})
+    _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
@@ -118,8 +120,7 @@ def test_seed(proposal_name, nprocs):
     """
     model = Model()
     proposal = _setup_proposal(proposal_name, model.params, model.prior_bounds)
-    _test_seed(Model, nprocs,
-               proposals={tuple(model.params): proposal})
+    _test_seed(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
@@ -131,5 +132,4 @@ def test_clear_memory(proposal_name, nprocs):
     """
     model = Model()
     proposal = _setup_proposal(proposal_name, model.params, model.prior_bounds)
-    _test_clear_memory(Model, nprocs, SWAP_INTERVAL,
-                       proposals={tuple(model.params): proposal})
+    _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])

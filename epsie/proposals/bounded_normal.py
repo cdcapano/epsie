@@ -86,8 +86,12 @@ class BoundedNormal(Normal):
         # checks if the given parameters are in the bounds
         testpt = testpt.copy()
         isin = None
-        for p in list(testpt.keys()):
-            val = testpt.pop(p)
+        for p in self.parameters:
+            try:
+                val = testpt.pop(p)
+            except KeyError:
+                # only testing a subset of the parameters, which is allowed
+                continue
             bnds = self.boundaries[p]
             if isinstance(val, numpy.ndarray):
                 thisisin = ((val >= bnds[0]) & (val <= bnds[1]))

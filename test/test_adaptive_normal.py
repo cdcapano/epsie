@@ -37,12 +37,15 @@ ADAPTATION_DURATION = ITERINT//2
 SWAP_INTERVAL = 1
 
 
-def _setup_proposal(model, adaptation_duration=None):
+def _setup_proposal(model, params=None, adaptation_duration=None):
+    if params is None:
+        params = model.params
     if adaptation_duration is None:
         adaptation_duration = ADAPTATION_DURATION
     prior_widths = {p: abs(bnds[1] - bnds[0])
-                    for p, bnds in model.prior_bounds.items()}
-    return AdaptiveNormal(model.params, prior_widths,
+                    for p, bnds in model.prior_bounds.items()
+                    if p in params}
+    return AdaptiveNormal(params, prior_widths,
                           adaptation_duration=adaptation_duration)
 
 
@@ -57,18 +60,15 @@ def test_std_changes(nprocs, proposal=None, model=None):
     if proposal is None:
         # create an adaptive normal instance
         proposal = _setup_proposal(model)
-    # check the proposal's parameters option matches the model's
-    assert sorted(proposal.parameters) == sorted(model.params)
     # we'll just use the PTSampler default setup from the ptsampler tests
-    sampler = _create_sampler(model, nprocs,
-                              proposals={tuple(model.params): proposal})
+    sampler = _create_sampler(model, nprocs, proposals=[proposal])
     # check that all temperatures and all chains have the same initial
     # standard deviation as the proposal
     initial_std = numpy.zeros((sampler.nchains, sampler.ntemps,
                                len(proposal.parameters)))
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
-            thisprop = subchain.proposal_dist.proposals[tuple(model.params)]
+            thisprop = subchain.proposal_dist.proposals[0]
             assert (thisprop.std == proposal.std).all()
             initial_std[ii, jj, :] = thisprop.std
     # run the sampler for the adaptation duration, and check that the standard
@@ -77,7 +77,7 @@ def test_std_changes(nprocs, proposal=None, model=None):
     current_std = numpy.zeros(initial_std.shape)
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
-            thisprop = subchain.proposal_dist.proposals[tuple(model.params)]
+            thisprop = subchain.proposal_dist.proposals[0]
             current_std[ii, jj, :] = thisprop.std
     assert (initial_std != current_std).all()
     # now run past the adaptation duration; since we have gone past it, the
@@ -87,7 +87,7 @@ def test_std_changes(nprocs, proposal=None, model=None):
     current_std = numpy.zeros(previous_std.shape)
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
-            thisprop = subchain.proposal_dist.proposals[tuple(model.params)]
+            thisprop = subchain.proposal_dist.proposals[0]
             current_std[ii, jj, :] = thisprop.std
     assert (previous_std == current_std).all()
     # close the multiprocessing pool
@@ -101,9 +101,10 @@ def test_chains(nprocs):
     proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model)
-    _test_chains(Model, nprocs, SWAP_INTERVAL,
-                 proposals={tuple(model.params): proposal})
+    # we'll just use the adaptive normal for one of the params, to test
+    # that using mixed proposals works
+    proposal = _setup_proposal(model, params=[list(model.params)[0]])
+    _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -113,8 +114,7 @@ def test_checkpointing(nprocs):
     """
     model = Model()
     proposal = _setup_proposal(model)
-    _test_checkpointing(Model, nprocs,
-                        proposals={tuple(model.params): proposal})
+    _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -123,8 +123,7 @@ def test_seed(nprocs):
     """
     model = Model()
     proposal = _setup_proposal(model)
-    _test_seed(Model, nprocs,
-               proposals={tuple(model.params): proposal})
+    _test_seed(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -134,5 +133,4 @@ def test_clear_memory(nprocs):
     """
     model = Model()
     proposal = _setup_proposal(model)
-    _test_clear_memory(Model, nprocs, SWAP_INTERVAL,
-                       proposals={tuple(model.params): proposal})
+    _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])

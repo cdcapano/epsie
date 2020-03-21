@@ -68,6 +68,13 @@ def test_chains(model_cls, nprocs):
     """
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED)
+    # check that the number of parameters that we have proposals for
+    # matches the number of model parameters
+    joint_dist = sampler.chains[0].proposal_dist
+    prop_params = set.union(*[set(p.parameters) for p in joint_dist.proposals])
+    assert set(joint_dist.parameters) == prop_params
+    assert prop_params == set(model.params)
+    # run for some iterations
     sampler.run(ITERINT)
     # check that the number of recorded iterations matches how long we
     # actually ran for

@@ -36,9 +36,9 @@ class MetropolisHastingsSampler(BaseSampler):
         Model object.
     nchains : int
         The number of chains to create. Must be greater than zero.
-    proposals : dict, optional
-        Dictionary mapping parameter names to proposal classes. Any parameters
-        not listed will use the ``default_propsal``.
+    proposals : list, optional
+        List of proposals to use. Any parameters that do not have a proposal
+        provided will use the ``default_propsal``.
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
@@ -74,7 +74,7 @@ class MetropolisHastingsSampler(BaseSampler):
             raise ValueError("nchains must be >= 1")
         self._chains = [Chain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals.values()],
+            [copy.deepcopy(p) for p in self.proposals],
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
