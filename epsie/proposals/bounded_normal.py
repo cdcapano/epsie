@@ -90,7 +90,7 @@ class BoundedNormal(Normal):
             try:
                 val = testpt.pop(p)
             except KeyError:
-                # we'll allow for only test a subset of the parameters
+                # only testing a subset of the parameters, which is allowed
                 continue
             bnds = self.boundaries[p]
             if isinstance(val, numpy.ndarray):
@@ -107,8 +107,6 @@ class BoundedNormal(Normal):
         return isin
 
     def jump(self, fromx):
-        # pull out the parameters I know about
-        fromx = {p: fromx[p] for p in self.parameters}
         # make sure we're in bounds
         if fromx not in self:
             raise ValueError("Given point is not in bounds; I don't know how "
