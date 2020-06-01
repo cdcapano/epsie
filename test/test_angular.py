@@ -69,6 +69,25 @@ def test_jumps_in_bounds(proposal_name, cov):
     assert ((jumps >= 0) & (jumps <= 2*numpy.pi)).all()
 
 
+@pytest.mark.parametrize('params,cov',
+                         [(['phi'], None),
+                          (['phi'], 0.5),
+                          (['phi', 'theta'], None),
+                          (['phi', 'theta'], [0.27, 3.14])])
+
+def test_logpdf(params, cov):
+    """Tests that the angular logpdf is indeed symmetric."""
+    # 1D
+    proposal = _setup_proposal('angular', params, cov)
+    x0 = {p: numpy.random.uniform(0, 2*numpy.pi) for p in params}
+    # get a point
+    x1 = proposal.jump(x0)
+    p1 = proposal.logpdf(x0, x1)
+    # assert that we get a float
+    assert isinstance(p1, float)
+    # check that we get the same going the other way
+    assert proposal.logpdf(x1, x0) == pytest.approx(p1)
+
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_std_changes(nprocs, proposal=None):
     """Tests that the standard deviation of the proposal changes after a few
