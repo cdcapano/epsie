@@ -39,7 +39,7 @@ class Angular(Normal):
 
     Parameters
     ----------
-    parameters : list of str
+    parameters : (list of) str
         The names of the parameters to create proposals for.
     cov : (array of) float, optional
         The covariance to use for the underlying truncated normal
