@@ -74,7 +74,6 @@ def test_jumps_in_bounds(proposal_name, cov):
                           (['phi'], 0.5),
                           (['phi', 'theta'], None),
                           (['phi', 'theta'], [0.27, 3.14])])
-
 def test_logpdf(params, cov):
     """Tests that the angular logpdf is indeed symmetric."""
     # 1D
@@ -87,6 +86,7 @@ def test_logpdf(params, cov):
     assert isinstance(p1, float)
     # check that we get the same going the other way
     assert proposal.logpdf(x1, x0) == pytest.approx(p1)
+
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_std_changes(nprocs, proposal=None):
