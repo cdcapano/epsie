@@ -52,7 +52,7 @@ class Normal(BaseProposal):
 
     def __init__(self, parameters, cov=None):
         self.parameters = parameters
-        self.ndim = len(parameters)
+        self.ndim = len(self.parameters)
         self._isdiagonal = False
         self._cov = None
         self._std = None
