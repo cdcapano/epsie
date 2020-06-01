@@ -105,7 +105,7 @@ class Angular(Normal):
         # convert to arrays
         xi = numpy.array([xi[p]*self._invfactor for p in self.parameters])
         givenx = numpy.array([givenx[p]*self._invfactor
-                              for p in self.parameters]) 
+                              for p in self.parameters])
         # make sure givenx is in bounds and figure out how far it is from the
         # middle of the interval
         givenx = self._apply_cyclic(givenx)

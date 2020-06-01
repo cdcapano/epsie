@@ -123,14 +123,15 @@ class AngularModel(object):
     def loglikelihood(self, **kwargs):
         # apply cyclic bounds to xi to put in [0, 2\pi]
         xi = numpy.array([kwargs[p] for p in self.params]) % (2*numpy.pi)
-        # shift xi by the amounted needed to move phi0 to the cetner of [0, 2\pi),
-        # and apply bounds again
+        # shift xi by the amounted needed to move phi0 to the cetner of
+        # [0, 2\pi), and apply bounds again
         dphi = numpy.pi - self.phi0
         xi = (xi + dphi) % (2*numpy.pi)
         # now use a truncated normal centered on pi
         b = numpy.pi/self.std
         a = -b
-        return stats.truncnorm.logpdf(xi, a, b, loc=numpy.pi, scale=self.std).sum()
+        return stats.truncnorm.logpdf(xi, a, b, loc=numpy.pi,
+                                      scale=self.std).sum()
 
     def __call__(self, **kwargs):
         logp = self.logprior(**kwargs)
