@@ -21,6 +21,14 @@ import epsie
 from epsie.proposals import Boundaries
 
 
+#
+# =============================================================================
+#
+#                              Test Models
+#
+# =============================================================================
+#
+
 class Model(object):
     """A simple model for testing the samplers.
 
@@ -85,6 +93,61 @@ class ModelWithBlobs(Model):
         else:
             logl, blob = self.loglikelihood(**kwargs)
         return logl, logp, blob
+
+
+class AngularModel(object):
+    r"""A simple angular model.
+
+    The likelihood is a truncated normal centered on :math:`\phi_0`, with
+    cyclic bounds at :math:`0` and :math:`2\pi`. The prior is uniform.
+    """
+    blob_params = None
+
+    def __init__(self, phi0=0., std=1.):
+        self.phi0 = phi0
+        self.params = ['phi']
+        self.std = numpy.array([std])
+        # we'll just use a uniform prior
+        self.prior_bounds = {'phi': Boundaries((0., 2*numpy.pi))}
+        pmin = self.prior_bounds['phi'].lower
+        dp = abs(self.prior_bounds['phi'])
+        self.prior_dist = {'phi': stats.uniform(pmin, dp)}
+
+    def prior_rvs(self, size=None, shape=None):
+        return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
+                for p in self.params}
+
+    def logprior(self, **kwargs):
+        return sum([self.prior_dist[p].logpdf(kwargs[p]) for p in self.params])
+
+    def loglikelihood(self, **kwargs):
+        # apply cyclic bounds to xi to put in [0, 2\pi]
+        xi = numpy.array([kwargs[p] for p in self.params]) % (2*numpy.pi)
+        # shift xi by the amounted needed to move phi0 to the cetner of [0, 2\pi),
+        # and apply bounds again
+        dphi = numpy.pi - self.phi0
+        xi = (xi + dphi) % (2*numpy.pi)
+        # now use a truncated normal centered on pi
+        b = numpy.pi/self.std
+        a = -b
+        return stats.truncnorm.logpdf(xi, a, b, loc=numpy.pi, scale=self.std).sum()
+
+    def __call__(self, **kwargs):
+        logp = self.logprior(**kwargs)
+        if logp == -numpy.inf:
+            logl = None
+        else:
+            logl = self.loglikelihood(**kwargs)
+        return logl, logp
+
+
+#
+# =============================================================================
+#
+#                        Utility functions for tests
+#
+# =============================================================================
+#
 
 
 def _check_array(array, expected_params, expected_shape):
