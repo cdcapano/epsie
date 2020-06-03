@@ -32,9 +32,25 @@ class BoundedDiscrete(BoundedNormal):
 
     def __init__(self, parameters, boundaries, cov=None):
         super(BoundedDiscrete, self).__init__(parameters, boundaries, cov=cov)
+        # ensure boundaries are integers
         self.boundaries = {p: (int(self._floorceil(b.lower)),
                                int(self._floorceil(b.upper)))
                            for p, b in self.boundaries.items()}
+        # cache for the cdfs
+        self._cdfcache = {}
+        self._cachedstd = None
+
+    def _cdf(self, x, a, b, mu, std):
+        """Caches CDF for faster call back."""
+        if std != self._cachedstd:
+            self._cdfcache.clear()
+        try:
+            return self._cdfcache[x, a, b, mu]
+        except KeyError:
+            cdf = stats.truncnorm.cdf(x, a/std, b/std, loc=mu, scale=std)
+            self._cdfcache[x, a, b, mu] = cdf
+            self._cachedstd = std
+            return cdf
 
     def jump(self, fromx):
         # make sure we're in bounds
@@ -69,25 +85,26 @@ class BoundedDiscrete(BoundedNormal):
         return numpy.sign(x)*numpy.floor(abs(x))
 
     def logpdf(self, xi, givenx):
-        mu = self._floorceil(
-            numpy.array([givenx[p] for p in self.parameters])).astype(int)
-        xi = self._ceilfloor(
-            numpy.array([xi[p] for p in self.parameters])).astype(int)
-        # check if any xi == mu; if so, just return -inf, since this proposal
-        # will be 0 for that
-        if (xi == mu).any():
-            return -numpy.inf
-        a = (self._lowerbnd - mu)/self._std
-        b = (self._upperbnd - mu)/self._std
-        # the pdf is the difference in the trunc norm's cdf around xi; whether
-        # we take the difference between xi+1 and xi or xi and xi-1 depends
-        # on where xi is w.r.t. mu
-        x0 = numpy.empty(len(xi), dtype=int)
-        x0[:] = xi[:]
-        mask = xi > mu
-        if mask.any():
-            x0[mask] -= 1
-        x1 = x0 + 1
-        p = (stats.truncnorm.cdf(x1, a, b, loc=mu, scale=self._std)
-             - stats.truncnorm.cdf(x0, a, b, loc=mu, scale=self._std))
-        return numpy.log(p).sum()
+        logp = 0
+        for ii, p in enumerate(self.parameters):
+            mu = int(self._floorceil(givenx[p]))
+            x = int(self._ceilfloor(xi[p]))
+            # if given point is same as test point, the pdf will just be 0;
+            # don't need to evaluate the other parameters
+            if x == mu:
+                return -numpy.inf
+            a = self._lowerbnd[ii] - mu
+            b = self._upperbnd[ii] - mu
+            # the pdf is the difference in the trunc norm's cdf around x;
+            # whether we take the difference between x+1 and x or x and x-1
+            # depends on where x is w.r.t. mu
+            if x > mu:
+                x0 = x - 1
+                x1 = x
+            else:
+                x0 = x
+                x1 = x + 1
+            p0 = self._cdf(x0, a, b, mu, self._std[ii])
+            p1 = self._cdf(x1, a, b, mu, self._std[ii])
+            logp += numpy.log(p1 - p0)
+        return logp
