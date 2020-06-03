@@ -19,8 +19,77 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (AdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport)
 from .bounded_normal import (BoundedNormal)
+
+
+class NormalDiscrete(Normal):
+    """A proposal for discrete parameters.
+    """
+    name = 'discrete'
+    symmetric = True
+
+    def __init__(self, parameters, cov=None):
+        super(NormalDiscrete, self).__init__(parameters, cov=cov)
+        # this only works for diagonal pdfs
+        if not self.isdiagonal:
+            raise ValueError("Only independent variables are supported "
+                             "(all off-diagonal terms in the covariance "
+                             "must be zero)")
+        # cache for the cdfs
+        self._cdfcache = [{}]*len(self.parameters)
+        self._cachedstd = [None]*len(self.parameters)
+
+    def _cdf(self, pi, dx, std):
+        """Caches CDF for faster call back.
+
+        Parameters
+        ----------
+        pi : int
+            Index of parameter that is being evaluated.
+        dx : int
+            Value to evaulate. Should be the difference between a point and
+            the mean.
+        std : float
+            Standard deviation of the distribution.
+        """
+        if std != self._cachedstd[pi]:
+            self._cdfcache[pi].clear()
+        try:
+            return self._cdfcache[pi][dx]
+        except KeyError:
+            cdf = stats.norm.cdf(dx, scale=std)
+            self._cdfcache[pi][dx] = cdf
+            self._cachedstd[pi] = std
+            return cdf
+
+    def jump(self, fromx):
+        to_x = {}
+        for ii, p in enumerate(self.parameters):
+            dx = self.random_generator.normal(0, self._std[ii])
+            # convert to int
+            dx = int(_floorceil(dx))
+            to_x[p] = int(fromx[p]) + dx
+        return to_x
+
+    def logpdf(self, xi, givenx):
+        logp = 0
+        for ii, p in enumerate(self.parameters):
+            dx = int(numpy.floor(xi[p] - givenx[p]))
+            # if given point is same as test point, the pdf will just be 0;
+            # don't need to evaluate the other parameters
+            if dx == 0:
+                return -numpy.inf
+            # we'll just evaluate positive dx, since the distribution is
+            # symmetric about 0
+            dx = abs(dx)
+            p0 = self._cdf(ii, dx-1, self._std[ii])
+            p1 = self._cdf(ii, dx, self._std[ii])
+            dp = p1 - p0
+            if dp == 0:
+                return -numpy.inf
+            logp += numpy.log(dp)
+        return logp
 
 
 class BoundedDiscrete(BoundedNormal):
@@ -29,27 +98,42 @@ class BoundedDiscrete(BoundedNormal):
     name = 'bounded_discrete'
     symmetric = False
 
-
     def __init__(self, parameters, boundaries, cov=None):
         super(BoundedDiscrete, self).__init__(parameters, boundaries, cov=cov)
         # ensure boundaries are integers
-        self.boundaries = {p: (int(self._floorceil(b.lower)),
-                               int(self._floorceil(b.upper)))
+        self.boundaries = {p: (int(_floorceil(b.lower)),
+                               int(_floorceil(b.upper)))
                            for p, b in self.boundaries.items()}
         # cache for the cdfs
-        self._cdfcache = {}
-        self._cachedstd = None
+        self._cdfcache = [{}]*len(self.parameters)
+        self._cachedstd = [None]*len(self.parameters)
 
-    def _cdf(self, x, a, b, mu, std):
-        """Caches CDF for faster call back."""
-        if std != self._cachedstd:
-            self._cdfcache.clear()
+    def _cdf(self, pi, x, a, b, mu, std):
+        """Caches CDF for faster call back.
+
+        Parameters
+        ----------
+        pi : int
+            Index of parameter that is being evaluated.
+        x : int
+            Value to evaulate.
+        a : int
+            Lower bound of the distribution (with respect to mu).
+        b : int
+            Upper bound of the distribution (with respect to mu).
+        mu : int
+            Mean of the distribution.
+        std : float
+            Standard deviation of the distribution.
+        """
+        if std != self._cachedstd[pi]:
+            self._cdfcache[pi].clear()
         try:
-            return self._cdfcache[x, a, b, mu]
+            return self._cdfcache[pi][x, a, b, mu]
         except KeyError:
             cdf = stats.truncnorm.cdf(x, a/std, b/std, loc=mu, scale=std)
-            self._cdfcache[x, a, b, mu] = cdf
-            self._cachedstd = std
+            self._cdfcache[pi][x, a, b, mu] = cdf
+            self._cachedstd[pi] = std
             return cdf
 
     def jump(self, fromx):
@@ -68,27 +152,17 @@ class BoundedDiscrete(BoundedNormal):
                 deltax = self.random_generator.normal(0., self._std[ii])
                 # for values < 0, we want the floor; for values > 0, the
                 # ceiling
-                deltax = int(self._floorceil(deltax))
+                deltax = int(_floorceil(deltax))
                 newpt = {p: fromx[p]+deltax}
                 inbnds = newpt in self
             to_x.update(newpt)
         return to_x
 
-    @staticmethod
-    def _floorceil(x):
-        """Returns floor (ceil) of values < (>) 0."""
-        return numpy.sign(x)*numpy.ceil(abs(x))
-
-    @staticmethod
-    def _ceilfloor(x):
-        """Returns the ceil (floor) of values < (>) 0."""
-        return numpy.sign(x)*numpy.floor(abs(x))
-
     def logpdf(self, xi, givenx):
         logp = 0
         for ii, p in enumerate(self.parameters):
-            mu = int(self._floorceil(givenx[p]))
-            x = int(self._ceilfloor(xi[p]))
+            mu = int(_floorceil(givenx[p]))
+            x = int(_ceilfloor(xi[p]))
             # if given point is same as test point, the pdf will just be 0;
             # don't need to evaluate the other parameters
             if x == mu:
@@ -104,7 +178,17 @@ class BoundedDiscrete(BoundedNormal):
             else:
                 x0 = x
                 x1 = x + 1
-            p0 = self._cdf(x0, a, b, mu, self._std[ii])
-            p1 = self._cdf(x1, a, b, mu, self._std[ii])
+            p0 = self._cdf(ii, x0, a, b, mu, self._std[ii])
+            p1 = self._cdf(ii, x1, a, b, mu, self._std[ii])
             logp += numpy.log(p1 - p0)
         return logp
+
+
+def _floorceil(x):
+    """Returns floor (ceil) of values < (>) 0."""
+    return numpy.sign(x)*numpy.ceil(abs(x))
+
+
+def _ceilfloor(x):
+    """Returns the ceil (floor) of values < (>) 0."""
+    return numpy.sign(x)*numpy.floor(abs(x))
