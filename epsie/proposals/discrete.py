@@ -32,22 +32,62 @@ class BoundedDiscrete(BoundedNormal):
 
     def __init__(self, parameters, boundaries, cov=None):
         super(BoundedDiscrete, self).__init__(parameters, boundaries, cov=cov)
-        self.boundaries = {p: (int(b.lower), int(b.upper))
+        self.boundaries = {p: (int(self._floorceil(b.lower)),
+                               int(self._floorceil(b.upper)))
                            for p, b in self.boundaries.items()}
 
     def jump(self, fromx):
-        # use BoundedNormal for the jump
-        to_x = super(BoundedDiscrete, self).jump(fromx)
-        # cast to integer
-        return {p: int(x) for p, x in to_x.items()}
+        # make sure we're in bounds
+        if fromx not in self:
+            raise ValueError("Given point is not in bounds; I don't know how "
+                             "to jump from there.")
+        # we'll just use rejection sampling to get a new point. This should
+        # be reasonably fast since fromx is always at the peak of the
+        # distribution
+        to_x = {}
+        for ii, p in enumerate(self.parameters):
+            inbnds = False
+            while not inbnds:
+                # draw a delta x
+                deltax = self.random_generator.normal(0., self._std[ii])
+                # for values < 0, we want the floor; for values > 0, the
+                # ceiling
+                deltax = int(self._floorceil(deltax))
+                newpt = {p: fromx[p]+deltax}
+                inbnds = newpt in self
+            to_x.update(newpt)
+        return to_x
+
+    @staticmethod
+    def _floorceil(x):
+        """Returns floor (ceil) of values < (>) 0."""
+        return numpy.sign(x)*numpy.ceil(abs(x))
+
+    @staticmethod
+    def _ceilfloor(x):
+        """Returns the ceil (floor) of values < (>) 0."""
+        return numpy.sign(x)*numpy.floor(abs(x))
 
     def logpdf(self, xi, givenx):
-        # the pdf is the difference in the trunc norm's cdf between the xi and
-        # xi+1
-        mu = numpy.array([givenx[p] for p in self.parameters])
-        xi = numpy.array([xi[p] for p in self.parameters]).astype(int)
+        mu = self._floorceil(
+            numpy.array([givenx[p] for p in self.parameters])).astype(int)
+        xi = self._ceilfloor(
+            numpy.array([xi[p] for p in self.parameters])).astype(int)
+        # check if any xi == mu; if so, just return -inf, since this proposal
+        # will be 0 for that
+        if (xi == mu).any():
+            return -numpy.inf
         a = (self._lowerbnd - mu)/self._std
         b = (self._upperbnd - mu)/self._std
-        p = (stats.truncnorm.cdf(xi+1, a, b, loc=mu, scale=self._std)
-             - stats.truncnorm.cdf(xi, a, b, loc=mu, scale=self._std)).sum()
-        return numpy.log(p)
+        # the pdf is the difference in the trunc norm's cdf around xi; whether
+        # we take the difference between xi+1 and xi or xi and xi-1 depends
+        # on where xi is w.r.t. mu
+        x0 = numpy.empty(len(xi), dtype=int)
+        x0[:] = xi[:]
+        mask = xi > mu
+        if mask.any():
+            x0[mask] -= 1
+        x1 = x0 + 1
+        p = (stats.truncnorm.cdf(x1, a, b, loc=mu, scale=self._std)
+             - stats.truncnorm.cdf(x0, a, b, loc=mu, scale=self._std))
+        return numpy.log(p).sum()
