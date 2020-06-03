@@ -24,6 +24,7 @@ from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries)
 from .angular import (Angular, AdaptiveAngular)
 from .discrete import (NormalDiscrete, BoundedDiscrete)
 
+
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
@@ -33,5 +34,7 @@ proposals = {
     Angular.name: Angular,
     AdaptiveAngular.name: AdaptiveAngular,
     NormalDiscrete.name: NormalDiscrete,
+    AdaptiveNormalDiscrete.name: AdaptiveNormalDiscrete,
     BoundedDiscrete.name: BoundedDiscrete,
+    AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
 }

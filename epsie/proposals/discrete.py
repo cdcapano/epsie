@@ -238,6 +238,90 @@ class BoundedDiscrete(BoundedNormal):
         return logp
 
 
+class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
+    r"""A discrete proposoal with adaptive variance.
+
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters to produce proposals for.
+    cov : array, optional
+        The covariance matrix of the parameters. May provide either a single
+        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
+        where ``ndim`` = the number of parameters given. If 2D array is given,
+        the off-diagonal terms must be zero. Default is 1 for all parameters.
+    adaptation_duration : int
+        The number of iterations over which to apply the adaptation. No more
+        adaptation will be done once a chain exceeds this value.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_discrete'
+    symmetric = True
+
+    def __init__(self, parameters, boundaries, adaptation_duration,
+                 **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveNormalDiscrete, self).__init__(parameters)
+        # set up the adaptation parameters
+        self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
+
+
+#
+# =============================================================================
+#
+#                           Adaptive versions
+#
+# =============================================================================
+#
+
+
+class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
+    r"""A bounded discrete proposoal with adaptive variance.
+
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters to produce proposals for.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. If floats are provided, the floor
+        (ceil) of the lower (upper) bound will be used.
+    adaptation_duration : int
+        The number of iterations over which to apply the adaptation. No more
+        adaptation will be done once a chain exceeds this value.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_bounded_discrete'
+    symmetric = False
+
+    def __init__(self, parameters, boundaries, adaptation_duration,
+                 **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveBoundedDiscrete, self).__init__(
+            parameters, boundaries)
+        # set up the adaptation parameters
+        self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
+
+
+#
+# =============================================================================
+#
+#                           Helper functions
+#
+# =============================================================================
+#
+
+
 def _floorceil(x):
     """Returns floor (ceil) of values < (>) 0."""
     return numpy.sign(x)*numpy.ceil(abs(x))
