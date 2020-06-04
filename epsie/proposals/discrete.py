@@ -238,6 +238,15 @@ class BoundedDiscrete(BoundedNormal):
         return logp
 
 
+#
+# =============================================================================
+#
+#                           Adaptive versions
+#
+# =============================================================================
+#
+
+
 class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     r"""A discrete proposoal with adaptive variance.
 
@@ -247,11 +256,10 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     ----------
     parameters : (list of) str
         The names of the parameters to produce proposals for.
-    cov : array, optional
-        The covariance matrix of the parameters. May provide either a single
-        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
-        where ``ndim`` = the number of parameters given. If 2D array is given,
-        the off-diagonal terms must be zero. Default is 1 for all parameters.
+    prior_widths : dict
+        Dictionary mapping parameter names to values giving the width of each
+        parameter's prior. The values may be floats, or any object that has
+        an ``__abs__`` method that will return a float.
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
@@ -263,21 +271,12 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     name = 'adaptive_discrete'
     symmetric = True
 
-    def __init__(self, parameters, boundaries, adaptation_duration,
+    def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormalDiscrete, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
-
-
-#
-# =============================================================================
-#
-#                           Adaptive versions
-#
-# =============================================================================
-#
+        self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
 
 class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):

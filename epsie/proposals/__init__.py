@@ -22,7 +22,8 @@ from .normal import (Normal, AdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
 from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries)
 from .angular import (Angular, AdaptiveAngular)
-from .discrete import (NormalDiscrete, BoundedDiscrete)
+from .discrete import (NormalDiscrete, AdaptiveNormalDiscrete,
+                       BoundedDiscrete, AdaptiveBoundedDiscrete)
 
 
 proposals = {
