@@ -128,7 +128,7 @@ class BoundedDiscrete(BoundedNormal):
     This is a discretized form of :py:class:`BoundedNormal`. Jump proposals
     are produced in the same manner as :py:class:`NormalDiscrete`, except
     that the distribution used to draw :math:`\Delta x` (before applying the
-    floor/ceil) is a truncated normal. As such, this is not a symmetric 
+    floor/ceil) is a truncated normal. As such, this is not a symmetric
     distribution.
 
     The variance used for drawing :math:`\Delta x` need not be an integer,

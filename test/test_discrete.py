@@ -20,14 +20,12 @@ with their adaptive versions.
 
 from __future__ import (absolute_import, division)
 
-import itertools
 import pytest
 import numpy
 
 from epsie.proposals import proposals
 from _utils import PoissonModel
 
-from test_ptsampler import _create_sampler
 from test_ptsampler import test_chains as _test_chains
 from test_ptsampler import test_checkpointing as _test_checkpointing
 from test_ptsampler import test_seed as _test_seed
@@ -78,10 +76,10 @@ def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
     jumps = numpy.zeros((len(test_points), njumps), dtype=int)
     for ii, ki in enumerate(test_points):
         js = numpy.array([proposal.jump({'kappa': ki})['kappa']
-                                   for _ in range(njumps)])
+                          for _ in range(njumps)])
         # check that all jumps are integers
         assert js.dtype == numpy.int
-        jumps[ii, :] = js 
+        jumps[ii, :] = js
     assert ((jumps >= kmin) & (jumps <= kmax)).all()
 
 
@@ -109,8 +107,7 @@ def test_logpdf(proposal_name):
     assert proposal.logpdf({'k': givenpt+0.4}, {'k': givenpt}) == -numpy.inf
 
 
-#@pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('nprocs', [1])
+@pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['adaptive_discrete',
                                            'adaptive_bounded_discrete'])
 def test_std_changes(nprocs, proposal_name):
@@ -127,8 +124,7 @@ def test_std_changes(nprocs, proposal_name):
                                            'adaptive_discrete',
                                            'bounded_discrete',
                                            'adaptive_bounded_discrete'])
-#@pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('nprocs', [1])
+@pytest.mark.parametrize('nprocs', [1, 4])
 def test_chains(proposal_name, nprocs):
     """Runs the PTSampler ``test_chains`` test using the bounded normal
     proposal.
@@ -142,8 +138,7 @@ def test_chains(proposal_name, nprocs):
                                            'adaptive_discrete',
                                            'bounded_discrete',
                                            'adaptive_bounded_discrete'])
-#@pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('nprocs', [1])
+@pytest.mark.parametrize('nprocs', [1, 4])
 def test_checkpointing(proposal_name, nprocs):
     """Performs the same checkpointing test as for the PTSampler, but using
     the adaptive normal proposal.
@@ -157,8 +152,7 @@ def test_checkpointing(proposal_name, nprocs):
                                            'adaptive_discrete',
                                            'bounded_discrete',
                                            'adaptive_bounded_discrete'])
-#@pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('nprocs', [1])
+@pytest.mark.parametrize('nprocs', [1, 4])
 def test_seed(proposal_name, nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
     """
@@ -171,8 +165,7 @@ def test_seed(proposal_name, nprocs):
                                            'adaptive_discrete',
                                            'bounded_discrete',
                                            'adaptive_bounded_discrete'])
-#@pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('nprocs', [1])
+@pytest.mark.parametrize('nprocs', [1, 4])
 def test_clear_memory(proposal_name, nprocs):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive normal
     proposal.
