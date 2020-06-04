@@ -142,6 +142,45 @@ class AngularModel(object):
         return logl, logp
 
 
+class PoissonModel(object):
+    r"""A poisson model.
+
+    The free parameter is the number of foreground counts, which is
+    an integer. The intrinsic rate can be set using the ``lmbda`` argument
+    on initialization.
+    """
+    blob_params = None
+
+    def __init__(self, lmbda=3):
+        # we'll use a Poission distribution for the likelihood
+        self.params = ['k']
+        self.likelihood_dist = stats.poisson(lmbda)
+        # we'll just use a uniform prior
+        kmin = 0
+        kmax = 10
+        self.prior_bounds = {'k': Boundaries((kmin, kmax))}
+        self.prior_dist = {'k': stats.randint(kmin, kmax)}
+
+    def prior_rvs(self, size=None, shape=None):
+        return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
+                for p in self.params}
+
+    def logprior(self, **kwargs):
+        return sum([self.prior_dist[p].logpmf(kwargs[p]) for p in self.params])
+
+    def loglikelihood(self, **kwargs):
+        return self.likelihood_dist.logpmf([kwargs[p]
+                                            for p in self.params]).sum()
+
+    def __call__(self, **kwargs):
+        logp = self.logprior(**kwargs)
+        if logp == -numpy.inf:
+            logl = None
+        else:
+            logl = self.loglikelihood(**kwargs)
+        return logl, logp
+
+
 #
 # =============================================================================
 #
@@ -186,17 +225,17 @@ def _anticompare_dict_array(a, b):
 
 def _check_chains_are_different(chain, other, test_blobs,
                                 test_state=True):
-    """Checks that two chains' random states and current positions/stats/blobs
-    are different.
+    """Checks that two chains' random states and positions/stats/blobs are
+    different.
     """
     if test_state:
         rstate = chain.state['proposal_dist']['random_state']
         ostate = other.state['proposal_dist']['random_state']
         assert rstate != ostate
-    _anticompare_dict_array(chain.current_position,
-                            other.current_position)
-    _anticompare_dict_array(chain.current_stats,
-                            other.current_stats)
+    _anticompare_dict_array(epsie.array2dict(chain.positions),
+                            epsie.array2dict(other.positions))
+    _anticompare_dict_array(epsie.array2dict(chain.stats),
+                            epsie.array2dict(other.stats))
     if test_blobs:
         # note: we're checking that the blobs aren't the same, but
         # it might happen for a model that they would be the same
@@ -204,5 +243,5 @@ def _check_chains_are_different(chain, other, test_blobs,
         # in utils.py return the value of the log likelihood in
         # each parameter for the blobs, so we expect them to be
         # different in this case
-        _anticompare_dict_array(chain.current_blob,
-                                other.current_blob)
+        _anticompare_dict_array(epsie.array2dict(chain.blobs),
+                                epsie.array2dict(other.blobs))
