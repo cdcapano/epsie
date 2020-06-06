@@ -169,7 +169,7 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
         self.setup_adaptation(**kwargs)
 
 
-class LALAdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
+class LALAdaptiveBoundedNormal(LALAdaptiveSupport, BoundedNormal):
     r"""A bounded normal proposoal with adaptive variance.
 
     See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.

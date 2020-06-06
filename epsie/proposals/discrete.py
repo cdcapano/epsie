@@ -344,7 +344,7 @@ class LALAdaptiveNormalDiscrete(LALAdaptiveSupport, NormalDiscrete):
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormalDiscrete, self).__init__(parameters)
+        super(LALAdaptiveNormalDiscrete, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
@@ -376,7 +376,7 @@ class LALAdaptiveBoundedDiscrete(LALAdaptiveSupport, BoundedDiscrete):
     def __init__(self, parameters, boundaries, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedDiscrete, self).__init__(
+        super(LALAdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)

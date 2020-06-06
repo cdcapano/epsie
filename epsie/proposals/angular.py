@@ -182,7 +182,7 @@ class LALAdaptiveAngular(LALAdaptiveSupport, Angular):
     def __init__(self, parameters, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveAngular, self).__init__(parameters)
+        super(LALAdaptiveAngular, self).__init__(parameters)
         # all parameters have the same (cyclic) boundaries
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
