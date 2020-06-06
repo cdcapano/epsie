@@ -32,7 +32,7 @@ from test_ptsampler import test_chains as _test_chains
 from test_ptsampler import test_checkpointing as _test_checkpointing
 from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
-from test_adaptive_normal import test_std_changes as _test_std_changes
+from test_adaptive_normal import _test_std_changes
 
 
 ITERINT = 32
@@ -42,13 +42,13 @@ SWAP_INTERVAL = 1
 
 def _setup_proposal(name, parameters, boundaries, cov=None,
                     adaptation_duration=None):
-    if name == 'adaptive_bounded_normal':
+    if name == 'bounded_normal' or name == 'adaptive_bounded_normal':
+        return proposals[name](parameters, boundaries, cov=cov)
+    elif name == 'laladaptive_bounded_normal':
         if adaptation_duration is None:
             adaptation_duration = ADAPTATION_DURATION
         return proposals[name](parameters, boundaries,
                                adaptation_duration)
-    elif name == 'bounded_normal':
-        return proposals[name](parameters, boundaries, cov=cov)
     else:
         raise KeyError("unrecognized proposal name {}".format(name))
 
@@ -56,7 +56,8 @@ def _setup_proposal(name, parameters, boundaries, cov=None,
 @pytest.mark.parametrize('proposal_name,cov',
                          [('bounded_normal', None),
                           ('bounded_normal', 4),
-                          ('adaptive_bounded_normal', None)])
+                          ('adaptive_bounded_normal', None),
+                          ('laladaptive_bounded_normal', None)])
 @pytest.mark.parametrize('xmin,xmax',
                          [(-1, 1), (1.2, 2.8), (-42, -23)])
 def test_jumps_in_bounds(proposal_name, cov, xmin, xmax):
@@ -74,18 +75,22 @@ def test_jumps_in_bounds(proposal_name, cov, xmin, xmax):
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_std_changes(nprocs, proposal=None):
-    """Tests that the standard deviation of the proposal changes after a few
-    jumps.
+@pytest.mark.parametrize('proposal_name', ['adaptive_bounded_normal',
+                                           'laladaptive_bounded_normal'])
+def test_std_changes(nprocs, proposal_name, model=None):
+    """Tests that the standard deviation changes after a few jumps for the type
+    of proposal specified by ``proposal_name``.
     """
-    model = Model()
-    proposal = _setup_proposal('adaptive_bounded_normal', model.params,
-                               model.prior_bounds)
-    _test_std_changes(nprocs, proposal=proposal, model=model)
+    # use the test model
+    if model is None:
+        model = Model()
+    proposal = _setup_proposal(proposal_name, model.params, model.prior_bounds)
+    _test_std_changes(nprocs, proposal, model)
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
-                                           'adaptive_bounded_normal'])
+                                           'adaptive_bounded_normal',
+                                           'laladaptive_bounded_normal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_chains(proposal_name, nprocs):
     """Runs the PTSampler ``test_chains`` test using the bounded normal
@@ -101,7 +106,8 @@ def test_chains(proposal_name, nprocs):
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
-                                           'adaptive_bounded_normal'])
+                                           'adaptive_bounded_normal',
+                                           'laladaptive_bounded_normal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_checkpointing(proposal_name, nprocs):
     """Performs the same checkpointing test as for the PTSampler, but using
@@ -113,7 +119,8 @@ def test_checkpointing(proposal_name, nprocs):
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
-                                           'adaptive_bounded_normal'])
+                                           'adaptive_bounded_normal',
+                                           'laladaptive_bounded_normal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_seed(proposal_name, nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
@@ -124,7 +131,8 @@ def test_seed(proposal_name, nprocs):
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_normal',
-                                           'adaptive_bounded_normal'])
+                                           'adaptive_bounded_normal',
+                                           'laladaptive_bounded_normal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_clear_memory(proposal_name, nprocs):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive normal
