@@ -13,7 +13,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division)
 
 from abc import ABCMeta
 from six import add_metaclass
@@ -182,7 +182,7 @@ class Normal(BaseProposal):
 
 
 @add_metaclass(ABCMeta)
-class AdaptiveSupport(object):
+class LALAdaptiveSupport(object):
     r"""Utility class for adding adaptive variance support to a proposal.
 
     The adaptation algorithm is based on Eqs. 35 and 36 of [1]_.
@@ -355,7 +355,7 @@ class AdaptiveSupport(object):
         self._std = state['std']
 
 
-class AdaptiveNormal(AdaptiveSupport, Normal):
+class LALAdaptiveNormal(LALAdaptiveSupport, Normal):
     r"""Uses a normal distribution with adaptive variance for proposals.
 
     See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
@@ -376,12 +376,140 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_normal'
+    name = 'laladaptive_normal'
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormal, self).__init__(parameters)
+        super(LALAdaptiveNormal, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
+
+
+
+@add_metaclass(ABCMeta)
+class AdaptiveSupport(object):
+    r"""Utility class for adding adaptive variance support to a proposal.
+
+    The adaptation algorithm is based on a method in Sivia and Skilling [1]_.
+
+    Notes
+    -----
+    At each iteration :math:`k`, the variance is scaled by a factor
+    :math:`\gamma(k)`
+    
+    .. math::
+
+        \gamma(k) = \alpha(k) \gamma(k-1),
+
+    where
+
+    .. math::
+
+        \alpha(k) = \begin{cases}
+            e^{1/N_a(k)} &\textrm{ if } \frac{N_a(k)}{k} > \xi,\\
+            e^{-1/(k-N_a(k))} &\textrm{ if } \frac{N_a(k)}{k} < \xi,\\
+            1 &\textrm{ if } \frac{N_a(k)}{k} = \xi.
+            \end{cases}
+
+    Here, :math:`N_a(k)` is the number of iterations that have been accepted to
+    this point (so that :math:`k-N_a(k)` is the number of rejections), and
+    :math:`\xi` is the target acceptance rate. The initial :math:`gamma` is
+    set to 1.
+
+    References
+    ----------
+    .. [1] Sivia D., Skilling J., "Data Analysis: A Bayesian Tutorial,"
+        Oxford Univ. Press, Oxford (2006)
+    """
+    target_rate = None
+    n_accepted = None
+    gamma = None
+    max_gamma = None
+
+    def setup_adaptation(self, target_rate=0.234, max_gamma=numpy.inf):
+        r"""Sets up the adaptation parameters.
+
+        Parameters
+        ----------
+        target_rate : float, optional
+            The target acceptance rate. Default is 0.234.
+        """
+        self.target_rate = target_rate
+        self.n_accepted = 0
+        self.gamma = 1.
+        self.max_gamma = max_gamma
+        self.alphas = []
+        self.stds = []
+
+    def update(self, chain):
+        """Updates the adaptation based on whether the last jump was accepted.
+
+        This prepares the proposal for the next jump.
+        """
+        self.n_accepted += int(chain.acceptance[-1]['accepted'])
+        n_iter = chain.iteration
+        rate = self.n_accepted / n_iter
+        if rate > self.target_rate:
+            alpha = numpy.exp(1/self.n_accepted)
+        elif rate < self.target_rate:
+            n_rejected = n_iter - self.n_accepted
+            alpha = numpy.exp(-1/n_rejected)
+        else:
+            alpha = 1.
+        # check that we haven't gone beyond the max
+        gamma = alpha * self.gamma
+        if gamma > self.max_gamma:
+            alpha = 1.
+        else:
+            self.gamma = gamma
+        if self.isdiagonal:
+            self._std *= alpha**0.5
+        else:
+            self._cov *= alpha
+        self.alphas.append(alpha)
+        self.stds.append(self._std[0])
+
+    @property
+    def state(self):
+        state = {'random_state': self.random_state,
+                 'n_accepted': self.n_accepted}
+        if self.isdiagonal:
+            state.update({'std': self._std})
+        else:
+            state.update({'cov': self._cov})
+        return state 
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
+        self.n_accepted = state['n_accepted']
+        if self.isdiagonal:
+            self._std = state['std']
+        else:
+            self._cov = state['cov']
+
+
+
+class AdaptiveNormal(AdaptiveSupport, Normal):
+    r"""Uses a normal distribution with adaptive variance for proposals.
+
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_normal'
+    symmetric = True
+
+    def __init__(self, parameters, cov=None, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveNormal, self).__init__(parameters, cov=cov)
+        # set up the adaptation parameters
+        self.setup_adaptation(**kwargs)

@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, AdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport, LALAdaptiveSupport)
 from .bounded_normal import Boundaries
 
 
@@ -137,6 +137,34 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_angular'
+    symmetric = True
+
+    def __init__(self, parameters, cov=None, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveAngular, self).__init__(parameters, cov=cov)
+        # set up the adaptation parameters
+        self.setup_adaptation(**kwargs)
+
+
+class LALAdaptiveAngular(LALAdaptiveSupport, Angular):
+    r"""An angular proposoal with adaptive variance.
+
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. The boundaries will be used for the
+        prior widths in the adaptation algorithm.
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
@@ -145,7 +173,7 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_angular'
+    name = 'laladaptive_angular'
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration,
