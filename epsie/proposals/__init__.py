@@ -18,24 +18,32 @@ from __future__ import absolute_import
 
 from .base import BaseProposal
 from .joint import JointProposal
-from .normal import (Normal, AdaptiveNormal)
+from .normal import (Normal, AdaptiveNormal, LALAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
-from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries)
-from .angular import (Angular, AdaptiveAngular)
+from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries,
+                             LALAdaptiveBoundedNormal)
+from .angular import (Angular, AdaptiveAngular, LALAdaptiveAngular)
 from .discrete import (NormalDiscrete, AdaptiveNormalDiscrete,
-                       BoundedDiscrete, AdaptiveBoundedDiscrete)
+                       LALAdaptiveNormalDiscrete,
+                       BoundedDiscrete, AdaptiveBoundedDiscrete,
+                       LALAdaptiveBoundedDiscrete)
 
 
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
     AdaptiveNormal.name: AdaptiveNormal,
+    LALAdaptiveNormal.name: LALAdaptiveNormal,
     BoundedNormal.name: BoundedNormal,
     AdaptiveBoundedNormal.name: AdaptiveBoundedNormal,
+    LALAdaptiveBoundedNormal.name: LALAdaptiveBoundedNormal,
     Angular.name: Angular,
     AdaptiveAngular.name: AdaptiveAngular,
+    LALAdaptiveAngular.name: LALAdaptiveAngular,
     NormalDiscrete.name: NormalDiscrete,
     AdaptiveNormalDiscrete.name: AdaptiveNormalDiscrete,
+    LALAdaptiveNormalDiscrete.name: LALAdaptiveNormalDiscrete,
     BoundedDiscrete.name: BoundedDiscrete,
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
+    LALAdaptiveBoundedDiscrete.name: LALAdaptiveBoundedDiscrete,
 }
