@@ -149,6 +149,9 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveAngular, self).__init__(parameters, cov=cov)
         # set up the adaptation parameters
+        if 'max_cov' not in kwargs:
+            # set the max std to be (1.49*2*pi)
+            kwargs['max_cov'] = (1.49 * 2 * numpy.pi)**2
         self.setup_adaptation(**kwargs)
 
 

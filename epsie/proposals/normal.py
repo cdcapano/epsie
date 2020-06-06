@@ -425,21 +425,28 @@ class AdaptiveSupport(object):
     """
     target_rate = None
     n_accepted = None
-    gamma = None
-    max_gamma = None
+    max_std = None
 
-    def setup_adaptation(self, target_rate=0.234, max_gamma=numpy.inf):
+    def setup_adaptation(self, target_rate=0.234, max_cov=None):
         r"""Sets up the adaptation parameters.
 
         Parameters
         ----------
         target_rate : float, optional
             The target acceptance rate. Default is 0.234.
+        max_cov : float, optional
+            The maximum value any element in the covariance matrix is allowed
+            to obtain. If an adapatation step would cause any element to exceed
+            this value, the covariance matrix will not be changed. Default
+            (None) means that no cap will be applied.
         """
         self.target_rate = target_rate
         self.n_accepted = 0
-        self.gamma = 1.
-        self.max_gamma = max_gamma
+        if max_cov is not None:
+            max_std = max_cov**0.5
+        else:
+            max_std = numpy.inf
+        self.max_std = max_std
         self.alphas = []
         self.stds = []
 
@@ -458,16 +465,17 @@ class AdaptiveSupport(object):
             alpha = numpy.exp(-1/n_rejected)
         else:
             alpha = 1.
-        # check that we haven't gone beyond the max
-        gamma = alpha * self.gamma
-        if gamma > self.max_gamma:
-            alpha = 1.
-        else:
-            self.gamma = gamma
         if self.isdiagonal:
-            self._std *= alpha**0.5
+            alpha = alpha**0.5
+            # check that we won't go beyond the max specified
+            max_std = alpha * self._std.max()
+            if max_std <= self.max_std:
+                self._std *= alpha
         else:
-            self._cov *= alpha
+            # check that we won't go beyond the max specified
+            max_cov = alpha * self._cov.max()
+            if max_cov <= self.max_std**2:
+                self._cov *= alpha
         self.alphas.append(alpha)
         self.stds.append(self._std[0])
 

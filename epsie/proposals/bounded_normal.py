@@ -144,6 +144,11 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
+    cov : array, optional
+        The covariance matrix of the parameters. May provide either a single
+        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
+        where ``ndim`` = the number of parameters given. If 2D array is given,
+        the off-diagonal terms must be zero. Default is 1 for all parameters.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -152,11 +157,15 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     name = 'adaptive_bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, **kwargs):
+    def __init__(self, parameters, boundaries, cov=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedNormal, self).__init__(parameters,
-                                                    boundaries)
+        super(AdaptiveBoundedNormal, self).__init__(
+            parameters, boundaries, cov=cov)
         # set up the adaptation parameters
+        if 'max_cov' not in kwargs:
+            # set the max std to be (1.49*abs(bounds)
+            maxwidth = max(map(abs, self.boundaries.values()))
+            kwargs['max_cov'] = (1.49*maxwidth)**2
         self.setup_adaptation(**kwargs)
 
 
