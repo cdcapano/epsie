@@ -18,24 +18,32 @@ from __future__ import absolute_import
 
 from .base import BaseProposal
 from .joint import JointProposal
-from .normal import (Normal, AdaptiveNormal)
+from .normal import (Normal, VeaAdaptiveNormal, SSAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
-from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries)
-from .angular import (Angular, AdaptiveAngular)
-from .discrete import (NormalDiscrete, AdaptiveNormalDiscrete,
-                       BoundedDiscrete, AdaptiveBoundedDiscrete)
+from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
+                             Boundaries, VeaAdaptiveBoundedNormal)
+from .angular import (Angular, SSAdaptiveAngular, VeaAdaptiveAngular)
+from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
+                       VeaAdaptiveNormalDiscrete,
+                       BoundedDiscrete, SSAdaptiveBoundedDiscrete,
+                       VeaAdaptiveBoundedDiscrete)
 
 
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
-    AdaptiveNormal.name: AdaptiveNormal,
+    SSAdaptiveNormal.name: SSAdaptiveNormal,
+    VeaAdaptiveNormal.name: VeaAdaptiveNormal,
     BoundedNormal.name: BoundedNormal,
-    AdaptiveBoundedNormal.name: AdaptiveBoundedNormal,
+    SSAdaptiveBoundedNormal.name: SSAdaptiveBoundedNormal,
+    VeaAdaptiveBoundedNormal.name: VeaAdaptiveBoundedNormal,
     Angular.name: Angular,
-    AdaptiveAngular.name: AdaptiveAngular,
+    SSAdaptiveAngular.name: SSAdaptiveAngular,
+    VeaAdaptiveAngular.name: VeaAdaptiveAngular,
     NormalDiscrete.name: NormalDiscrete,
-    AdaptiveNormalDiscrete.name: AdaptiveNormalDiscrete,
+    SSAdaptiveNormalDiscrete.name: SSAdaptiveNormalDiscrete,
+    VeaAdaptiveNormalDiscrete.name: VeaAdaptiveNormalDiscrete,
     BoundedDiscrete.name: BoundedDiscrete,
-    AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
+    SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
+    VeaAdaptiveBoundedDiscrete.name: VeaAdaptiveBoundedDiscrete,
 }

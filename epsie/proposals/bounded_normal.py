@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, AdaptiveSupport)
+from .normal import (Normal, VeaAdaptiveSupport, SSAdaptiveSupport)
 
 
 class BoundedNormal(Normal):
@@ -131,10 +131,11 @@ class BoundedNormal(Normal):
         return stats.truncnorm.logpdf(xi, a, b, loc=mu, scale=self._std).sum()
 
 
-class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
-    r"""A bounded normal proposoal with adaptive variance.
+class VeaAdaptiveBoundedNormal(VeaAdaptiveSupport, BoundedNormal):
+    r"""A bounded normal proposoal with adaptive variance, using the algorithm
+    from Vetich et al.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -152,16 +153,59 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_bounded_normal'
+    name = 'vea_adaptive_bounded_normal'
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedNormal, self).__init__(parameters,
-                                                    boundaries)
+        super(VeaAdaptiveBoundedNormal, self).__init__(parameters,
+                                                       boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
+
+
+class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
+    r"""A bounded normal proposoal using the Sivia and Skilling algorithm for
+    adjusting the variance.
+
+    By default, the maximum possible standard deviation is set to be 1.49 times
+    largest boundary width (via the ``max_cov`` argument). At this value, there
+    is a 50% chance that a jump will be larger than the boundary width. For
+    more details on the adaptation algorithm, see
+    :py:class:`SSAdaptiveSupport`.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. The boundaries will be used for the
+        prior widths in the adaptation algorithm.
+    cov : array, optional
+        The covariance matrix of the parameters. May provide either a single
+        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
+        where ``ndim`` = the number of parameters given. If 2D array is given,
+        the off-diagonal terms must be zero. Default is 1 for all parameters.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`Adaptive2Support.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'ss_adaptive_bounded_normal'
+    symmetric = False
+
+    def __init__(self, parameters, boundaries, cov=None, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(SSAdaptiveBoundedNormal, self).__init__(
+              parameters, boundaries, cov=cov)
+        # set up the adaptation parameters
+        if 'max_cov' not in kwargs:
+            # set the max std to be (1.49*abs(bounds)
+            maxwidth = max(map(abs, self.boundaries.values()))
+            kwargs['max_cov'] = (1.49*maxwidth)**2
+        self.setup_adaptation(**kwargs)
 
 
 class Boundaries(tuple):

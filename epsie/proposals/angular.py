@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, AdaptiveSupport)
+from .normal import (Normal, VeaAdaptiveSupport, SSAdaptiveSupport)
 from .bounded_normal import Boundaries
 
 
@@ -124,10 +124,11 @@ class Angular(Normal):
                                       scale=std).sum() - self._logfactor
 
 
-class AdaptiveAngular(AdaptiveSupport, Angular):
-    r"""An angular proposoal with adaptive variance.
+class VeaAdaptiveAngular(VeaAdaptiveSupport, Angular):
+    r"""An angular proposoal with adaptive variance, using the algorithm from
+    Veitch et al.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -142,18 +143,50 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         adaptation will be done once a chain exceeds this value.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        :py:func:`VeaAdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_angular'
+    name = 'vea_adaptive_angular'
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveAngular, self).__init__(parameters)
+        super(VeaAdaptiveAngular, self).__init__(parameters)
         # all parameters have the same (cyclic) boundaries
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
         # set up the adaptation parameters
         self.setup_adaptation(boundaries, adaptation_duration, **kwargs)
+
+
+class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
+    r"""An angular proposoal with adaptive variance, using the algorithm from
+    Sivia and Skilling.
+
+    See :py:class:`SSAdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. The boundaries will be used for the
+        prior widths in the adaptation algorithm.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'ss_adaptive_angular'
+    symmetric = True
+
+    def __init__(self, parameters, cov=None, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(SSAdaptiveAngular, self).__init__(parameters, cov=cov)
+        # set up the adaptation parameters
+        if 'max_cov' not in kwargs:
+            # set the max std to be (1.49*2*pi)
+            kwargs['max_cov'] = (1.49 * 2 * numpy.pi)**2
+        self.setup_adaptation(**kwargs)
