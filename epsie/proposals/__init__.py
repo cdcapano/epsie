@@ -20,8 +20,8 @@ from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, VeaAdaptiveNormal, SSAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
-from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal, Boundaries,
-                             VeaAdaptiveBoundedNormal)
+from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
+                             Boundaries, VeaAdaptiveBoundedNormal)
 from .angular import (Angular, SSAdaptiveAngular, VeaAdaptiveAngular)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        VeaAdaptiveNormalDiscrete,

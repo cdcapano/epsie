@@ -415,7 +415,7 @@ class SSAdaptiveSupport(object):
     -----
     At each iteration :math:`k`, the variance is scaled by a factor
     :math:`\gamma(k)`
-    
+
     .. math::
 
         \gamma(k) = \alpha(k) \gamma(k-1),
@@ -500,7 +500,7 @@ class SSAdaptiveSupport(object):
             state.update({'std': self._std})
         else:
             state.update({'cov': self._cov})
-        return state 
+        return state
 
     def set_state(self, state):
         self.random_state = state['random_state']

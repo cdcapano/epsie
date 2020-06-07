@@ -46,6 +46,7 @@ def _setup_proposal(model, proposal_name, params=None,
     else:
         return SSAdaptiveNormal(params, cov=cov)
 
+
 def _setup_vea_proposal(model, params, adaptation_duration=None):
     if adaptation_duration is None:
         adaptation_duration = ADAPTATION_DURATION
