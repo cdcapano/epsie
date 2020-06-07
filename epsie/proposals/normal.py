@@ -184,156 +184,17 @@ class Normal(BaseProposal):
 #
 # =============================================================================
 #
-#                     Adaptive proposal
+#                     Veitch et al. adaptive proposal
 #
 # =============================================================================
 #
 
 
 @add_metaclass(ABCMeta)
-class AdaptiveSupport(object):
+class VeaAdaptiveSupport(object):
     r"""Utility class for adding adaptive variance support to a proposal.
 
-    The adaptation algorithm is based on a method in Sivia and Skilling [1]_.
-
-    Notes
-    -----
-    At each iteration :math:`k`, the variance is scaled by a factor
-    :math:`\gamma(k)`
-    
-    .. math::
-
-        \gamma(k) = \alpha(k) \gamma(k-1),
-
-    where
-
-    .. math::
-
-        \alpha(k) = \begin{cases}
-            e^{1/N_a(k)} &\textrm{ if } \frac{N_a(k)}{k} > \xi,\\
-            e^{-1/(k-N_a(k))} &\textrm{ if } \frac{N_a(k)}{k} < \xi,\\
-            1 &\textrm{ if } \frac{N_a(k)}{k} = \xi.
-            \end{cases}
-
-    Here, :math:`N_a(k)` is the number of iterations that have been accepted to
-    this point (so that :math:`k-N_a(k)` is the number of rejections), and
-    :math:`\xi` is the target acceptance rate. The initial :math:`gamma` is
-    set to 1.
-
-    References
-    ----------
-    .. [1] Sivia D., Skilling J., "Data Analysis: A Bayesian Tutorial,"
-        Oxford Univ. Press, Oxford (2006)
-    """
-    target_rate = None
-    n_accepted = None
-    max_std = None
-
-    def setup_adaptation(self, target_rate=0.234, max_cov=None):
-        r"""Sets up the adaptation parameters.
-
-        Parameters
-        ----------
-        target_rate : float, optional
-            The target acceptance rate. Default is 0.234.
-        max_cov : float, optional
-            The maximum value any element in the covariance matrix is allowed
-            to obtain. If an adapatation step would cause any element to exceed
-            this value, the covariance matrix will not be changed. Default
-            (None) means that no cap will be applied.
-        """
-        self.target_rate = target_rate
-        self.n_accepted = 0
-        if max_cov is not None:
-            max_std = max_cov**0.5
-        else:
-            max_std = numpy.inf
-        self.max_std = max_std
-
-    def update(self, chain):
-        """Updates the adaptation based on whether the last jump was accepted.
-
-        This prepares the proposal for the next jump.
-        """
-        self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = chain.iteration
-        rate = self.n_accepted / n_iter
-        if rate > self.target_rate:
-            alpha = numpy.exp(1/self.n_accepted)
-        elif rate < self.target_rate:
-            n_rejected = n_iter - self.n_accepted
-            alpha = numpy.exp(-1/n_rejected)
-        else:
-            alpha = 1.
-        if self.isdiagonal:
-            alpha = alpha**0.5
-            # check that we won't go beyond the max specified
-            max_std = alpha * self._std.max()
-            if max_std <= self.max_std:
-                self._std *= alpha
-        else:
-            # check that we won't go beyond the max specified
-            max_cov = alpha * self._cov.max()
-            if max_cov <= self.max_std**2:
-                self._cov *= alpha
-
-    @property
-    def state(self):
-        state = {'random_state': self.random_state,
-                 'n_accepted': self.n_accepted}
-        if self.isdiagonal:
-            state.update({'std': self._std})
-        else:
-            state.update({'cov': self._cov})
-        return state 
-
-    def set_state(self, state):
-        self.random_state = state['random_state']
-        self.n_accepted = state['n_accepted']
-        if self.isdiagonal:
-            self._std = state['std']
-        else:
-            self._cov = state['cov']
-
-
-class AdaptiveNormal(AdaptiveSupport, Normal):
-    r"""Uses a normal distribution with adaptive variance for proposals.
-
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
-
-    Parameters
-    ----------
-    parameters : (list of) str
-        The names of the parameters.
-    \**kwargs :
-        All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
-        details.
-    """
-    name = 'adaptive_normal'
-    symmetric = True
-
-    def __init__(self, parameters, cov=None, **kwargs):
-        # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormal, self).__init__(parameters, cov=cov)
-        # set up the adaptation parameters
-        self.setup_adaptation(**kwargs)
-
-
-#
-# =============================================================================
-#
-#                     LALAdaptive proposal
-#
-# =============================================================================
-#
-
-
-@add_metaclass(ABCMeta)
-class LALAdaptiveSupport(object):
-    r"""Utility class for adding adaptive variance support to a proposal.
-
-    The adaptation algorithm is based on Eqs. 35 and 36 of [1]_.
+    The adaptation algorithm is based on Eqs. 35 and 36 of Veitch et al. [1]_.
     The with of the proposal at each step is based on the width of the prior
     and whether or not the previous proposal was accepted or not. See Notes
     for more details.
@@ -503,10 +364,10 @@ class LALAdaptiveSupport(object):
         self._std = state['std']
 
 
-class LALAdaptiveNormal(LALAdaptiveSupport, Normal):
+class VeaAdaptiveNormal(VeaAdaptiveSupport, Normal):
     r"""Uses a normal distribution with adaptive variance for proposals.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -521,15 +382,154 @@ class LALAdaptiveNormal(LALAdaptiveSupport, Normal):
         adaptation will be done once a chain exceeds this value.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        :py:func:`VeaAdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'laladaptive_normal'
+    name = 'vea_adaptive_normal'
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(LALAdaptiveNormal, self).__init__(parameters)
+        super(VeaAdaptiveNormal, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
+
+
+#
+# =============================================================================
+#
+#                   Sivia & Skilling adaptive algorithm
+#
+# =============================================================================
+#
+
+
+@add_metaclass(ABCMeta)
+class SSAdaptiveSupport(object):
+    r"""Utility class for adding adaptive variance support to a proposal.
+
+    The adaptation algorithm is based on a method in Sivia and Skilling [1]_.
+
+    Notes
+    -----
+    At each iteration :math:`k`, the variance is scaled by a factor
+    :math:`\gamma(k)`
+    
+    .. math::
+
+        \gamma(k) = \alpha(k) \gamma(k-1),
+
+    where
+
+    .. math::
+
+        \alpha(k) = \begin{cases}
+            e^{1/N_a(k)} &\textrm{ if } \frac{N_a(k)}{k} > \xi,\\
+            e^{-1/(k-N_a(k))} &\textrm{ if } \frac{N_a(k)}{k} < \xi,\\
+            1 &\textrm{ if } \frac{N_a(k)}{k} = \xi.
+            \end{cases}
+
+    Here, :math:`N_a(k)` is the number of iterations that have been accepted to
+    this point (so that :math:`k-N_a(k)` is the number of rejections), and
+    :math:`\xi` is the target acceptance rate. The initial :math:`gamma` is
+    set to 1.
+
+    References
+    ----------
+    .. [1] Sivia D., Skilling J., "Data Analysis: A Bayesian Tutorial,"
+        Oxford Univ. Press, Oxford (2006)
+    """
+    target_rate = None
+    n_accepted = None
+    max_std = None
+
+    def setup_adaptation(self, target_rate=0.234, max_cov=None):
+        r"""Sets up the adaptation parameters.
+
+        Parameters
+        ----------
+        target_rate : float, optional
+            The target acceptance rate. Default is 0.234.
+        max_cov : float, optional
+            The maximum value any element in the covariance matrix is allowed
+            to obtain. If an adapatation step would cause any element to exceed
+            this value, the covariance matrix will not be changed. Default
+            (None) means that no cap will be applied.
+        """
+        self.target_rate = target_rate
+        self.n_accepted = 0
+        if max_cov is not None:
+            max_std = max_cov**0.5
+        else:
+            max_std = numpy.inf
+        self.max_std = max_std
+
+    def update(self, chain):
+        """Updates the adaptation based on whether the last jump was accepted.
+
+        This prepares the proposal for the next jump.
+        """
+        self.n_accepted += int(chain.acceptance[-1]['accepted'])
+        n_iter = chain.iteration
+        rate = self.n_accepted / n_iter
+        if rate > self.target_rate:
+            alpha = numpy.exp(1/self.n_accepted)
+        elif rate < self.target_rate:
+            n_rejected = n_iter - self.n_accepted
+            alpha = numpy.exp(-1/n_rejected)
+        else:
+            alpha = 1.
+        if self.isdiagonal:
+            alpha = alpha**0.5
+            # check that we won't go beyond the max specified
+            max_std = alpha * self._std.max()
+            if max_std <= self.max_std:
+                self._std *= alpha
+        else:
+            # check that we won't go beyond the max specified
+            max_cov = alpha * self._cov.max()
+            if max_cov <= self.max_std**2:
+                self._cov *= alpha
+
+    @property
+    def state(self):
+        state = {'random_state': self.random_state,
+                 'n_accepted': self.n_accepted}
+        if self.isdiagonal:
+            state.update({'std': self._std})
+        else:
+            state.update({'cov': self._cov})
+        return state 
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
+        self.n_accepted = state['n_accepted']
+        if self.isdiagonal:
+            self._std = state['std']
+        else:
+            self._cov = state['cov']
+
+
+class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
+    r"""Uses a normal distribution with adaptive variance for proposals.
+
+    See :py:class:`SSAdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'ss_adaptive_normal'
+    symmetric = True
+
+    def __init__(self, parameters, cov=None, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(SSAdaptiveNormal, self).__init__(parameters, cov=cov)
+        # set up the adaptation parameters
+        self.setup_adaptation(**kwargs)

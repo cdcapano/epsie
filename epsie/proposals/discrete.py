@@ -19,7 +19,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, AdaptiveSupport, LALAdaptiveSupport)
+from .normal import (Normal, VeaAdaptiveSupport, SSAdaptiveSupport)
 from .bounded_normal import (BoundedNormal)
 
 
@@ -247,10 +247,11 @@ class BoundedDiscrete(BoundedNormal):
 #
 
 
-class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
-    r"""A discrete proposoal with adaptive variance.
+class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
+    r"""A discrete proposoal with adaptive variance, using the algorithm from
+    Sivia and Skilling.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`SSAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -263,21 +264,22 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
         the off-diagonal terms must be zero. Default is 1 for all parameters.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_discrete'
+    name = 'ss_adaptive_discrete'
     symmetric = True
 
     def __init__(self, parameters, cov=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormalDiscrete, self).__init__(parameters, cov=cov)
+        super(SSAdaptiveNormalDiscrete, self).__init__(parameters, cov=cov)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
 
-class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
-    r"""A bounded discrete proposoal with adaptive variance.
+class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
+    r"""A bounded discrete proposoal with adaptive variance, using the
+    algorithm from Sivia and Skilling.
 
     See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
@@ -289,9 +291,6 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. If floats are provided, the floor
         (ceil) of the lower (upper) bound will be used.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
     cov : array, optional
         The covariance matrix of the parameters. May provide either a single
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
@@ -302,12 +301,12 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_bounded_discrete'
+    name = 'ss_adaptive_bounded_discrete'
     symmetric = False
 
     def __init__(self, parameters, boundaries,  cov=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedDiscrete, self).__init__(
+        super(SSAdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries, cov=cov)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
@@ -317,10 +316,11 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
         self.setup_adaptation(**kwargs)
 
 
-class LALAdaptiveNormalDiscrete(LALAdaptiveSupport, NormalDiscrete):
-    r"""A discrete proposoal with adaptive variance.
+class VeaAdaptiveNormalDiscrete(VeaAdaptiveSupport, NormalDiscrete):
+    r"""A discrete proposoal with adaptive variance, using the algorithm from
+    Veitch et al.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -338,21 +338,21 @@ class LALAdaptiveNormalDiscrete(LALAdaptiveSupport, NormalDiscrete):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'laladaptive_discrete'
+    name = 'vea_adaptive_discrete'
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(LALAdaptiveNormalDiscrete, self).__init__(parameters)
+        super(VeaAdaptiveNormalDiscrete, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
 
-class LALAdaptiveBoundedDiscrete(LALAdaptiveSupport, BoundedDiscrete):
+class VeaAdaptiveBoundedDiscrete(VeaAdaptiveSupport, BoundedDiscrete):
     r"""A bounded discrete proposoal with adaptive variance.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -370,13 +370,13 @@ class LALAdaptiveBoundedDiscrete(LALAdaptiveSupport, BoundedDiscrete):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'laladaptive_bounded_discrete'
+    name = 'vea_adaptive_bounded_discrete'
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(LALAdaptiveBoundedDiscrete, self).__init__(
+        super(VeaAdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)

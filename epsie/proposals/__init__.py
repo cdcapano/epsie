@@ -18,32 +18,32 @@ from __future__ import absolute_import
 
 from .base import BaseProposal
 from .joint import JointProposal
-from .normal import (Normal, AdaptiveNormal, LALAdaptiveNormal)
+from .normal import (Normal, VeaAdaptiveNormal, SSAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
-from .bounded_normal import (BoundedNormal, AdaptiveBoundedNormal, Boundaries,
-                             LALAdaptiveBoundedNormal)
-from .angular import (Angular, AdaptiveAngular, LALAdaptiveAngular)
-from .discrete import (NormalDiscrete, AdaptiveNormalDiscrete,
-                       LALAdaptiveNormalDiscrete,
-                       BoundedDiscrete, AdaptiveBoundedDiscrete,
-                       LALAdaptiveBoundedDiscrete)
+from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal, Boundaries,
+                             VeaAdaptiveBoundedNormal)
+from .angular import (Angular, SSAdaptiveAngular, VeaAdaptiveAngular)
+from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
+                       VeaAdaptiveNormalDiscrete,
+                       BoundedDiscrete, SSAdaptiveBoundedDiscrete,
+                       VeaAdaptiveBoundedDiscrete)
 
 
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
-    AdaptiveNormal.name: AdaptiveNormal,
-    LALAdaptiveNormal.name: LALAdaptiveNormal,
+    SSAdaptiveNormal.name: SSAdaptiveNormal,
+    VeaAdaptiveNormal.name: VeaAdaptiveNormal,
     BoundedNormal.name: BoundedNormal,
-    AdaptiveBoundedNormal.name: AdaptiveBoundedNormal,
-    LALAdaptiveBoundedNormal.name: LALAdaptiveBoundedNormal,
+    SSAdaptiveBoundedNormal.name: SSAdaptiveBoundedNormal,
+    VeaAdaptiveBoundedNormal.name: VeaAdaptiveBoundedNormal,
     Angular.name: Angular,
-    AdaptiveAngular.name: AdaptiveAngular,
-    LALAdaptiveAngular.name: LALAdaptiveAngular,
+    SSAdaptiveAngular.name: SSAdaptiveAngular,
+    VeaAdaptiveAngular.name: VeaAdaptiveAngular,
     NormalDiscrete.name: NormalDiscrete,
-    AdaptiveNormalDiscrete.name: AdaptiveNormalDiscrete,
-    LALAdaptiveNormalDiscrete.name: LALAdaptiveNormalDiscrete,
+    SSAdaptiveNormalDiscrete.name: SSAdaptiveNormalDiscrete,
+    VeaAdaptiveNormalDiscrete.name: VeaAdaptiveNormalDiscrete,
     BoundedDiscrete.name: BoundedDiscrete,
-    AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
-    LALAdaptiveBoundedDiscrete.name: LALAdaptiveBoundedDiscrete,
+    SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
+    VeaAdaptiveBoundedDiscrete.name: VeaAdaptiveBoundedDiscrete,
 }

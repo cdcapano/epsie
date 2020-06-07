@@ -40,7 +40,7 @@ SWAP_INTERVAL = 1
 
 def _setup_proposal(name, parameters, boundaries=None, cov=None,
                     adaptation_duration=None):
-    if name.startswith('laladaptive'):
+    if name.startswith('vea_adaptive'):
         if adaptation_duration is None:
             adaptation_duration = ADAPTATION_DURATION
         return proposals[name](parameters, boundaries,
@@ -54,8 +54,8 @@ def _setup_proposal(name, parameters, boundaries=None, cov=None,
 @pytest.mark.parametrize('proposal_name,cov',
                          [('bounded_discrete', None),
                           ('bounded_discrete', 4),
-                          ('adaptive_bounded_discrete', None),
-                          ('laladaptive_bounded_discrete', None)])
+                          ('ss_adaptive_bounded_discrete', None),
+                          ('vea_adaptive_bounded_discrete', None)])
 @pytest.mark.parametrize('kmin,kmax',
                          [(0, 16), (1, 11)])
 def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
@@ -83,10 +83,11 @@ def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
-                                           'adaptive_discrete',
+                                           'ss_adaptive_discrete',
+                                           'vea_adaptive_discrete',
                                            'bounded_discrete',
-                                           'adaptive_bounded_discrete',
-                                           'laladaptive_bounded_discrete'])
+                                           'ss_adaptive_bounded_discrete',
+                                           'vea_adaptive_bounded_discrete'])
 def test_logpdf(proposal_name):
     """Tests that the logpdf function is constant for two values with the same
     integer value.
@@ -108,10 +109,10 @@ def test_logpdf(proposal_name):
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('proposal_name', ['adaptive_discrete',
-                                           'adaptive_bounded_discrete',
-                                           'laladaptive_discrete',
-                                           'laladaptive_bounded_discrete'])
+@pytest.mark.parametrize('proposal_name', ['ss_adaptive_discrete',
+                                           'ss_adaptive_bounded_discrete',
+                                           'vea_adaptive_discrete',
+                                           'vea_adaptive_bounded_discrete'])
 def test_std_changes(nprocs, proposal_name):
     """Tests that the standard deviation of the adaptive proposals change
     after a few jumps.
@@ -123,11 +124,11 @@ def test_std_changes(nprocs, proposal_name):
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
-                                           'adaptive_discrete',
+                                           'ss_adaptive_discrete',
+                                           'vea_adaptive_discrete',
                                            'bounded_discrete',
-                                           'adaptive_bounded_discrete',
-                                           'laladaptive_discrete',
-                                           'laladaptive_bounded_discrete'])
+                                           'ss_adaptive_bounded_discrete',
+                                           'vea_adaptive_bounded_discrete'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_chains(proposal_name, nprocs):
     """Runs the PTSampler ``test_chains`` test using the bounded normal
@@ -139,11 +140,11 @@ def test_chains(proposal_name, nprocs):
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
-                                           'adaptive_discrete',
+                                           'ss_adaptive_discrete',
+                                           'vea_adaptive_discrete',
                                            'bounded_discrete',
-                                           'adaptive_bounded_discrete',
-                                           'laladaptive_discrete',
-                                           'laladaptive_bounded_discrete'])
+                                           'ss_adaptive_bounded_discrete',
+                                           'vea_adaptive_bounded_discrete'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_checkpointing(proposal_name, nprocs):
     """Performs the same checkpointing test as for the PTSampler, but using
@@ -155,11 +156,11 @@ def test_checkpointing(proposal_name, nprocs):
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
-                                           'adaptive_discrete',
+                                           'ss_adaptive_discrete',
+                                           'vea_adaptive_discrete',
                                            'bounded_discrete',
-                                           'adaptive_bounded_discrete',
-                                           'laladaptive_discrete',
-                                           'laladaptive_bounded_discrete'])
+                                           'ss_adaptive_bounded_discrete',
+                                           'vea_adaptive_bounded_discrete'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_seed(proposal_name, nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
@@ -170,11 +171,11 @@ def test_seed(proposal_name, nprocs):
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
-                                           'adaptive_discrete',
+                                           'ss_adaptive_discrete',
+                                           'vea_adaptive_discrete',
                                            'bounded_discrete',
-                                           'adaptive_bounded_discrete',
-                                           'laladaptive_discrete',
-                                           'laladaptive_bounded_discrete'])
+                                           'ss_adaptive_bounded_discrete',
+                                           'vea_adaptive_bounded_discrete'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_clear_memory(proposal_name, nprocs):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive normal
