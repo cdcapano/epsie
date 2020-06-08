@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, VeaAdaptiveSupport, SSAdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport)
 from .bounded_normal import Boundaries
 
 
@@ -124,11 +124,11 @@ class Angular(Normal):
                                       scale=std).sum() - self._logfactor
 
 
-class VeaAdaptiveAngular(VeaAdaptiveSupport, Angular):
+class AdaptiveAngular(AdaptiveSupport, Angular):
     r"""An angular proposoal with adaptive variance, using the algorithm from
     Veitch et al.
 
-    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -143,16 +143,16 @@ class VeaAdaptiveAngular(VeaAdaptiveSupport, Angular):
         adaptation will be done once a chain exceeds this value.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`VeaAdaptiveSupport.setup_adaptation`. See that function for
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'vea_adaptive_angular'
+    name = 'adaptive_angular'
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(VeaAdaptiveAngular, self).__init__(parameters)
+        super(AdaptiveAngular, self).__init__(parameters)
         # all parameters have the same (cyclic) boundaries
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}

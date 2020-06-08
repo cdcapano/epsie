@@ -18,32 +18,32 @@ from __future__ import absolute_import
 
 from .base import BaseProposal
 from .joint import JointProposal
-from .normal import (Normal, VeaAdaptiveNormal, SSAdaptiveNormal)
+from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
 from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
-                             Boundaries, VeaAdaptiveBoundedNormal)
-from .angular import (Angular, SSAdaptiveAngular, VeaAdaptiveAngular)
+                             Boundaries, AdaptiveBoundedNormal)
+from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
-                       VeaAdaptiveNormalDiscrete,
+                       AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
-                       VeaAdaptiveBoundedDiscrete)
+                       AdaptiveBoundedDiscrete)
 
 
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
     SSAdaptiveNormal.name: SSAdaptiveNormal,
-    VeaAdaptiveNormal.name: VeaAdaptiveNormal,
+    AdaptiveNormal.name: AdaptiveNormal,
     BoundedNormal.name: BoundedNormal,
     SSAdaptiveBoundedNormal.name: SSAdaptiveBoundedNormal,
-    VeaAdaptiveBoundedNormal.name: VeaAdaptiveBoundedNormal,
+    AdaptiveBoundedNormal.name: AdaptiveBoundedNormal,
     Angular.name: Angular,
     SSAdaptiveAngular.name: SSAdaptiveAngular,
-    VeaAdaptiveAngular.name: VeaAdaptiveAngular,
+    AdaptiveAngular.name: AdaptiveAngular,
     NormalDiscrete.name: NormalDiscrete,
     SSAdaptiveNormalDiscrete.name: SSAdaptiveNormalDiscrete,
-    VeaAdaptiveNormalDiscrete.name: VeaAdaptiveNormalDiscrete,
+    AdaptiveNormalDiscrete.name: AdaptiveNormalDiscrete,
     BoundedDiscrete.name: BoundedDiscrete,
     SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
-    VeaAdaptiveBoundedDiscrete.name: VeaAdaptiveBoundedDiscrete,
+    AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
 }

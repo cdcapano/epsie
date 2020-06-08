@@ -22,7 +22,7 @@ import itertools
 import pytest
 import numpy
 
-from epsie.proposals import (SSAdaptiveNormal, VeaAdaptiveNormal)
+from epsie.proposals import (SSAdaptiveNormal, AdaptiveNormal)
 from _utils import Model
 
 from test_ptsampler import _create_sampler
@@ -41,7 +41,7 @@ def _setup_proposal(model, proposal_name, params=None,
                     cov=None, adaptation_duration=None):
     if params is None:
         params = model.params
-    if proposal_name.startswith('vea_adaptive'):
+    if proposal_name.startswith('adaptive'):
         return _setup_vea_proposal(model, params, adaptation_duration)
     else:
         return SSAdaptiveNormal(params, cov=cov)
@@ -53,13 +53,13 @@ def _setup_vea_proposal(model, params, adaptation_duration=None):
     prior_widths = {p: abs(bnds[1] - bnds[0])
                     for p, bnds in model.prior_bounds.items()
                     if p in params}
-    return VeaAdaptiveNormal(params, prior_widths,
+    return AdaptiveNormal(params, prior_widths,
                              adaptation_duration=adaptation_duration)
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_normal',
-                                           'vea_adaptive_normal'])
+                                           'adaptive_normal'])
 def test_std_changes(nprocs, proposal_name, model=None):
     """Tests that the standard deviation changes after a few jumps for the type
     of proposal specified by ``proposal_name``.
@@ -96,7 +96,7 @@ def _test_std_changes(nprocs, proposal, model):
             current_std[ii, jj, :] = thisprop.std
     assert (initial_std != current_std).all()
     # vea adaptive proposals shut the adaptation after the adaption duration
-    if proposal.name.startswith('vea_adaptive'):
+    if proposal.name.startswith('adaptive'):
         # now run past the adaptation duration; since we have gone past it, the
         # standard deviations should no longer change
         sampler.run(ITERINT//2)
@@ -114,7 +114,7 @@ def _test_std_changes(nprocs, proposal, model):
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_normal',
-                                           'vea_adaptive_normal'])
+                                           'adaptive_normal'])
 def test_chains(nprocs, proposal_name):
     """Runs the PTSampler ``test_chains`` test using the adaptive normal
     proposal.
@@ -129,7 +129,7 @@ def test_chains(nprocs, proposal_name):
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_normal',
-                                           'vea_adaptive_normal'])
+                                           'adaptive_normal'])
 def test_checkpointing(nprocs, proposal_name):
     """Performs the same checkpointing test as for the PTSampler, but using
     the adaptive normal proposal.
@@ -141,7 +141,7 @@ def test_checkpointing(nprocs, proposal_name):
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_normal',
-                                           'vea_adaptive_normal'])
+                                           'adaptive_normal'])
 def test_seed(nprocs, proposal_name):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
     """
@@ -152,7 +152,7 @@ def test_seed(nprocs, proposal_name):
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_normal',
-                                           'vea_adaptive_normal'])
+                                           'adaptive_normal'])
 def test_clear_memory(nprocs, proposal_name):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive normal
     proposal.
