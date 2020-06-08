@@ -191,7 +191,7 @@ class Normal(BaseProposal):
 
 
 @add_metaclass(ABCMeta)
-class VeaAdaptiveSupport(object):
+class AdaptiveSupport(object):
     r"""Utility class for adding adaptive variance support to a proposal.
 
     The adaptation algorithm is based on Eqs. 35 and 36 of Veitch et al. [1]_.
@@ -364,10 +364,10 @@ class VeaAdaptiveSupport(object):
         self._std = state['std']
 
 
-class VeaAdaptiveNormal(VeaAdaptiveSupport, Normal):
+class AdaptiveNormal(AdaptiveSupport, Normal):
     r"""Uses a normal distribution with adaptive variance for proposals.
 
-    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -382,16 +382,16 @@ class VeaAdaptiveNormal(VeaAdaptiveSupport, Normal):
         adaptation will be done once a chain exceeds this value.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`VeaAdaptiveSupport.setup_adaptation`. See that function for
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'vea_adaptive_normal'
+    name = 'adaptive_normal'
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(VeaAdaptiveNormal, self).__init__(parameters)
+        super(AdaptiveNormal, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 

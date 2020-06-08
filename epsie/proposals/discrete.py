@@ -19,7 +19,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, VeaAdaptiveSupport, SSAdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport)
 from .bounded_normal import (BoundedNormal)
 
 
@@ -316,11 +316,11 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
         self.setup_adaptation(**kwargs)
 
 
-class VeaAdaptiveNormalDiscrete(VeaAdaptiveSupport, NormalDiscrete):
+class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     r"""A discrete proposoal with adaptive variance, using the algorithm from
     Veitch et al.
 
-    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -338,21 +338,21 @@ class VeaAdaptiveNormalDiscrete(VeaAdaptiveSupport, NormalDiscrete):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'vea_adaptive_discrete'
+    name = 'adaptive_discrete'
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(VeaAdaptiveNormalDiscrete, self).__init__(parameters)
+        super(AdaptiveNormalDiscrete, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
 
-class VeaAdaptiveBoundedDiscrete(VeaAdaptiveSupport, BoundedDiscrete):
+class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
     r"""A bounded discrete proposoal with adaptive variance.
 
-    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -370,13 +370,13 @@ class VeaAdaptiveBoundedDiscrete(VeaAdaptiveSupport, BoundedDiscrete):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'vea_adaptive_bounded_discrete'
+    name = 'adaptive_bounded_discrete'
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(VeaAdaptiveBoundedDiscrete, self).__init__(
+        super(AdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)

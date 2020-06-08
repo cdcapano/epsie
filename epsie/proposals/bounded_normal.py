@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, VeaAdaptiveSupport, SSAdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport)
 
 
 class BoundedNormal(Normal):
@@ -131,11 +131,11 @@ class BoundedNormal(Normal):
         return stats.truncnorm.logpdf(xi, a, b, loc=mu, scale=self._std).sum()
 
 
-class VeaAdaptiveBoundedNormal(VeaAdaptiveSupport, BoundedNormal):
+class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     r"""A bounded normal proposoal with adaptive variance, using the algorithm
     from Vetich et al.
 
-    See :py:class:`VeaAdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -153,13 +153,13 @@ class VeaAdaptiveBoundedNormal(VeaAdaptiveSupport, BoundedNormal):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'vea_adaptive_bounded_normal'
+    name = 'adaptive_bounded_normal'
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(VeaAdaptiveBoundedNormal, self).__init__(parameters,
+        super(AdaptiveBoundedNormal, self).__init__(parameters,
                                                        boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
