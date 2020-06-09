@@ -207,7 +207,7 @@ class BoundedDiscrete(BoundedNormal):
                 # for values < 0, we want the floor; for values > 0, the
                 # ceiling
                 deltax = int(_floorceil(deltax))
-                newpt = {p: fromx[p]+deltax}
+                newpt = {p: int(fromx[p])+deltax}
                 inbnds = newpt in self
             to_x.update(newpt)
         return to_x
