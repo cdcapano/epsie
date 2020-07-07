@@ -28,6 +28,8 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
 
+from .poisson import Poisson
+
 
 proposals = {
     JointProposal.name: JointProposal,
@@ -46,4 +48,5 @@ proposals = {
     BoundedDiscrete.name: BoundedDiscrete,
     SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
+    Poisson.name : Poisson,
 }
