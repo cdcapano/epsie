@@ -29,6 +29,7 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveBoundedDiscrete)
 
 from .poisson import Poisson
+from .birthdeath import BirthDeath
 
 
 proposals = {
@@ -49,4 +50,5 @@ proposals = {
     SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
     Poisson.name : Poisson,
+    BirthDeath.name : BirthDeath,
 }

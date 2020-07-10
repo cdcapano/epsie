@@ -35,24 +35,13 @@ class Poisson(BaseProposal):
         self._mu = None
         self.mu = mu
 
-
-    def _ensurearray(self, val):
-        """Boiler-plate function for setting covariance or standard deviation.
-
-        This ensures that the given value is an array with the same length as
-        the number of parameters.
+    def _ensuredict(self, mu):
+        """ Boiler-plate function for setting the mean of the Poission 
+        distributon. This ensures that every parameter has a specified mean.
         """
-        if not isinstance(val, numpy.ndarray):
-            val = numpy.array(val)
-        # make sure val is atleast 1D array
-        if val.ndim < 1 or val.size == 1:
-            val = numpy.repeat(val.item(), len(self.parameters))
-        # make sure the dimensionality makes sense
-        if ((val.ndim == 1 and val.size != self.ndim) or (
-             val.ndim != 1 and val.shape != (self.ndim, self.ndim))):
-            raise ValueError("must provide a value for every parameter")
-        return val
-
+        if len(mu) is not len(self.parameters):
+            raise ValueError("must provide a mean for every parameter")
+        return dict(zip(self.parameters, mu))
 
     @property
     def mu(self):
@@ -61,33 +50,31 @@ class Poisson(BaseProposal):
         """
         return self._mu
 
-
     @mu.setter
     def mu(self, mu):
         """
         Sets the mean of the Poisson distribution
         """
-        mu = self._ensurearray(mu)
+        mu = self._ensuredict(mu)
         self._mu = mu
-
 
     @property
     def state(self):
         return {'random_state': self.random_state}
 
-
     def set_state(self, state):
         self.random_state = state['random_state']
 
-
-    def jump(self, fromx=None):
+    def jump(self, fromx):
         # Drawing samples from a Poisson distribution does not depend
         # on the current position
-        newpt = self.random_generator.poisson(self._mu)
+        newpt = self.random_generator.poisson(list(self._mu.values()))
         return dict(zip(self.parameters, newpt))
 
-
-    def logpdf(self, xi):
+    def logpdf(self, xi, givenx=None):
         xi = [xi[p] for p in self.parameters]
-        logp = stats.poisson.logpmf(k=xi, mu=self._mu).sum()
+        logp = stats.poisson.logpmf(k=xi, mu=list(self._mu.values())).sum()
         return logp
+
+
+
