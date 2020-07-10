@@ -181,7 +181,7 @@ class BaseProposal(object):
         pass
 
     @abstractmethod
-    def jump(self, fromx, dimchange=None):
+    def jump(self, fromx):
         """This should provide random samples from the proposal distribution.
 
         Samples should be returned as a dictionary mapping parameters to
