@@ -29,6 +29,8 @@ from io import BytesIO
 import numpy
 from randomgen import PCG64
 
+from .parameter import Parameter
+
 #
 # =============================================================================
 #

@@ -18,7 +18,7 @@ from __future__ import (absolute_import, division)
 from abc import ABCMeta
 from six import add_metaclass
 
-import numpy
+import numpy # why not as np? I thought thats widely accepted
 from scipy import stats
 
 #from .base import BaseProposal
@@ -29,7 +29,7 @@ from copy import deepcopy
 class BirthDeath(Normal):
 
     name = 'birthdeath'
-    symmetric = False
+    symmetric = False # um, actually this is True in the current version
 
     # within model pars, all pars, index pars
 
@@ -89,11 +89,15 @@ class BirthDeath(Normal):
     def move(self, fromx):
         """Prior probability of either birth death or update"""
         # move this c up
-        c = 0.25
+        c = 0.33
         k = fromx[self.model_index]
         logpk = self.prior_dist[self.model_index].logpmf
         birth = c*min(1, numpy.exp(logpk(k + 1) - logpk(k)))
         death = c*min(1, numpy.exp(logpk(k - 1) - logpk(k)))
+        if k == self.ncomp_bound[0]:
+            death = 0.0
+        elif k == self.ncomp_bound[1]:
+            birth = 0.0
         # Update happens with probability 1 - birth - death
         # Random number U(0, 1)
         u = self.random_generator.uniform()
@@ -120,9 +124,9 @@ class BirthDeath(Normal):
             # This one still updates the wrong parameters
             print('update mode')
             if self.isdiagonal:
-                print('is diagonal')
+#                print('is diagonal')
                 mu = [fromx[p] for p in self.parameters]
-                print(mu)
+#                print(mu)
                 newpt = self.random_generator.normal(mu, self._std)
             else:
                 newpt = self.random_generator.multivariate_normal(
@@ -157,15 +161,20 @@ class BirthDeath(Normal):
                 newpt[self.model_index] -= 1
         return newpt
 
-    # STILL NEEDS EDIDITING, copied straight from BoundedNormal
     def logpdf(self, xi, givenx):
-        mu = numpy.array([givenx[p] for p in self.parameters])
-        xi = numpy.array([xi[p] for p in self.parameters])
-        a = (self._lowerbnd - mu)/self._std
-        b = (self._upperbnd - mu)/self._std
-        return stats.truncnorm.logpdf(xi, a, b, loc=mu, scale=self._std).sum()
-
-
-
-
-
+        # Calc the within model logpdf. Assumed to be drawn from a normal
+        # distribution
+        k = xi[self.model_index]
+        means = [givenx[p] for p in self.parameters]
+        xi = [xi[p] for p in self.parameters]
+        if self.isdiagonal:
+            logp = (stats.norm.logpdf(xi, loc=means, scale=self._std))
+            mask = numpy.where(numpy.isfinite(logp))
+            logp = (logp[mask]).sum()
+        else:
+            # still need to remove nans here
+            logp = stats.multivariate_normal.logpdf(xi, mean=means,
+                                                    cov=self._cov)
+        # Model number pmf
+        logp += self.prior_dist[self.model_index].logpmf(k)
+        return logp
