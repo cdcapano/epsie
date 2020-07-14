@@ -1,4 +1,4 @@
-# Copyright (C) 2019  Collin Capano
+# Copyright (C) 2020 Richard Stiskalek
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
@@ -18,163 +18,129 @@ from __future__ import (absolute_import, division)
 from abc import ABCMeta
 from six import add_metaclass
 
-import numpy # why not as np? I thought thats widely accepted
+import numpy as np
 from scipy import stats
 
-#from .base import BaseProposal
-from .normal import Normal
+from .base import BaseProposal
+from .bounded_normal import Boundaries
 
-from copy import deepcopy
 
-class BirthDeath(Normal):
-
+class BirthDeath(BaseProposal):
+    """Transdimensional proposal that allows dimension change by +- 1 or  keep
+    the same number of dimensions.
+    --------------------------
+    Parameters:
+        parameters: list of str
+            Parameter names for this proposal
+        boundaries: dict of tuples,  keys -> parameters
+            Inclusive lower and upper limits on the parameters
+        jump_proposal: dict of funcs, keys -> parameters
+            Logpdfs for each parameter
+        jump_freq: float (optional)
+            Parameter that tunes the proportion of dimension jumps
+    """
     name = 'birthdeath'
-    symmetric = False # um, actually this is True in the current version
+    symmetric = False
 
-    # within model pars, all pars, index pars
+    def __init__(self, parameters, boundaries, jump_proposal,
+               jump_freq=0.5):
+        self._parameters = None
+        self._boundaries = None
+        self._jum_proposal = None
+        self._jump_freq = None
+        self._jump_freq = None
 
-    def __init__(self, model_pars, all_pars, model_index, prior_dist,
-                 ncomp_bound, cov=None):
-        self.model_pars = model_pars
-        self.all_pars = all_pars
-        self._model_index = None
-        self._ncomp_bound = None
-        self._prior_rvs = None
-
-        super(BirthDeath, self).__init__(self.all_pars, cov=cov)
-        self.model_index = model_index
-        self.ncomp_bound = ncomp_bound
-        self.prior_dist = prior_dist
+        self.parameters = parameters
+        self.boundaries = boundaries
+        self.jump_proposal = jump_proposal
+        self.jump_freq = jump_freq
 
     @property
-    def model_index(self):
-        """Parameter name detoning the number of fundamental waves"""
-        return self._model_index
+    def parameters(self):
+        """Parameters of this proposal"""
+        return self._parameters
 
-    @model_index.setter
-    def model_index(self, index):
-        if not isinstance(index, str):
-            raise ValueError("must provide a str")
-        self._model_index = index
-
-    @property
-    def ncomp_bound(self):
-        """A tuple (kmin, kmax)"""
-        return self._ncomp_bound
-
-    @ncomp_bound.setter
-    def ncomp_bound(self, ncomp_bound):
-        if not isinstance(ncomp_bound, tuple):
-            raise ValueError("must provide a tuple")
-        self._ncomp_bound = ncomp_bound
+    @parameters.setter
+    def parameters(self, parameters):
+        if not isinstance(parameters, list):
+            raise ValueError('provide a list')
+        if not all([isinstance(p, str) for p in parameters]):
+            raise ValueError('all members must be str')
+        self._parameters = parameters
 
     @property
-    def prior_dist(self):
-        """Prior distributions used to generate new samples, contain rvs and
-        logpdf methods"""
-        return self._prior_dist
+    def boundaries(self):
+        """Dictionary of parameter boundaries"""
+        return self._boundaries
 
-    @prior_dist.setter
-    def prior_dist(self, prior_dist):
+    @boundaries.setter
+    def boundaries(self, boundaries):
         try:
-            for name in self.model_pars:
-                tp = prior_dist[name].rvs()
-                prior_dist[name].logpdf(tp)
-            tp = prior_dist[self.model_index].rvs()
-            prior_dist[self.model_index].logpmf(tp)
-        except:
-            raise ValueError("prior does not return the right parameters")
-        self._prior_dist = prior_dist
+            self._boundaries = {p: Boundaries(boundaries[p])
+                                for p in self.parameters}
+        except KeyError:
+            raise ValueError("must provide a boundary for every parameter")
 
-    def move(self, fromx):
-        """Prior probability of either birth death or update"""
-        # move this c up
-        c = 0.33
-        k = fromx[self.model_index]
-        logpk = self.prior_dist[self.model_index].logpmf
-        birth = c*min(1, numpy.exp(logpk(k + 1) - logpk(k)))
-        death = c*min(1, numpy.exp(logpk(k - 1) - logpk(k)))
-        if k == self.ncomp_bound[0]:
-            death = 0.0
-        elif k == self.ncomp_bound[1]:
-            birth = 0.0
-        # Update happens with probability 1 - birth - death
-        # Random number U(0, 1)
-        u = self.random_generator.uniform()
-        if u <= birth:
-            return True, True
-        elif u <= birth + death:
-            return True, False
-        else:
-            return False, None
+    @property
+    def jump_proposal(self):
+        """Dictionary of jump proposals for each parameter"""
+        return self._jump_proposal
 
-    def prior_sample(self):
-        return {p : float(self.prior_dist[p].rvs(size=1)) for p in self.model_pars}
+    @jump_proposal.setter
+    def jump_proposal(self, jump_proposal):
+        try:
+            self._jump_proposal = {p : jump_proposal[p]
+                                   for p in self.parameters}
+        except KeyError:
+            raise ValueError("provide a proposal for each parameter")
+
+    @property
+    def jump_freq(self):
+        return self._jump_freq
+
+    @jump_freq.setter
+    def jump_freq(self, jump_freq):
+        if not isinstance(jump_freq, float):
+            raise ValueError('must be a float')
+        elif not 0.0 <=  jump_freq <= 0.5:
+            raise ValueError('jump frequency must be in [0.0, 0.5]')
+        self._jump_freq = jump_freq
+
+    @property
+    def state(self):
+        return {'random_state': self.random_state}
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
 
     def jump(self, fromx):
-        """
-        A rough draft of the jump method. I will ''de-uglify'' this before
-        submitting a pull request.
-        """
-        dimchange, birth = self.move(fromx)
-#        dimchange, birth = False, None
-        # the normal RVS is much faster than the multivariate one, so use it
-        # if we can
-        if not dimchange:
-            # This one still updates the wrong parameters
-            print('update mode')
-            if self.isdiagonal:
-#                print('is diagonal')
-                mu = [fromx[p] for p in self.parameters]
-#                print(mu)
-                newpt = self.random_generator.normal(mu, self._std)
+        for p in self.parameters:
+            k = fromx[p]
+            current = self.jump_proposal[p](k)
+            # Don't forget to check boundaries
+            if k == self.boundaries[p].lower:
+                death = 0.0
             else:
-                newpt = self.random_generator.multivariate_normal(
-                    [fromx[p] for p in self.parameters], self.cov)
-            print(self.parameters, newpt.shape)
-            newpt = dict(zip(self.parameters, newpt))
-            newpt[self.model_index] = fromx[self.model_index]
-        else:
-            newpt = deepcopy(fromx)
-            if birth:
-                print('giving birth')
-                knew = int(fromx[self.model_index]) + 1
-                newcomps = self.prior_sample()
-                print(newcomps)
-                for p in self.model_pars:
-                    newpt['{}{}'.format(p, knew)] = newcomps[p]
-                newpt[self.model_index] += 1
+                death = self.jump_freq * min(1,\
+                            np.exp(self.jump_proposal[p](k - 1) - current))
 
+            if k == self.boundaries[p].upper:
+                birth = 0.0
             else:
-                print('removing a component')
-                krem = numpy.random.choice(numpy.arange(1, fromx[self.model_index]))
-                print('picked {}'.format(krem))
-                for p in self.model_pars:
-                    newpt['{}{}'.format(p, krem)] = numpy.nan
-                # Ok now re-order the frequencies so that nans are at the end
-                oldmax = int(fromx['k'])
-                if krem != oldmax:
-                    for p in self.model_pars:
-                        newpt['{}{}'.format(p, krem)] = newpt['{}{}'.format(p, oldmax)]
-                        newpt['{}{}'.format(p, oldmax)] = numpy.nan
+                birth = self.jump_freq * min(1,\
+                            np.exp(self.jump_proposal[p](k + 1) - current))
 
-                newpt[self.model_index] -= 1
-        return newpt
+            # Remove a signal with 'death' prob, add with 'birth' prob and
+            # update with 'update' prob.
+            u = self.random_generator.uniform()
+            if u <= birth:
+                newpt = {p : k + 1}
+            elif u <= birth + death:
+                newpt = {p : k - 1}
+            else:
+                newpt = {p : k}
+
+            return newpt
 
     def logpdf(self, xi, givenx):
-        # Calc the within model logpdf. Assumed to be drawn from a normal
-        # distribution
-        k = xi[self.model_index]
-        means = [givenx[p] for p in self.parameters]
-        xi = [xi[p] for p in self.parameters]
-        if self.isdiagonal:
-            logp = (stats.norm.logpdf(xi, loc=means, scale=self._std))
-            mask = numpy.where(numpy.isfinite(logp))
-            logp = (logp[mask]).sum()
-        else:
-            # still need to remove nans here
-            logp = stats.multivariate_normal.logpdf(xi, mean=means,
-                                                    cov=self._cov)
-        # Model number pmf
-        logp += self.prior_dist[self.model_index].logpmf(k)
-        return logp
+        return sum([self.jump_proposal[p](xi[p]) for p in self.parameters])
