@@ -109,9 +109,6 @@ class Chain(BaseChain):
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
-        
-        # silence the overlow error
-        numpy.seterr(over='ignore')
 
     @property
     def hasblobs(self):
