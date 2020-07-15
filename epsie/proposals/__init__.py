@@ -27,6 +27,7 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
+from .birthdeath import (BirthDeath, TransDimensional)
 
 
 proposals = {
@@ -46,4 +47,6 @@ proposals = {
     BoundedDiscrete.name: BoundedDiscrete,
     SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
+    BirthDeath.name: BirthDeath,
+    TransDimensional.name: TransDimensional,
 }
