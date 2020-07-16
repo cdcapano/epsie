@@ -54,10 +54,12 @@ class BaseProposal(object):
     random_state
     parameters
     symmetric
+    active
     state
     """
     name = None
     _parameters = None
+    _active = True
 
     @property
     def bit_generator(self):
@@ -135,6 +137,16 @@ class BaseProposal(object):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
         self._parameters = tuple(parameters)
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, active):
+        if not isinstance(active, bool):
+            raise ValueError('must provide a bool for active')
+        self._active = active
 
     # Py3XX: uncomment the next two lines
     # @property

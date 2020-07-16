@@ -1,7 +1,6 @@
 # Copyright (C) 2020 Richard Stiskalek, Collin Capano
 
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
+# This program is free software; you can redistribute it and/or modify it # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
 # option) any later version.
 #
@@ -80,7 +79,7 @@ class BirthDeath(BaseProposal):
 
     @boundary.setter
     def boundary(self, boundary):
-            self._boundary = Boundaries(boundary)
+        self._boundary = Boundaries(boundary)
 
     @property
     def jump_proposal(self):
@@ -99,7 +98,7 @@ class BirthDeath(BaseProposal):
     def jump_freq(self, jump_freq):
         if not isinstance(jump_freq, float):
             raise ValueError('must be a float')
-        elif not 0.0 <=  jump_freq <= 0.5:
+        elif not 0.0 <= jump_freq <= 0.5:
             raise ValueError('jump frequency must be in [0.0, 0.5]')
         self._jump_freq = jump_freq
 
@@ -147,7 +146,7 @@ class TransDimensional(BaseProposal):
         # UPDATE THIS DESCRIPTION
     Parameters
     ----------
-    \*update_proposals :
+    *update_proposals :
         The arguments should provide the constituent proposals to use.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
         The random bit generator to use, or an integer/None. If the latter, a
@@ -163,21 +162,21 @@ class TransDimensional(BaseProposal):
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, bd_proposal, prior_dist, *update_proposals, **kwargs):
-        bit_generator = kwargs.pop('bit_generator', None)# Py3XX: delete line
-        update_parameters = list(itertools.chain(*[prop.parameters
+        bit_generator = kwargs.pop('bit_generator', None)  #Py3XX: delete line
+        update_parameters = list(itertools.chain(*[prop.parameters\
                                             for prop in update_proposals]))
-        print(update_parameters)
+        #print(update_parameters)
         # check that we don't have multiple update_proposals
         # for the same parameter
-        repeated = [p for p in set(update_parameters)\
-                                        if update_parameters.count(p) > 1]
+        repeated = [p for p in set(update_parameters)
+                        if update_parameters.count(p) > 1]
         if repeated:
             raise ValueError("multiple update_proposals provided "
                              "for parameter(s) {}".format(', '.join(repeated)))
         # store parameters
         self.update_parameters = update_parameters
         self.model_parameter = bd_proposal.parameter
-        self.all_parameters = update_parameters + [self.model_parameter]
+        self.parameters = update_parameters + [self.model_parameter]
         # store proposals
         self.update_proposals = list(update_proposals)
         self.bd_proposal = bd_proposal
@@ -194,15 +193,7 @@ class TransDimensional(BaseProposal):
         # have all of the proposals use the same random state
         for prop in self.all_proposals:
             prop.bit_generator = self.bit_generator
-        # store the update_proposals
 
-        self._active_props = list()
-        self._inactive_props = self.update_proposals.copy()
-
-        for prop in self.update_proposals:
-            print(prop.parameters)
-
-        self._active = False
 
     @property
     def symmetric(self):
@@ -223,66 +214,65 @@ class TransDimensional(BaseProposal):
     @prior_dist.setter
     def prior_dist(self, prior_dist):
         try:
-            self._prior_dist = {p: prior_dist[p]\
+            self._prior_dist = {p: prior_dist[p]
                                 for p in self.update_parameters}
         except KeyError:
             raise ValueError('provide a value for each parameter')
 
-
     def jump(self, fromx):
         givenk = fromx[self.model_parameter]
-        # if entering for the first time active some of the proposals
-        if not self._active:
-            for i in range(givenk - 1, -1, -1):
-                print(self._inactive_props[i].parameters)
-                self._active_props.append(self._inactive_props[i])
-                __ = self._inactive_props.pop(i)
-            self._active = True
-
         newk = self.bd_proposal.jump({self.model_parameter: givenk})
-        #unpack it
+        # unpack it
         newk = newk[self.model_parameter]
-        active_pars = list()
-        __ = [[active_pars.append(par) for par in prop.parameters]\
-                                        for prop in self._active_props]
-        inactive_pars = list()
-        __ = [[inactive_pars.append(par) for par in prop.parameters]\
-                                        for prop in self._inactive_props]
+#        print('newk', newk)
+#        print('inititla len updates props', len(self.update_proposals))
+#        for prop in self.update_proposals:
+#            print(prop.parameters, prop.active)
+
+        inactive_props = list()
+        active_props = list()
+        for prop in self.update_proposals:
+            if prop.active:
+                active_props.append(prop)
+            else:
+                inactive_props.append(prop)
+
+
         out = {}
         if newk != givenk:
             if newk > givenk:
                 # pick which proposal to turn on
-                i = random.choice(range(len(self._inactive_props)))
-                birth_pars = [p for p in self._inactive_props[i].parameters]
-                __ = [inactive_pars.remove(p) for p in birth_pars]
+                i = random.choice(range(len(inactive_props)))
+                birth_prop = inactive_props.pop(i)
                 # pick up the birth signal from the prior
-                out.update({p: self.prior_dist[p].rvs() for p in birth_pars})
-                # turn on this proposal
-                self._active_props.append(self._inactive_props.pop(i))
+                out.update({p: self.prior_dist[p].rvs()
+                            for p in birth_prop.parameters})
+                birth_prop.active = True
+
             else:
                 # pick which proposal to turn off
-                i =  random.choice(range(len(self._active_props)))
-                death_pars = [p for p in self._active_props[i].parameters]
-                __ = [active_pars.remove(p) for p in death_pars]
+                i = random.choice(range(len(active_props)))
+                death_prop = active_props.pop(i)
                 # set the the death signal's components to nans
-                out.update({p: math.nan for p in death_pars})
-                # turn off the proposal
-                self._inactive_props.append(self._active_props.pop(i))
+                out.update({p: math.nan for p in death_prop.parameters})
+                death_prop.active = False
 
-            # put the last position for active pars
-            out.update({p: fromx[p] for p in active_pars})
-            # put nan or inactive parametesrs
-            out.update({p: math.nan for p in inactive_pars})
-
+            # for all other proposals copy their last position
+#            print('lens', len(active_props), len(inactive_props))
+            for prop in (active_props + inactive_props):
+                out.update({p: fromx[p] for p in prop.parameters})
         else:
             # do a within-model MCMC move for active proposals
-            for prop in self._active_props:
+            for prop in active_props:
                 out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-
-            for prop in self._inactive_props:
-                out.update(prop.jump({p: math.nan for p in prop.parameters}))
+            # for inactive proposals carry on their last position (nan)
+            for prop in inactive_props:
+                out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
         # update the model index
         out.update({self.model_parameter: newk})
+#        print('final len updates props', len(self.update_proposals))
+#        for prop in self.update_proposals:
+#            print(prop.parameters, prop.active)
         return out
 
     @property
