@@ -42,7 +42,7 @@ class BirthDeath(BaseProposal):
             Parameter that tunes the proportion of dimension jumps
     """
     name = 'birthdeath'
-    symmetric = False
+    symmetric = True
 
     def __init__(self, parameter, boundary, jump_proposal, jump_freq=0.5):
         self._parameter = None
@@ -128,11 +128,15 @@ class BirthDeath(BaseProposal):
         # Remove a signal with 'death' prob, add with 'birth' prob and
         # update with 'update' prob.
         u = self.random_generator.uniform()
+        #print('k is ', k)
         if u <= birth:
+            #print('picked birth')
             newpt = {self.parameter: k + 1}
         elif u <= birth + death:
+            #print('picked death')
             newpt = {self.parameter: k - 1}
         else:
+            #print('picked update')
             newpt = {self.parameter: k}
 
         return newpt
@@ -194,18 +198,37 @@ class TransDimensional(BaseProposal):
         for prop in self.all_proposals:
             prop.bit_generator = self.bit_generator
 
+        self._last_prop = None
+
 
     @property
     def symmetric(self):
         return self._symmetric
 
     def logpdf(self, xi, givenx):
-        return sum(p.logpdf(xi, givenx) for p in self.all_proposals)
+        lp = 0.0
+        for prop in self.all_proposals:
+            if prop.active:
+                lp += prop.logpdf({p: xi[p] for p in prop.parameters},
+                                  {p: givenx[p] for p in prop.parameters})
+        return lp
 
     def update(self, chain):
         # update each of the proposals
-        for prop in self.all_proposals:
-            prop.update(chain)
+        acc = chain.acceptance[-1]['accepted']
+        if acc and (self._last_prop is not None):
+            self._last_prop.active = not self._last_prop.active
+
+        self._last_prop = None
+
+        # turn this back on later but need to check what happens to adaptation
+        # if proposals are getting turned off and on. Do adaptation only on
+        # proposals that just did a within-model MCMC step?
+        # Also what we could do is introduce an adaption of the mean of the
+        # poisson distribution that decides where to jump next.
+
+#        for prop in self.all_proposals:
+#            prop.update(chain)
 
     @property
     def prior_dist(self):
@@ -224,10 +247,6 @@ class TransDimensional(BaseProposal):
         newk = self.bd_proposal.jump({self.model_parameter: givenk})
         # unpack it
         newk = newk[self.model_parameter]
-#        print('newk', newk)
-#        print('inititla len updates props', len(self.update_proposals))
-#        for prop in self.update_proposals:
-#            print(prop.parameters, prop.active)
 
         inactive_props = list()
         active_props = list()
@@ -236,26 +255,30 @@ class TransDimensional(BaseProposal):
                 active_props.append(prop)
             else:
                 inactive_props.append(prop)
-
-
+#        print('active probs: ', len(active_props))
+#        print('inactive probs: ', len(inactive_props))
+#        print('-------------------')
         out = {}
+        #print('fromx: ', fromx)
         if newk != givenk:
             if newk > givenk:
+#                print('tryng birth')
                 # pick which proposal to turn on
                 i = random.choice(range(len(inactive_props)))
                 birth_prop = inactive_props.pop(i)
                 # pick up the birth signal from the prior
                 out.update({p: self.prior_dist[p].rvs()
                             for p in birth_prop.parameters})
-                birth_prop.active = True
+                self._last_prop = birth_prop
 
             else:
+#                print('trying death')
                 # pick which proposal to turn off
                 i = random.choice(range(len(active_props)))
                 death_prop = active_props.pop(i)
                 # set the the death signal's components to nans
                 out.update({p: math.nan for p in death_prop.parameters})
-                death_prop.active = False
+                self._last_prop = death_prop
 
             # for all other proposals copy their last position
 #            print('lens', len(active_props), len(inactive_props))
@@ -263,16 +286,16 @@ class TransDimensional(BaseProposal):
                 out.update({p: fromx[p] for p in prop.parameters})
         else:
             # do a within-model MCMC move for active proposals
+ #           print('trying update')
             for prop in active_props:
                 out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
             # for inactive proposals carry on their last position (nan)
             for prop in inactive_props:
                 out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
+            self.last_prop = None
         # update the model index
         out.update({self.model_parameter: newk})
-#        print('final len updates props', len(self.update_proposals))
-#        for prop in self.update_proposals:
-#            print(prop.parameters, prop.active)
+        #print('out: ', out)
         return out
 
     @property
