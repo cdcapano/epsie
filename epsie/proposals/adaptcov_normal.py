@@ -18,22 +18,28 @@ from __future__ import (absolute_import, division)
 from abc import ABCMeta
 from six import add_metaclass
 
-import numpy
+import numpy as np
 from scipy import stats
 
-from .base import BaseProposal
 from .normal import Normal
 
 @add_metaclass(ABCMeta)
 class AdaptiveCovarianceSupport(object):
-    r""" add description
+    r""" Utility class for adding adaptive covariance support to a proposal.
+
+    The adaptation algorithm is based on  Algorithm 1 in [1]. The proposal
+    covariance matrix is being adjusted at each step. See notes and [1] for
+    more details
+
     Notes
     -----
-    add maths
+    add maths overview
 
     References
     ----------
-    add reference
+    [1] Christian L. Müller, Exploring the common concepts of adaptive MCMC
+        and Covariance Matrix Adaptation schemes,
+        https://mosaic.mpi-cbg.de/docs/Muller2010b.pdf
     """
 
     _prior_widths = None
@@ -52,27 +58,27 @@ class AdaptiveCovarianceSupport(object):
         """
         self.prior_widths = prior_widths
         self.adaptation_duration = adaptation_duration
-        # Let's just keep this adaptation decay for now
-#        if adaptation_decay is None:
-#            adaptation_decay = 1./numpy.log10(self.adaptation_duration)
-#        self.adaptation_decay = adaptation_decay
-
         self.start_iteration = start_iteration
 
         self.target_rate = target_rate
         # Set up the initial mean
         if initial_mean is None:
-#            initial_mean = 0.5 * numpy.array(list(prior_widths.values()))
-            initial_mean = numpy.array([5, 3])
+            # update this to be in the middle of the bounds
+            initial_mean = np.array([5, 3])
         # Set the mean to the initial
         self._mean = initial_mean
         # Set up the initial covariance
         if initial_cov is None:
-            initial_cov = numpy.eye(len(self.prior_widths))\
-                          * (1 - self.target_rate) * 0.09 * self.deltas
-
+            deltas = np.array([self.prior_widths[p] for p in self.parameters])
+            initial_cov = np.eye(len(self.prior_widths))\
+                          * (1 - self.target_rate) * 0.09 * deltas
         # set the covariance to the initial
         self._cov = initial_cov
+        # this will later be used to achieve target acceptance fraction
+        # for now keep unity
+        self._r = 1
+
+        self._adaptation_end = self.start_iteration + self.adaptation_duration
 
 
     @property
@@ -92,13 +98,6 @@ class AdaptiveCovarianceSupport(object):
                                   for p in self.parameters}
         except KeyError:
             raise ValueError("must provide prior widths for every parameter")
-        self._deltas = numpy.array([self.prior_widths[p]
-                                    for p in self.parameters])
-
-    @property
-    def deltas(self):
-        """The prior widths, as a numpy array."""
-        return self._deltas
 
     @property
     def adaptation_duration(self):
@@ -128,40 +127,55 @@ class AdaptiveCovarianceSupport(object):
 
     def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
-
         This prepares the proposal for the next jump.
         """
-        # subtact 1 from the start iteration, since the update happens after
-        # the jump
-        dk = chain.iteration - (self.start_iteration - 1)
-        if 1 <= dk < self.adaptation_duration:
-            decay = 0.8
-#            decay = 10 * (dk - self.start_iteration)**(-0.2) - 1
 
-            newpos = numpy.array([chain.positions[-1][p]\
-                        for p in chain.positions.dtype.names]).reshape(-1, 1)
-            oldmean = self._mean.reshape(-1, 1)
-            diff = newpos - oldmean
-#            newposition = np.array([float(sampler.positions[p][:, -1]) for p in sampler.positions.dtype.names])
-            newmean = oldmean + decay * diff
-            newcov = self._cov\
-                     + decay * (numpy.matmul(diff, diff.T) - self._cov)
+        if self.start_iteration < chain.iteration < self._adaptation_end:
+            # change this decay later. For now ok
+            decay = (chain.iteration - self.start_iteration)**(-0.2) - 0.1
 
-            print('newmean', newmean)
-            self._mean = newmean.reshape(-1,)
-            self._cov = newcov
-            print('cov', self._cov)
+            # how to better unpack the last position?
+            names = chain.positions.dtype.names
+            lpos = chain.positions[-1]
+            newpt = np.array([lpos[p] for p in names])
+            # Update the first and second moments
+            new_mean = self._mean +  decay * (newpt - self._mean)
+            d = (newpt - self._mean).reshape(-1, 1)
+            new_cov = self._cov + decay * (np.matmul(d, d.T) - self._cov)
+
+            # this is to ensure that the logpdf method does not throw an error
+            # sometimes it returns SIngularMatrix even if it can sample a rvs
+            # but the logpdf method fails. ANyway there has to be some check
+            # for singular matrices
+            try:
+                __ = stats.multivariate_normal.logpdf(newpt, mean=new_mean,
+                                                    cov=new_cov)
+                self._mean = new_mean
+                self._cov = self._r**2 * new_cov
+            except:
+                pass
+
+            # diagnostics
+#        if chain.iteration % 100 == 0:
+#            if chain.iteration > 10000:
+#                decay = (chain.iteration - self.start_iteration)**(-0.2) - 0.1
+#                print(chain.iteration, decay)
+#                print('mean', self._mean)
+#                print('cov', self._cov)
 
     @property
     def state(self):
         return {'random_state': self.random_state,
                 'mean': self._mean,
-                'cov': self._cov,}
+                'cov': self._cov,
+                'r': self._r,}
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._mean = state['mean']
         self._cov = state['cov']
+        self._rv = state['r']
+
 
 class AdaptiveCovarianceNormal(AdaptiveCovarianceSupport, Normal):
     r"""Uses a normal distribution with adaptive variance for proposals.
@@ -179,6 +193,8 @@ class AdaptiveCovarianceNormal(AdaptiveCovarianceSupport, Normal):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    start_iteration: int (optional)
+        The iteration index when adaptation phase begins.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -188,9 +204,10 @@ class AdaptiveCovarianceNormal(AdaptiveCovarianceSupport, Normal):
     symmetric = False
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
-                 **kwargs):
+                 start_iteration=1, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveCovarianceNormal, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
-
+        self.setup_adaptation(prior_widths, adaptation_duration,
+                              start_iteration, **kwargs)
+        self._isdiagonal = False
