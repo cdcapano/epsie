@@ -23,6 +23,7 @@ from scipy import stats
 
 from .normal import Normal
 
+
 @add_metaclass(ABCMeta)
 class AdaptiveCovarianceSupport(object):
     r""" Utility class for adding adaptive covariance support to a proposal.
@@ -50,7 +51,7 @@ class AdaptiveCovarianceSupport(object):
 
     def setup_adaptation(self, prior_widths, adaptation_duration,
                          start_iteration=1, target_rate=0.234,
-                         initial_mean = None, initial_cov=None):
+                         initial_mean=None, initial_cov=None):
         r"""Sets up the adaptation parameters.
 
         Parameters
@@ -70,8 +71,8 @@ class AdaptiveCovarianceSupport(object):
         # Set up the initial covariance
         if initial_cov is None:
             deltas = np.array([self.prior_widths[p] for p in self.parameters])
-            initial_cov = np.eye(len(self.prior_widths))\
-                          * (1 - self.target_rate) * 0.09 * deltas
+            initial_cov = (np.eye(len(self.prior_widths))
+                           * (1 - self.target_rate) * 0.09 * deltas)
         # set the covariance to the initial
         self._cov = initial_cov
         # this will later be used to achieve target acceptance fraction
@@ -79,7 +80,6 @@ class AdaptiveCovarianceSupport(object):
         self._r = 1
 
         self._adaptation_end = self.start_iteration + self.adaptation_duration
-
 
     @property
     def prior_widths(self):
@@ -139,7 +139,7 @@ class AdaptiveCovarianceSupport(object):
             lpos = chain.positions[-1]
             newpt = np.array([lpos[p] for p in names])
             # Update the first and second moments
-            new_mean = self._mean +  decay * (newpt - self._mean)
+            new_mean = self._mean + decay * (newpt - self._mean)
             d = (newpt - self._mean).reshape(-1, 1)
             new_cov = self._cov + decay * (np.matmul(d, d.T) - self._cov)
 
@@ -149,12 +149,11 @@ class AdaptiveCovarianceSupport(object):
             # for singular matrices
             try:
                 __ = stats.multivariate_normal.logpdf(newpt, mean=new_mean,
-                                                    cov=new_cov)
+                                                      cov=new_cov)
                 self._mean = new_mean
                 self._cov = self._r**2 * new_cov
-            except:
+            except np.linalg.LinAlgError:
                 pass
-
             # diagnostics
 #        if chain.iteration % 100 == 0:
 #            if chain.iteration > 10000:
@@ -168,7 +167,8 @@ class AdaptiveCovarianceSupport(object):
         return {'random_state': self.random_state,
                 'mean': self._mean,
                 'cov': self._cov,
-                'r': self._r,}
+                'r': self._r,
+               }
 
     def set_state(self, state):
         self.random_state = state['random_state']
