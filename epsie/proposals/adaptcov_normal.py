@@ -148,6 +148,8 @@ class AdaptiveCovarianceSupport(object):
             if numpy.linalg.det(new_cov) > 1e-7:
                 self._mean = new_mean
                 self.cov = self._r**2* new_cov
+        else:
+            self.symmetric = True
 
     @property
     def state(self):
