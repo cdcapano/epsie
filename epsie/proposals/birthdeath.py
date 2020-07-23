@@ -1,6 +1,7 @@
 # Copyright (C) 2020 Richard Stiskalek, Collin Capano
 
-# This program is free software; you can redistribute it and/or modify it # under the terms of the GNU General Public License as published by the
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
 # option) any later version.
 #
@@ -16,11 +17,8 @@
 from __future__ import (absolute_import, division)
 
 import itertools
-import math
 
-import random
-
-import numpy as np
+import numpy
 from scipy import stats
 
 from .base import BaseProposal
@@ -116,27 +114,23 @@ class BirthDeath(BaseProposal):
         if k == self.boundary.lower:
             death = 0.0
         else:
-            death = min(1, np.exp(self.jump_proposal(k - 1) - current))
+            death = min(1, numpy.exp(self.jump_proposal(k - 1) - current))
             death *= self.jump_freq
 
         if k == self.boundary.upper:
             birth = 0.0
         else:
-            birth = min(1, np.exp(self.jump_proposal(k + 1) - current))
+            birth = min(1, numpy.exp(self.jump_proposal(k + 1) - current))
             birth *= self.jump_freq
 
         # Remove a signal with 'death' prob, add with 'birth' prob and
         # update with 'update' prob.
         u = self.random_generator.uniform()
-        #print('k is ', k)
         if u <= birth:
-            #print('picked birth')
             newpt = {self.parameter: k + 1}
         elif u <= birth + death:
-            #print('picked death')
             newpt = {self.parameter: k - 1}
         else:
-            #print('picked update')
             newpt = {self.parameter: k}
 
         return newpt
@@ -150,7 +144,7 @@ class TransDimensional(BaseProposal):
         # UPDATE THIS DESCRIPTION
     Parameters
     ----------
-    *update_proposals :
+    *update_props :
         The arguments should provide the constituent proposals to use.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
         The random bit generator to use, or an integer/None. If the latter, a
@@ -159,47 +153,47 @@ class TransDimensional(BaseProposal):
 
     Attributes
     ----------
-    update_proposals : list
+    update_props : list
         The constituent proposals.
     """
     name = 'transdimensional'
 
     # Py3XX: change kwargs to explicit random_state=None
-    def __init__(self, bd_proposal, prior_dist, *update_proposals, **kwargs):
+    def __init__(self, bd_proposal, prior_dist, *update_props, **kwargs):
         bit_generator = kwargs.pop('bit_generator', None)  #Py3XX: delete line
         update_parameters = list(itertools.chain(*[prop.parameters\
-                                            for prop in update_proposals]))
-        #print(update_parameters)
-        # check that we don't have multiple update_proposals
-        # for the same parameter
+                                            for prop in update_props]))
+        # check that we don't have multiple proposals for the same parameter
         repeated = [p for p in set(update_parameters)
-                        if update_parameters.count(p) > 1]
+                    if update_parameters.count(p) > 1]
         if repeated:
-            raise ValueError("multiple update_proposals provided "
-                             "for parameter(s) {}".format(', '.join(repeated)))
+            raise ValueError("multiple update_props provided "
+                             "for parameter(s) {}".format(
+                                 ', '.join(repeated)))
         # store parameters
         self.update_parameters = update_parameters
         self.model_parameter = bd_proposal.parameter
         self.parameters = update_parameters + [self.model_parameter]
         # store proposals
-        self.update_proposals = list(update_proposals)
         self.bd_proposal = bd_proposal
-        self.all_proposals = self.update_proposals + [self.bd_proposal]
+        self._all_proposals = list(update_props) + [self.bd_proposal]
         # the proposal is symmetric only if all of the constitutent
         # proposals are also
         self._symmetric = all([prop.symmetric
-                              for prop in self.all_proposals])
+                              for prop in self._all_proposals])
         # store the prior distribution to sample new components on the go
         self._prior_dist = None
         self.prior_dist = prior_dist
         # set the bit generator
         self.bit_generator = bit_generator
         # have all of the proposals use the same random state
-        for prop in self.all_proposals:
+        for prop in self._all_proposals:
             prop.bit_generator = self.bit_generator
 
-        self._last_prop = None
+        self._inact_props = [prop for prop in update_props if not prop.active]
+        self._act_props = [prop for prop in update_props if prop.active]
 
+        self._last_prop = None
 
     @property
     def symmetric(self):
@@ -207,7 +201,7 @@ class TransDimensional(BaseProposal):
 
     def logpdf(self, xi, givenx):
         lp = 0.0
-        for prop in self.all_proposals:
+        for prop in self._all_proposals:
             if prop.active:
                 lp += prop.logpdf({p: xi[p] for p in prop.parameters},
                                   {p: givenx[p] for p in prop.parameters})
@@ -215,11 +209,16 @@ class TransDimensional(BaseProposal):
 
     def update(self, chain):
         # update each of the proposals
-        acc = chain.acceptance[-1]['accepted']
-        if acc and (self._last_prop is not None):
-            self._last_prop.active = not self._last_prop.active
+        if chain.acceptance[-1]['accepted'] and not (self._last_prop is None):
+            if self._last_prop.active:
+                self._inact_props.append(self._last_prop)
+                self._act_props.remove(self._last_prop)
+            else:
+                self._act_props.append(self._last_prop)
+                self._inact_props.remove(self._last_prop)
 
-        self._last_prop = None
+            self._last_prop.active = not self._last_prop.active
+        self._last_prop = None # last_prop back to None just to be sure
 
         # turn this back on later but need to check what happens to adaptation
         # if proposals are getting turned off and on. Do adaptation only on
@@ -227,7 +226,7 @@ class TransDimensional(BaseProposal):
         # Also what we could do is introduce an adaption of the mean of the
         # poisson distribution that decides where to jump next.
 
-#        for prop in self.all_proposals:
+#        for prop in self._all_proposals:
 #            prop.update(chain)
 
     @property
@@ -243,73 +242,46 @@ class TransDimensional(BaseProposal):
             raise ValueError('provide a value for each parameter')
 
     def jump(self, fromx):
-        givenk = fromx[self.model_parameter]
-        newk = self.bd_proposal.jump({self.model_parameter: givenk})
-        # unpack it
-        newk = newk[self.model_parameter]
-
-        inactive_props = list()
-        active_props = list()
-        for prop in self.update_proposals:
-            if prop.active:
-                active_props.append(prop)
-            else:
-                inactive_props.append(prop)
-#        print('active probs: ', len(active_props))
-#        print('inactive probs: ', len(inactive_props))
-#        print('-------------------')
-        out = {}
-        #print('fromx: ', fromx)
-        if newk != givenk:
-            if newk > givenk:
-#                print('tryng birth')
-                # pick which proposal to turn on
-                i = random.choice(range(len(inactive_props)))
-                birth_prop = inactive_props.pop(i)
-                # pick up the birth signal from the prior
+        newk = self.bd_proposal.jump(
+               {self.model_parameter: fromx[self.model_parameter]})
+        out = fromx.copy()
+        newk = {'k' : 3}
+        # decide whether a dimension change will occur
+        if newk[self.model_parameter] != fromx[self.model_parameter]:
+            # decide whether birth
+            if newk[self.model_parameter] > fromx[self.model_parameter]:
+                self._last_prop = self.random_generator.choice(
+                                  self._inact_props)
+                # sample the prior
                 out.update({p: self.prior_dist[p].rvs()
-                            for p in birth_prop.parameters})
-                self._last_prop = birth_prop
-
+                            for p in self._last_prop.parameters})
+            # else death
             else:
-#                print('trying death')
-                # pick which proposal to turn off
-                i = random.choice(range(len(active_props)))
-                death_prop = active_props.pop(i)
-                # set the the death signal's components to nans
-                out.update({p: math.nan for p in death_prop.parameters})
-                self._last_prop = death_prop
-
-            # for all other proposals copy their last position
-#            print('lens', len(active_props), len(inactive_props))
-            for prop in (active_props + inactive_props):
-                out.update({p: fromx[p] for p in prop.parameters})
+                self._last_prop = \
+                        self.random_generator.choice(self._act_props)
+                # set the removed proposal parameters to nans
+                out.update({p: numpy.nan for p in self._last_prop.parameters})
+            # update the model index
+            out.update({self.model_parameter: newk[self.model_parameter]})
         else:
             # do a within-model MCMC move for active proposals
- #           print('trying update')
-            for prop in active_props:
-                out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-            # for inactive proposals carry on their last position (nan)
-            for prop in inactive_props:
+            for prop in self._act_props:
                 out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
             self.last_prop = None
-        # update the model index
-        out.update({self.model_parameter: newk})
-        #print('out: ', out)
         return out
 
     @property
     def state(self):
         # get all of the proposals state
         state = {frozenset(prop.parameters): prop.state
-                 for prop in self.all_proposals}
+                 for prop in self._all_proposals}
         # add the global random state
         state['random_state'] = self.random_state
         return state
 
     def set_state(self, state):
         # set each proposals' state
-        for prop in self.all_proposals:
+        for prop in self._all_proposals:
             prop.set_state(state[frozenset(prop.parameters)])
         # set the state of the random number generator
         self.random_state = state['random_state']
