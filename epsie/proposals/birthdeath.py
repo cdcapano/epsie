@@ -176,11 +176,13 @@ class TransDimensional(BaseProposal):
         self.parameters = update_parameters + [self.model_parameter]
         # store proposals
         self.bd_proposal = bd_proposal
+        self.model_proposals = update_props
         self._all_proposals = list(update_props) + [self.bd_proposal]
         # the proposal is symmetric only if all of the constitutent
         # proposals are also
-        self._symmetric = all([prop.symmetric
-                              for prop in self._all_proposals])
+#        self._symmetric = all([prop.symmetric
+#                              for prop in self._all_proposals])
+        self._symmetric = False
         # store the prior distribution to sample new components on the go
         self._prior_dist = None
         self.prior_dist = prior_dist
@@ -189,6 +191,7 @@ class TransDimensional(BaseProposal):
         # have all of the proposals use the same random state
         for prop in self._all_proposals:
             prop.bit_generator = self.bit_generator
+
 
         self._inact_props = [prop for prop in update_props if not prop.active]
         self._act_props = [prop for prop in update_props if prop.active]
@@ -202,23 +205,25 @@ class TransDimensional(BaseProposal):
     def logpdf(self, xi, givenx):
         lp = 0.0
         for prop in self._all_proposals:
-            if prop.active:
-                lp += prop.logpdf({p: xi[p] for p in prop.parameters},
+                lp_here = prop.logpdf({p: xi[p] for p in prop.parameters},
                                   {p: givenx[p] for p in prop.parameters})
+                if not numpy.isnan(lp_here):
+                    lp += lp_here
         return lp
 
     def update(self, chain):
+        pass
         # update each of the proposals
-        if chain.acceptance[-1]['accepted'] and not (self._last_prop is None):
-            if self._last_prop.active:
-                self._inact_props.append(self._last_prop)
-                self._act_props.remove(self._last_prop)
-            else:
-                self._act_props.append(self._last_prop)
-                self._inact_props.remove(self._last_prop)
-
-            self._last_prop.active = not self._last_prop.active
-        self._last_prop = None # last_prop back to None just to be sure
+#        if chain.acceptance[-1]['accepted'] and not (self._last_prop is None):
+#            if self._last_prop.active:
+#                self._inact_props.append(self._last_prop)
+#                self._act_props.remove(self._last_prop)
+#            else:
+#                self._act_props.append(self._last_prop)
+#                self._inact_props.remove(self._last_prop)
+#
+#            self._last_prop.active = not self._last_prop.active
+#        self._last_prop = None # last_prop back to None just to be sure
 
         # turn this back on later but need to check what happens to adaptation
         # if proposals are getting turned off and on. Do adaptation only on
@@ -245,27 +250,30 @@ class TransDimensional(BaseProposal):
         newk = self.bd_proposal.jump(
                {self.model_parameter: fromx[self.model_parameter]})
         out = fromx.copy()
-        newk = {'k' : 3}
+        act_props = [prop for prop in self.model_proposals
+                     if not numpy.alltrue(numpy.isnan([fromx[p] for p in prop.parameters]))]
+        inact_props = [prop for prop in self.model_proposals
+                     if numpy.alltrue(numpy.isnan([fromx[p] for p in prop.parameters]))]
+
+
         # decide whether a dimension change will occur
         if newk[self.model_parameter] != fromx[self.model_parameter]:
             # decide whether birth
             if newk[self.model_parameter] > fromx[self.model_parameter]:
-                self._last_prop = self.random_generator.choice(
-                                  self._inact_props)
+                last_prop = self.random_generator.choice(inact_props)
                 # sample the prior
                 out.update({p: self.prior_dist[p].rvs()
-                            for p in self._last_prop.parameters})
+                            for p in last_prop.parameters})
             # else death
             else:
-                self._last_prop = \
-                        self.random_generator.choice(self._act_props)
+                last_prop = self.random_generator.choice(act_props)
                 # set the removed proposal parameters to nans
-                out.update({p: numpy.nan for p in self._last_prop.parameters})
+                out.update({p: numpy.nan for p in last_prop.parameters})
             # update the model index
             out.update({self.model_parameter: newk[self.model_parameter]})
         else:
             # do a within-model MCMC move for active proposals
-            for prop in self._act_props:
+            for prop in act_props:
                 out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
             self.last_prop = None
         return out
