@@ -64,7 +64,7 @@ class AdaptiveCovarianceSupport(object):
 
     References
     ----------
-    [1] Christian L. Müller, Exploring the common concepts of adaptive MCMC
+    [1] Christian L. Muller, Exploring the common concepts of adaptive MCMC
         and Covariance Matrix Adaptation schemes,
         https://mosaic.mpi-cbg.de/docs/Muller2010b.pdf
     """
@@ -75,8 +75,8 @@ class AdaptiveCovarianceSupport(object):
     def setup_adaptation(self, adapt_dur, start_iter=1):
         r"""Sets up the adaptation parameters.
         adapt_dur : int
-            The number of iterations over which to apply the adaptation. No more
-            adaptation will be done once a chain exceeds this value.
+            The number of iterations over which to apply the adaptation.
+            No more adaptation will be done once a chain exceeds this value.
         start_iter: int (optional)
             The iteration index when adaptation phase begins.
 
@@ -92,8 +92,7 @@ class AdaptiveCovarianceSupport(object):
         self._cov = numpy.eye(ndim)
         # this will later be used to achieve target acceptance fraction
         self._r = 1
-        self._decay_const = (self.adapt_dur
-                            - self.start_iter - 1)**(-0.2)
+        self._decay_const = (self.adapt_dur - self.start_iter - 1)**(-0.2)
 
     @property
     def adapt_dur(self):
@@ -142,13 +141,15 @@ class AdaptiveCovarianceSupport(object):
             d = d.reshape(-1, 1)
             new_cov = (self.cov + decay*(numpy.matmul(d, d.T) - self.cov))
 
-            # Rough check that the new covariance is not singular due to
-            # numerical errors. Still would be better to start the specific
-            # exception that scipy.stats.multivariate_normal.logpdf throws
-            if numpy.linalg.det(new_cov) > 1e-7:
+            try:
+                __ = stats.multivariate_normal(new_mean, new_cov)
                 self._mean = new_mean
                 self.cov = self._r**2* new_cov
+            except numpy.linalg.LinAlgError:
+                # keep the old covariancec matrix
+                pass
         else:
+            # after the adaptive phase the proposal becomes symmetric
             self.symmetric = True
 
     @property
@@ -156,8 +157,7 @@ class AdaptiveCovarianceSupport(object):
         return {'random_state': self.random_state,
                 'mean': self._mean,
                 'cov': self._cov,
-                'r': self._r,
-               }
+                'r': self._r,}
 
     def set_state(self, state):
         self.random_state = state['random_state']
