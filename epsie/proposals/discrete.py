@@ -98,26 +98,28 @@ class NormalDiscrete(Normal):
         for ii, p in enumerate(self.parameters):
             dx = self.random_generator.normal(0, self._std[ii])
             # convert to int
-            dx = int(_floorceil(dx))
+            dx = int(round(dx, 0))
             to_x[p] = int(fromx[p]) + dx
         return to_x
 
     def logpdf(self, xi, givenx):
         logp = 0
         for ii, p in enumerate(self.parameters):
-            dx = int(numpy.floor(xi[p] - givenx[p]))
-            # if given point is same as test point, the pdf will just be 0;
-            # don't need to evaluate the other parameters
-            if dx == 0:
-                return -numpy.inf
+            dx = int(numpy.round(xi[p] - givenx[p], decimals=0))
+#            dx = int(numpy.floor(xi[p] - givenx[p]))
+#            # if given point is same as test point, the pdf will just be 0;
+#            # don't need to evaluate the other parameters
+#            if dx == 0:
+#                return -numpy.inf
             # we'll just evaluate positive dx, since the distribution is
             # symmetric about 0
             dx = abs(dx)
-            p0 = self._cdf(ii, dx-1, self._std[ii])
-            p1 = self._cdf(ii, dx, self._std[ii])
+            p0 = self._cdf(ii, dx-0.5, self._std[ii])
+            p1 = self._cdf(ii, dx+0.5, self._std[ii])
             dp = p1 - p0
-            if dp == 0:
-                return -numpy.inf
+#            dp = p1
+#            if dp == 0:
+#                return -numpy.inf
             logp += numpy.log(dp)
         return logp
 
