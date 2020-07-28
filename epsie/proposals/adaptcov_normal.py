@@ -139,7 +139,7 @@ class AdaptiveCovarianceSupport(object):
             d = newpt - self._mean
             new_mean = self._mean + decay * d
             d = d.reshape(-1, 1)
-            new_cov = (self.cov + decay*(numpy.matmul(d, d.T) - self.cov))
+            new_cov = (self._cov + decay*(numpy.matmul(d, d.T) - self._cov))
 
             alpha_mh = min(1, chain.acceptance['acceptance_ratio'][-1])
             new_logr = self._logr\
