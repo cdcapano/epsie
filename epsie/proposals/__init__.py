@@ -27,7 +27,7 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
-from .birthdeath import (BirthDeath, TransDimensional)
+from .reverse_jump import (BirthDeath, TransDimensional)
 
 
 proposals = {
