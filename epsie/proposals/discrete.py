@@ -307,7 +307,6 @@ class BoundedDiscrete(BoundedNormal):
                     return -numpy.inf
                 a = self._lowerbnd[ii] - mu
                 b = self._upperbnd[ii] - mu
-#                print("a={}, b={}, mu={}, x={}".format(a, b, mu, x))
                 # the pdf is the difference in the trunc norm's cdf around x;
                 # whether we take the difference between x+1 and x or x and x-1
                 # depends on where x is w.r.t. mu
@@ -355,9 +354,10 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
     name = 'ss_adaptive_discrete'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, **kwargs):
+    def __init__(self, parameters, cov=None, successive=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveNormalDiscrete, self).__init__(parameters, cov=cov)
+        super(SSAdaptiveNormalDiscrete, self).__init__(parameters, cov=cov,
+                                                       successive=successive)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -389,10 +389,11 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
     name = 'ss_adaptive_bounded_discrete'
     symmetric = False
 
-    def __init__(self, parameters, boundaries,  cov=None, **kwargs):
+    def __init__(self, parameters, boundaries,  cov=None, successive=None,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveBoundedDiscrete, self).__init__(
-            parameters, boundaries, cov=cov)
+            parameters, boundaries, cov=cov, successive=successive)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*abs(bounds)
@@ -427,9 +428,10 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
-                 **kwargs):
+                 successive=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormalDiscrete, self).__init__(parameters)
+        super(AdaptiveNormalDiscrete, self).__init__(parameters,
+                                                     successive=successive)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
@@ -459,10 +461,10 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
-                 **kwargs):
+                 successive=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveBoundedDiscrete, self).__init__(
-            parameters, boundaries)
+            parameters, boundaries, successive=successive)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
 
