@@ -174,8 +174,8 @@ class BoundedDiscrete(BoundedNormal):
     This is a discretized form of :py:class:`BoundedNormal`. Jump proposals
     are produced in the same manner as :py:class:`NormalDiscrete`, except
     that the distribution used to draw :math:`\Delta x` (before applying the
-    floor/ceil) is a truncated normal. As such, this is not a symmetric
-    distribution.
+    floor/ceil or round) is a truncated normal. As such, this is not a
+    symmetric distribution.
 
     The variance used for drawing :math:`\Delta x` need not be an integer,
     and can be set. Multiple parameters are supported, however, they all must
@@ -194,12 +194,18 @@ class BoundedDiscrete(BoundedNormal):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    successive: dict, optional
+        Dictionary of bools, keys must be parameters and items bools. If False
+        then the proposal never produces the same integer on successive jumps.
+        Default is False for all parameters
     """
     name = 'bounded_discrete'
     symmetric = False
+    _successive = None
 
-    def __init__(self, parameters, boundaries, cov=None):
+    def __init__(self, parameters, boundaries, cov=None, successive=None):
         super(BoundedDiscrete, self).__init__(parameters, boundaries, cov=cov)
+        self.successive = successive
         # ensure boundaries are integers
         self.boundaries = {p: (int(numpy.floor(b.lower)),
                                int(numpy.ceil(b.upper)))
@@ -207,6 +213,26 @@ class BoundedDiscrete(BoundedNormal):
         # cache for the cdfs
         self._cdfcache = [{}]*len(self.parameters)
         self._cachedstd = [None]*len(self.parameters)
+
+    @property
+    def successive(self):
+        """Dictionary of `successive` toggles for each parameter. If True
+        allows two equal integers on successive jumps.
+        """
+        return self._successive
+
+    @successive.setter
+    def successive(self, successive):
+        if successive is None:
+            self._successive = {p: False for p in self.parameters}
+            return
+        if not all([isinstance(successive[p], bool)
+                    for p in list(successive.keys())]):
+            raise ValueError('all dictionary values must be bools')
+        try:
+            self._successive = {p: successive[p] for p in self.parameters}
+        except KeyError:
+            raise ValueError('must provide zero_jump for each parameter')
 
     def _cdf(self, pi, x, a, b, mu, std):
         """Caches CDF for faster call back.
@@ -250,9 +276,12 @@ class BoundedDiscrete(BoundedNormal):
             while not inbnds:
                 # draw a delta x
                 deltax = self.random_generator.normal(0., self._std[ii])
-                # for values < 0, we want the floor; for values > 0, the
-                # ceiling
-                deltax = int(_floorceil(deltax))
+                if self.successive[p]:
+                    deltax = int(round(deltax, 0))
+                else:
+                    # for values < 0, we want the floor; for values > 0, the
+                    # ceiling
+                    deltax = int(_floorceil(deltax))
                 newpt = {p: int(fromx[p])+deltax}
                 inbnds = newpt in self
             to_x.update(newpt)
@@ -261,26 +290,36 @@ class BoundedDiscrete(BoundedNormal):
     def logpdf(self, xi, givenx):
         logp = 0
         for ii, p in enumerate(self.parameters):
-            mu = int(_floorceil(givenx[p]))
-            x = int(_ceilfloor(xi[p]))
-            # if given point is same as test point, the pdf will just be 0;
-            # don't need to evaluate the other parameters
-            if x == mu:
-                return -numpy.inf
-            a = self._lowerbnd[ii] - mu
-            b = self._upperbnd[ii] - mu
-            # the pdf is the difference in the trunc norm's cdf around x;
-            # whether we take the difference between x+1 and x or x and x-1
-            # depends on where x is w.r.t. mu
-            if x > mu:
-                x0 = x - 1
-                x1 = x
+            if self.successive[p]:
+                mu = int(round(givenx[p], 0))
+                x = int(round(xi[p], 0))
+                a = self._lowerbnd[ii] - mu
+                b = self._upperbnd[ii] - mu
+                p0 = self._cdf(ii, x-0.5, a, b, mu, self._std[ii])
+                p1 = self._cdf(ii, x+0.5, a, b, mu, self._std[ii])
+                logp += numpy.log(p1 - p0)
             else:
-                x0 = x
-                x1 = x + 1
-            p0 = self._cdf(ii, x0, a, b, mu, self._std[ii])
-            p1 = self._cdf(ii, x1, a, b, mu, self._std[ii])
-            logp += numpy.log(p1 - p0)
+                mu = int(_floorceil(givenx[p]))
+                x = int(_ceilfloor(xi[p]))
+                # if given point is same as test point, the pdf will just be 0;
+                # don't need to evaluate the other parameters
+                if x == mu:
+                    return -numpy.inf
+                a = self._lowerbnd[ii] - mu
+                b = self._upperbnd[ii] - mu
+#                print("a={}, b={}, mu={}, x={}".format(a, b, mu, x))
+                # the pdf is the difference in the trunc norm's cdf around x;
+                # whether we take the difference between x+1 and x or x and x-1
+                # depends on where x is w.r.t. mu
+                if x > mu:
+                    x0 = x - 1
+                    x1 = x
+                else:
+                    x0 = x
+                    x1 = x + 1
+                p0 = self._cdf(ii, x0, a, b, mu, self._std[ii])
+                p1 = self._cdf(ii, x1, a, b, mu, self._std[ii])
+                logp += numpy.log(p1 - p0)
         return logp
 
 
