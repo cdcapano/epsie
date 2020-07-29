@@ -1,6 +1,7 @@
 # Copyright (C) 2020 Richard Stiskalek, Collin Capano
 
-# This program is free software; you can redistribute it and/or modify it # under the terms of the GNU General Public License as published by the
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
 # option) any later version.
 #
@@ -25,12 +26,22 @@ from .discrete import BoundedDiscrete
 
 
 class NestedTransdimensional(BaseProposal):
-    """A collection of jump proposals for multiple parameters.
-        # UPDATE THIS DESCRIPTION
+    """Nested transdimensional proposal. Assummes there is an unknown number
+    of signals and each signal shares the same parameters.
+
     Parameters
     ----------
-    *update_props :
-        The arguments should provide the constituent proposals to use.
+    in_model_prop: py:class `epsie.proposals`
+        The within model proposal for each signal. This is deep copied for
+        potential signal. For now we assume a given maximum number of signals.
+    prior_dist: dict
+        Prior distributions for each parameter. Must be a class that contains
+        a `rvs` method.
+    bounds: dict
+        Bounds on the model index. It is sufficient to only provide the bound
+        on the model index k.
+    model_index: str (optinal)
+        String denoting the model index. By default `k`.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
         The random bit generator to use, or an integer/None. If the latter, a
         bit generator will be created using
@@ -38,13 +49,15 @@ class NestedTransdimensional(BaseProposal):
 
     Attributes
     ----------
-    update_props : list
-        The constituent proposals.
+    inmodel_probs: list
+        The constituent in proposals.
+    td_proposal: py:class `epsie.proposals.DiscreteBounded
+        The model hopping proposal
     """
     name = 'transdimensional'
 
     # Py3XX: change kwargs to explicit random_state=None
-    def __init__(self, parameters, update_proposal, prior_dist,
+    def __init__(self, parameters, in_model_prop, prior_dist,
                  bounds, model_index='k', **kwargs):
         self.parameters = parameters
         # store the model index
@@ -56,7 +69,7 @@ class NestedTransdimensional(BaseProposal):
                                            {model_index: bounds[model_index]},
                                            successive={model_index: True})
         # copy update proposal for each within model proposal
-        self.inmodel_props = [deepcopy(update_proposal)
+        self.inmodel_props = [deepcopy(in_model_prob)
                               for i in range(bounds[model_index][0],
                                              bounds[model_index][1] + 1)]
         # rename the within model proposal parameters to reflect the index
@@ -138,27 +151,23 @@ class NestedTransdimensional(BaseProposal):
         out = fromx.copy()
         out.update(newk)
         dk = out[self.k] - fromx[self.k]
-        # birth
-        if dk > 0:
+        if dk > 0: # birth
             self._props0 = self.random_generator.choice(inact_props, size=dk,
                                                         replace=False)
-            # sample the prior
             pars = [item for t in [prop.parameters for prop in self._props0]
                     for item in t]
+            # sample the prior
             out.update({p: self.prior_dist[p].rvs() for p in pars})
-        # death
-        elif dk < 0:
+        elif dk < 0: # death
             self._props0 = self.random_generator.choice(act_props, size=-dk,
                                                         replace=False)
             pars = [item for t in [prop.parameters for prop in self._props0]
                     for item in t]
             # set the removed proposal parameters to nans
             out.update({p: numpy.nan for p in pars})
-        # keep the same dimensionality
-        else:
+        else: # update all active proposals
             for prop in act_props:
                 out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-
         return out
 
     @property
