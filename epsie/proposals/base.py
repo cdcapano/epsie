@@ -59,7 +59,7 @@ class BaseProposal(object):
     """
     name = None
     _parameters = None
-    _active = True
+    _active = None
 
     @property
     def bit_generator(self):
