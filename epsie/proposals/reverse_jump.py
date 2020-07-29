@@ -1,5 +1,4 @@
 # Copyright (C) 2020 Richard Stiskalek, Collin Capano
-
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
@@ -17,6 +16,7 @@
 from __future__ import (absolute_import, division)
 
 from copy import deepcopy
+from time import time
 
 import numpy
 from scipy import stats
@@ -31,7 +31,7 @@ class NestedTransdimensional(BaseProposal):
 
     Parameters
     ----------
-    in_model_prop: py:class `epsie.proposals`
+    inmodel_prop: py:class `epsie.proposals`
         The within model proposal for each signal. This is deep copied for
         potential signal. For now we assume a given maximum number of signals.
     prior_dist: dict
@@ -57,9 +57,17 @@ class NestedTransdimensional(BaseProposal):
     name = 'transdimensional'
 
     # Py3XX: change kwargs to explicit random_state=None
-    def __init__(self, parameters, in_model_prop, prior_dist,
+    def __init__(self, parameters, inmodel_prop, prior_dist,
                  bounds, model_index='k', **kwargs):
-        self.parameters = parameters
+
+        # store parameters
+        self.unique_pars = parameters
+        pars = list()
+        k0, kf = bounds[model_index]
+        for p in self.unique_pars:
+            for k in range(k0, kf + 1):
+                pars.append('{}{}'.format(p, k))
+        self.parameters = pars + [model_index]
         # store the model index
         self.k = model_index
         bit_generator = kwargs.pop('bit_generator', None)  #Py3XX: delete line
@@ -69,13 +77,16 @@ class NestedTransdimensional(BaseProposal):
                                            {model_index: bounds[model_index]},
                                            successive={model_index: True})
         # copy update proposal for each within model proposal
-        self.inmodel_props = [deepcopy(in_model_prob)
-                              for i in range(bounds[model_index][0],
-                                             bounds[model_index][1] + 1)]
+        self.inmodel_props = [deepcopy(inmodel_prop) for i in range(k0, kf+1)]
         # rename the within model proposal parameters to reflect the index
         # and have all proposals use the same random state
         for k, prop in enumerate(self.inmodel_props):
             prop.parameters = ['{}{}'.format(p, k+1) for p in prop.parameters]
+            # rename the update proposal parameters. Latex make sure
+            # this is only triggered for bounded proposals
+            prop.boundaries = {'{}{}'.format(key, k+1): item
+                               for key, item in zip(prop.boundaries.keys(),
+                                                    prop.boundaries.values())}
             prop.bit_generator = self.bit_generator
         self.td_proposal.bit_generator = self.bit_generator
         # store the prior distribution to sample new components on the go
@@ -98,19 +109,19 @@ class NestedTransdimensional(BaseProposal):
 
     @prior_dist.setter
     def prior_dist(self, prior_dist):
-        print(self.parameters)
         try:
             self._prior_dist = {}
             bound = self.td_proposal.boundaries[self.k]
             for k in range(bound[0], bound[1] + 1):
                 self._prior_dist.update({'{}{}'.format(p, k): prior_dist[p]
-                                        for p in self.parameters})
+                                        for p in self.unique_pars})
         except KeyError:
             raise ValueError('provide a prior for each parameter')
 
     def logpdf(self, xi, givenx):
         # Check whether this is called before update and what happens to
         # recently actived/deactivated proposals
+        # this is a huge bottleneck 
         lp = 0.0
         for prop in self.inmodel_props:
             if prop.active:
@@ -118,7 +129,7 @@ class NestedTransdimensional(BaseProposal):
                 x = {p: xi[p] for p in prop.parameters}
                 # for a now quick hack
                 lp_here = prop.logpdf(x, x0)
-                if np.isfinite(lp_here):
+                if numpy.isfinite(lp_here):
                     lp += lp_here
         return lp
 
@@ -126,7 +137,7 @@ class NestedTransdimensional(BaseProposal):
         # update each of the proposals
         if chain.acceptance[-1]['accepted'] and not (self._props0 is None):
             for prop in self._props0:
-                prop = not prop.active
+                prop.active = not prop.active
         self._props0 = None # back to None just to be sure
 
         # no adaptation for now
@@ -144,7 +155,9 @@ class NestedTransdimensional(BaseProposal):
                     prop.active = False
                 else:
                     prop.active = True
-
+            self._initialised = True
+        # Later move this onto a list so we dont have to loop over them every
+        # single time.
         act_props = [prop for prop in self.inmodel_props if prop.active]
         inact_props = [prop for prop in self.inmodel_props if not prop.active]
 
