@@ -48,7 +48,7 @@ class NormalDiscrete(Normal):
 
     .. math:: \bar{\Delta x} = Round\left(\mathcal{N}(0, \sigma)\right),
 
-    meaning that the proposal can now propose the same integer on succesive
+    meaning that the proposal can now propose the same integer on successive
     jumps.
 
     The variance used for drawing :math:`\Delta x` need not be an integer,
@@ -64,44 +64,44 @@ class NormalDiscrete(Normal):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
-    zero_jump: list of bools, optional
-        If False then the proposal never produces the same integer on
-        successive jumps. Default is False for all parameters.
-
+    successive: dict, optional
+        Dictionary of bools, keys must be parameters and items bools. If False
+        then the proposal never produces the same integer on successive jumps.
+        Default is False for all parameters
     """
     name = 'discrete'
     symmetric = True
-    _zero_jump = None
+    _successive = None
 
-    def __init__(self, parameters, cov=None, zero_jump=None):
+    def __init__(self, parameters, cov=None, successive=None):
         super(NormalDiscrete, self).__init__(parameters, cov=cov)
         # this only works for diagonal pdfs
         if not self.isdiagonal:
             raise ValueError("Only independent variables are supported "
                              "(all off-diagonal terms in the covariance "
                              "must be zero)")
-        self.zero_jump = zero_jump
+        self.successive = successive
         # cache for the cdfs
         self._cdfcache = [{}]*len(self.parameters)
         self._cachedstd = [None]*len(self.parameters)
 
     @property
-    def zero_jump(self):
-        """Dictionary of `zero_jump` toggles for each parameter. If True
-        allows two equal integers on succesive jumps.
+    def successive(self):
+        """Dictionary of `successive` toggles for each parameter. If True
+        allows two equal integers on successive jumps.
         """
-        return self._zero_jump
+        return self._successive
 
-    @zero_jump.setter
-    def zero_jump(self, zero_jump):
-        if zero_jump is None:
-            self._zero_jump = {p: False for p in self.parameters}
+    @successive.setter
+    def successive(self, successive):
+        if successive is None:
+            self._successive = {p: False for p in self.parameters}
             return
-        if not all([isinstance(zero_jump[p], bool)
-                    for p in list(zero_jump.keys())]):
-            raise ValueError('all dictionary values must be bool')
+        if not all([isinstance(successive[p], bool)
+                    for p in list(successive.keys())]):
+            raise ValueError('all dictionary values must be bools')
         try:
-            self._zero_jump = {p: zero_jump[p] for p in self.parameters}
+            self._successive = {p: successive[p] for p in self.parameters}
         except KeyError:
             raise ValueError('must provide zero_jump for each parameter')
 
@@ -134,7 +134,7 @@ class NormalDiscrete(Normal):
         for ii, p in enumerate(self.parameters):
             dx = self.random_generator.normal(0, self._std[ii])
             # convert to int
-            if self._zero_jump[p]:
+            if self.successive[p]:
                 dx = int(round(dx, 0))
             else:
                 dx = int(_floorceil(dx))
@@ -144,7 +144,7 @@ class NormalDiscrete(Normal):
     def logpdf(self, xi, givenx):
         logp = 0
         for ii, p in enumerate(self.parameters):
-            if self._zero_jump[p]:
+            if self.successive[p]:
                 dx = int(numpy.round(xi[p] - givenx[p], decimals=0))
                 dx = abs(dx)
                 p0 = self._cdf(ii, dx-0.5, self._std[ii])
