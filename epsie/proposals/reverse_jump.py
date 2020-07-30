@@ -16,10 +16,8 @@
 from __future__ import (absolute_import, division)
 
 from copy import deepcopy
-from time import time
 
 import numpy
-from scipy import stats
 
 from .base import BaseProposal
 from .discrete import BoundedDiscrete
@@ -64,6 +62,7 @@ class NestedTransdimensional(BaseProposal):
         self.unique_pars = parameters
         pars = list()
         k0, kf = bounds[model_index]
+        self.kmax = kf
         for p in self.unique_pars:
             for k in range(k0, kf + 1):
                 pars.append('{}{}'.format(p, k))
@@ -97,7 +96,9 @@ class NestedTransdimensional(BaseProposal):
         self._symmetric = False
 
         self._initialised = False
-        self._props0 = None
+        self._act = None
+        self._inact = None
+        self._choices = None
 
     @property
     def symmetric(self):
@@ -121,7 +122,7 @@ class NestedTransdimensional(BaseProposal):
     def logpdf(self, xi, givenx):
         # Check whether this is called before update and what happens to
         # recently actived/deactivated proposals
-        # this is a huge bottleneck 
+        # this is a huge bottleneck
         lp = 0.0
         for prop in self.inmodel_props:
             if prop.active:
@@ -135,10 +136,18 @@ class NestedTransdimensional(BaseProposal):
 
     def update(self, chain):
         # update each of the proposals
-        if chain.acceptance[-1]['accepted'] and not (self._props0 is None):
-            for prop in self._props0:
+        if chain.acceptance[-1]['accepted'] and not (self._choices is None):
+            # start popping from the back
+            choices = sorted(self._choices['choices'], reverse=True)
+            if self._choices['birth']:
+                mv = [self._inact.pop(i) for i in choices]
+                self._act += mv
+            else:
+                mv = [self._act.pop(i) for i in choices]
+                self._inact += mv
+            for prop in mv:
                 prop.active = not prop.active
-        self._props0 = None # back to None just to be sure
+        self._choices = None # back to None just to be sure
 
         # no adaptation for now
 #        for prop in self._all_proposals:
@@ -147,40 +156,58 @@ class NestedTransdimensional(BaseProposal):
 
     def jump(self, fromx):
         newk = self.td_proposal.jump({self.k: fromx[self.k]})
+#        newk = {self.k: fromx[self.k] - 1}
         # if not initialised pick which proposals are active
+        # this is entered only once so can afford some inefficiency
         if not self._initialised:
+            print('initialising')
             for prop in self.inmodel_props:
                 if numpy.alltrue(numpy.isnan([fromx[p]
                                               for p in prop.parameters])):
                     prop.active = False
                 else:
                     prop.active = True
+                self._act = [prop for prop in self.inmodel_props
+                             if prop.active]
+                self._inact = [prop for prop in self.inmodel_props
+                               if not prop.active]
             self._initialised = True
-        # Later move this onto a list so we dont have to loop over them every
-        # single time.
-        act_props = [prop for prop in self.inmodel_props if prop.active]
-        inact_props = [prop for prop in self.inmodel_props if not prop.active]
 
+        # copy over the old pars if we do not do update in b/d
         out = fromx.copy()
         out.update(newk)
+
+        n_inact = len(self._inact)
+        n_act = self.kmax - n_inact
         dk = out[self.k] - fromx[self.k]
         if dk > 0: # birth
-            self._props0 = self.random_generator.choice(inact_props, size=dk,
-                                                        replace=False)
-            pars = [item for t in [prop.parameters for prop in self._props0]
+            choices = self.random_generator.choice(range(n_inact), size=dk,
+                                                   replace=False)
+#            print('choices: ', choices)
+            props = [self._inact[i] for i in choices]
+            pars = [item for t in [prop.parameters for prop in props]
                     for item in t]
-            # sample the prior
+#            print('pars: ', pars)
             out.update({p: self.prior_dist[p].rvs() for p in pars})
+            self._choices = {'choices': choices, 'birth': True}
         elif dk < 0: # death
-            self._props0 = self.random_generator.choice(act_props, size=-dk,
-                                                        replace=False)
-            pars = [item for t in [prop.parameters for prop in self._props0]
+            choices = self.random_generator.choice(range(n_act), size=-dk,
+                                                   replace=False)
+            props = [self._act[i] for i in choices]
+            pars = [item for t in [prop.parameters for prop in props]
                     for item in t]
             # set the removed proposal parameters to nans
             out.update({p: numpy.nan for p in pars})
+            self._choices = {'choices': choices, 'birth': False}
         else: # update all active proposals
-            for prop in act_props:
-                out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
+            for prop in self._act:
+                try:
+                    out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
+                except ValueError:
+                    print(prop.parameters)
+                    print(fromx)
+                    out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
+            self._choices = None
         return out
 
     @property
