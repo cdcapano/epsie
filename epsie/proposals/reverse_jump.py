@@ -173,21 +173,19 @@ class NestedTransdimensional(BaseProposal):
                                if not prop.active]
             self._initialised = True
 
-        # copy over the old pars if we do not do update in b/d
         out = fromx.copy()
         out.update(newk)
+        dk = out[self.k] - fromx[self.k]
 
         n_inact = len(self._inact)
         n_act = self.kmax - n_inact
-        dk = out[self.k] - fromx[self.k]
+        props = []
         if dk > 0: # birth
             choices = self.random_generator.choice(range(n_inact), size=dk,
                                                    replace=False)
-#            print('choices: ', choices)
             props = [self._inact[i] for i in choices]
             pars = [item for t in [prop.parameters for prop in props]
                     for item in t]
-#            print('pars: ', pars)
             out.update({p: self.prior_dist[p].rvs() for p in pars})
             self._choices = {'choices': choices, 'birth': True}
         elif dk < 0: # death
@@ -199,15 +197,9 @@ class NestedTransdimensional(BaseProposal):
             # set the removed proposal parameters to nans
             out.update({p: numpy.nan for p in pars})
             self._choices = {'choices': choices, 'birth': False}
-        else: # update all active proposals
-            for prop in self._act:
-                try:
-                    out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-                except ValueError:
-                    print(prop.parameters)
-                    print(fromx)
-                    out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-            self._choices = None
+        for prop in self._act:
+            if not prop in props:
+                out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
         return out
 
     @property
