@@ -135,19 +135,20 @@ class NestedTransdimensional(BaseProposal):
         return lp
 
     def update(self, chain):
+        pass
         # update each of the proposals
-        if chain.acceptance[-1]['accepted'] and not (self._choices is None):
-            # start popping from the back
-            choices = sorted(self._choices['choices'], reverse=True)
-            if self._choices['birth']:
-                mv = [self._inact.pop(i) for i in choices]
-                self._act += mv
-            else:
-                mv = [self._act.pop(i) for i in choices]
-                self._inact += mv
-            for prop in mv:
-                prop.active = not prop.active
-        self._choices = None # back to None just to be sure
+#        if chain.acceptance[-1]['accepted'] and not (self._choices is None):
+#            # start popping from the back
+#            choices = sorted(self._choices['choices'], reverse=True)
+#            if self._choices['birth']:
+#                mv = [self._inact.pop(i) for i in choices]
+#                self._act += mv
+#            else:
+#                mv = [self._act.pop(i) for i in choices]
+#                self._inact += mv
+#            for prop in mv:
+#                prop.active = not prop.active
+#        self._choices = None # back to None just to be sure
 
         # no adaptation for now
 #        for prop in self._all_proposals:
@@ -161,17 +162,28 @@ class NestedTransdimensional(BaseProposal):
         # this is entered only once so can afford some inefficiency
         if not self._initialised:
             print('initialising')
-            for prop in self.inmodel_props:
-                if numpy.alltrue(numpy.isnan([fromx[p]
-                                              for p in prop.parameters])):
-                    prop.active = False
-                else:
-                    prop.active = True
-                self._act = [prop for prop in self.inmodel_props
-                             if prop.active]
-                self._inact = [prop for prop in self.inmodel_props
-                               if not prop.active]
+#            for prop in self.inmodel_props:
+#                if numpy.alltrue(numpy.isnan([fromx[p]
+#                                              for p in prop.parameters])):
+#                    prop.active = False
+#                else:
+#                   prop.active = True
+#                self._act = [prop for prop in self.inmodel_props
+#                             if prop.active]
+#                self._inact = [prop for prop in self.inmodel_props
+#                               if not prop.active]
             self._initialised = True
+
+#        self._act = list()
+#        self._inact = list()
+#
+#        for prop in self.inmodel_props:
+#            if numpy.alltrue(numpy.isnan(fromx[p] for p in prop.parameters)):
+#                self._inact.append
+
+        self._act = [prop for prop in self.inmodel_props if not numpy.alltrue(numpy.isnan([fromx[p] for p in prop.parameters]))]
+        self._inact= [prop for prop in self.inmodel_props if numpy.alltrue(numpy.isnan([fromx[p] for p in prop.parameters]))]
+
 
         out = fromx.copy()
         out.update(newk)
