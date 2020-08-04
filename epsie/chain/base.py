@@ -39,6 +39,7 @@ class BaseChain(object):
     stats
     acceptance
     blobs
+    proposed_positions
     start_position
     stats0
     blob0
@@ -164,6 +165,15 @@ class BaseChain(object):
 
         If the model does not return blobs, this is just ``None``.
         """
+        pass
+
+    # Py3XX: uncomment the next two lines
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
+    def proposed_positions(self):
+        """The history of all of the proposed positions, as a structred
+        array."""
         pass
 
     # Py3XX: uncomment the next two lines

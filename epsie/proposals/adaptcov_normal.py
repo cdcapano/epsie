@@ -95,9 +95,9 @@ class AdaptiveCovarianceSupport(object):
         self.target_acceptance = target_acceptance
         ndim = len(self.parameters)
         self._mean = numpy.zeros(ndim) # initial mean
-        self._logr = 0.0 # initial global scaling
+#        self._logr = 0.0 # initial global scaling
         self._cov = numpy.eye(ndim) # inital covariance
-
+        self._log_component_scaling = np.ones(ndim)
 
     @property
     def start_iter(self):
@@ -142,6 +142,40 @@ class AdaptiveCovarianceSupport(object):
             new_cov = (self._cov + decay*(numpy.matmul(d, d.T) - self._cov))
 
             alpha_mh = min(1, chain.acceptance['acceptance_ratio'][-1])
+            current_logl, current_logp = chain.stats[-1]
+            current_pos = chain.positions[-1]
+            proposed_pos = chain.proposed_positions[-1]
+
+# Not finished. Pushed just as an example
+
+            for i, p in enumerate(self.parameters):
+                newp = current_pos
+                newp[p] += proposed_pos[p]
+
+                r = chain.model(**newp)
+                if self._hasblobs:
+                    logl, logp, blob = r
+                else:
+                    logl, logp = r
+                    blob = None
+
+                if logp == -numpy.inf:
+                    ar = 0.
+                else:
+                    logar = logp + logl * chain.beta \
+                            - currrent_logp - current_logl * chain.beta
+                    if not chain.proposal_dist.symmetric:
+                        logar += self.proposal_dist.logpdf(current_pos,
+                                                           proposal)\
+                                 - self.proposal_dist.logpdf(proposal,
+                                                             current_pos)
+
+
+
+#                logar = 
+
+#                self._log_component_scaling[i] += decay * 
+
             new_logr = self._logr\
                        + decay * (alpha_mh - self.target_acceptance)
             try:
