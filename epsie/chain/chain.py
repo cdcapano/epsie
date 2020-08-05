@@ -71,7 +71,6 @@ class Chain(BaseChain):
     stats
     acceptance
     blobs
-    proposed_positions
     start_position
     stats0
     blob0
@@ -101,7 +100,6 @@ class Chain(BaseChain):
         self._lastclear = 0
         self._scratchlen = 0
         self._positions = ChainData(parameters)
-        self._proposed_positions = ChainData(parameters)
         self._stats = ChainData(['logl', 'logp'])
         self._acceptance = ChainData(['acceptance_ratio', 'accepted'],
                                      dtypes={'accepted': bool})
@@ -266,19 +264,11 @@ class Chain(BaseChain):
 
     @property
     def positions(self):
-        """The history of all of the positions, as a structured array."""
+        """The history of all of the positions, as a structred array."""
         if self.iteration == 0:
             raise ValueError("No positions as chain hasn't been stepped "
                              "yet; run step() at least once")
         return self._positions[:len(self)]
-
-    @property
-    def proposed_positions(self):
-        """The history of all of the positions, as a structred array."""
-        if self.iteration == 0:
-            raise ValueError("No proposed positions as chain hasn't been"
-                             "stepped yet; run step() at least once")
-        return self._proposed_positions[:len(self)]
 
     @property
     def stats(self):
@@ -359,7 +349,6 @@ class Chain(BaseChain):
             # save position then clear
             self._start = self.current_position
             self._positions.clear(self.scratchlen)
-            self._proposed_positions.clear(self.scratchlen)
             # save stats then clear
             self._stats0 = self.current_stats
             self._stats.clear(self.scratchlen)
@@ -377,8 +366,7 @@ class Chain(BaseChain):
         index = (-1)**(index < 0) * (index % len(self))
         out = {'positions': self._positions[index],
                'stats': self._stats[index],
-               'acceptance': self._acceptance[index],
-               'proposed_positions': self._proposed_positions[index]
+               'acceptance': self._acceptance[index]
                }
         if self._hasblobs:
             out['blobs'] = self._blobs[index]
@@ -486,7 +474,6 @@ class Chain(BaseChain):
         # save
         index = len(self)
         self._positions[index] = pos
-        self._proposed_positions[index] = proposal
         self._stats[index] = stats
         self._acceptance[index] = (ar, accept)
         if self._hasblobs:
