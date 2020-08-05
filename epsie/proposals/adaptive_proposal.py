@@ -18,7 +18,6 @@ from __future__ import (absolute_import, division)
 from abc import ABCMeta
 from six import add_metaclass
 
-from scipy import stats
 import numpy
 
 from .normal import Normal
