@@ -55,8 +55,9 @@ class AdaptiveProposalSupport(object):
 
     References
     ----------
-    [1] Andrieu, C., Thoms, J. A tutorial on adaptive MCMC.
-    Stat Comput 18, 343–373 (2008). https://doi.org/10.1007/s11222-008-9110-y
+    [1] Andrieu, Christophe & Thoms, Johannes. (2008).
+    A tutorial on adaptive MCMC. Statistics and Computing.
+    18. 10.1007/s11222-008-9110-y.
     """
 
     _componentwise_pars = None
@@ -84,8 +85,8 @@ class AdaptiveProposalSupport(object):
         self.componentwise_pars = componentwise_pars
         self.adaptation_duration = adaptation_duration
 
-        self._mean = numpy.zeros(ndim) # initial mean
-        self._unit_cov = numpy.eye(ndim) # inital covariance
+        self._mean = numpy.zeros(ndim)  # initial mean
+        self._unit_cov = numpy.eye(ndim)  # inital covariance
         self._cov = self._unit_cov
 
         self._log_lambda = 0
@@ -200,10 +201,8 @@ class AdaptiveProposalSupport(object):
                 else:
                     ar = min(1, numpy.exp(logar))
             # update the component
-            log_lambda_arr[i] = self._log_lambda_arr[i]\
-                                + decay * (ar - 0.44)
+            log_lambda_arr[i] = self._log_lambda_arr[i] + decay * (ar - 0.44)
         return log_lambda_arr
-
 
     def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
@@ -215,8 +214,6 @@ class AdaptiveProposalSupport(object):
                                      for p in chain.parameters]).T
             self._mean = numpy.average(positions, weights=weights, axis=0)
             self.cov = numpy.cov(positions, rowvar=False, aweights=weights)
-
-
 
         if 0 < chain.iteration - self.start_iter < (self.adaptation_duration):
             decay = self.decay(chain.iteration)
@@ -258,7 +255,7 @@ class AdaptiveProposalSupport(object):
                 'cov': self._cov,
                 'unit_cov': self._unit_cov,
                 'log_lambda': self._log_lambda,
-                'log_lambda_arr': self._log_lambda_arr,}
+                'log_lambda_arr': self._log_lambda_arr}
 
     def set_state(self, state):
         self.random_state = state['random_state']
