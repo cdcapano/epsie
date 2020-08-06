@@ -52,6 +52,10 @@ class Chain(BaseChain):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
+    transdimensional : bool, optional
+        Boolean toggle denoting the use of reverse jump MCMC. By default false
+        for standard MCMC. If True proposals are split among active and
+        inactive.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
         Use the given random bit generator for generating random variates. If
         an int or None is provided, a generator will be created instead using
@@ -86,13 +90,23 @@ class Chain(BaseChain):
     proposal_dist : JointProposal
         The joint proposal used for all parameters.
     """
-    def __init__(self, parameters, model, proposals, bit_generator=None,
-                 chain_id=0, beta=1.):
+    def __init__(self, parameters, model, proposals, transdimensional=False,
+                 bit_generator=None, chain_id=0, beta=1.):
         self.parameters = parameters
+        self.transdimensional = transdimensional
         self.model = model
-        # combine the proposals into a joint proposal
-        self.proposal_dist = JointProposal(*proposals,
-                                           bit_generator=bit_generator)
+        if transdimensional:
+            # for a transdimensional must provide a single proposal
+            if isinstance(proposals, (list, tuple)):
+                if len(proposals) > 1:
+                    raise ValueError("For transdimensional must provide a "
+                                     "single proposal")
+                else:
+                    self.proposal_dist = proposals[0]
+        else:
+            # combine the proposals into a joint proposal
+            self.proposal_dist = JointProposal(*proposals,
+                                               bit_generator=bit_generator)
         # store the temp
         self.beta = beta
         self.chain_id = chain_id
@@ -109,6 +123,8 @@ class Chain(BaseChain):
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
+        self._active_proposals = None
+        self._inactive_proposals = None
 
     @property
     def hasblobs(self):
@@ -191,6 +207,17 @@ class Chain(BaseChain):
         self._positions.dtypes = detect_dtypes(position)
         # evaluate logl, p at this point
         r = self.model(**position)
+        if self.transdimensional:
+            props = self.proposal_dist.proposals
+            for prop in props:
+                if numpy.alltrue(numpy.isnan([self._start[p]
+                                              for p in prop.parameters])):
+                    prop.active = False
+                else:
+                    prop.active = True
+            self._active_proposals = [prop for prop in props if prop.active]
+            self._inactive_proposals = [prop for prop in props
+                                        if not prop.active]
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -432,6 +459,19 @@ class Chain(BaseChain):
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
 
+    def _switch_proposals(self, switch_proposals):
+        if switch_proposals is not None:
+            for prop in switch_proposals:
+                if prop.active:
+                    self._active_proposals.remove(prop)
+                    self._inactive_proposals.append(prop)
+                    prop.active = not prop.active
+                else:
+                    self._inactive_proposals.remove(prop)
+                    self._active_proposals.append(prop)
+                    prop.active = not prop.active
+
+
     def step(self):
         """Evolves the chain by a single step."""
         # get the current position; if this is the first step and set_start
@@ -440,7 +480,12 @@ class Chain(BaseChain):
         current_stats = self.current_stats
         current_blob = self.current_blob
         # create a proposal and test it
-        proposal = self.proposal_dist.jump(current_pos)
+        # add if for a TD proposal?
+        if not self.transdimensional:
+            proposal = self.proposal_dist.jump(current_pos)
+        else:
+            proposal, switch_proposals = self.proposal_dist.jump(current_pos,\
+                            self._active_proposals, self._inactive_proposals)
         r = self.model(**proposal)
         if self._hasblobs:
             logl, logp, blob = r
@@ -460,12 +505,19 @@ class Chain(BaseChain):
             if not self.proposal_dist.symmetric:
                 logar += self.proposal_dist.logpdf(current_pos, proposal) - \
                          self.proposal_dist.logpdf(proposal, current_pos)
-            ar = numpy.exp(logar)
-            u = self.random_generator.uniform()
-            accept = u <= ar
+            if logar > 0:
+                ar = 1.
+                accept = True
+            else:
+                ar = numpy.exp(logar)
+                u = self.random_generator.uniform()
+                accept = u <= ar
         if accept:
             pos = proposal
             stats = {'logl': logl, 'logp': logp}
+            # if transdimensional switch proposals
+            if self.transdimensional:
+                self._switch_proposals(switch_proposals)
         else:
             # reject
             pos = current_pos
