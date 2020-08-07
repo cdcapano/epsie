@@ -105,7 +105,7 @@ class Chain(BaseChain):
                                      "single transdimensional proposal")
                 else:
                     self.proposal_dist = proposals[0]
-                self.proposals_list = None
+                self.props_list = None
         else:
             # combine the proposals into a joint proposal
             self.proposal_dist = JointProposal(*proposals,
@@ -216,7 +216,7 @@ class Chain(BaseChain):
                     prop.active = False
                 else:
                     prop.active = True
-            self.proposals_list = TransdimensionalProposalsList(\
+            self.props_list = TransdimensionalProposalsList(
                 self.proposal_dist.proposals)
         try:
             logl, logp, blob = r
@@ -470,8 +470,8 @@ class Chain(BaseChain):
         if not self.transdimensional:
             proposal = self.proposal_dist.jump(current_pos)
         else:
-            proposal, switch_indx = self.proposal_dist.jump(current_pos,\
-                                                        self.proposals_list)
+            proposal, switch_indx = self.proposal_dist.jump(current_pos,
+                                                            self.props_list)
         r = self.model(**proposal)
         if self._hasblobs:
             logl, logp, blob = r
@@ -503,7 +503,7 @@ class Chain(BaseChain):
             stats = {'logl': logl, 'logp': logp}
             # if transdimensional switch proposals
             if self.transdimensional and switch_indx is not None:
-                self.proposals_list.flip_proposals(switch_indx)
+                self.props_list.flip_proposals(switch_indx)
 
         else:
             # reject

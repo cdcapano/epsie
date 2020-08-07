@@ -19,7 +19,6 @@ from copy import deepcopy
 
 import numpy
 
-from time import time
 
 from .base import BaseProposal
 from .discrete import BoundedDiscrete
@@ -40,7 +39,7 @@ class NestedTransdimensional(BaseProposal):
     bounds: dict
         Bounds on the model index. It is sufficient to only provide the bound
         on the model index k.
-    model_index: str (optinal)
+    model_indx: str (optinal)
         String denoting the model index. By default `k`.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
         The random bit generator to use, or an integer/None. If the latter, a
@@ -58,24 +57,24 @@ class NestedTransdimensional(BaseProposal):
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, parameters, proposal, prior_dist,
-                 bounds, model_index='k', **kwargs):
+                 bounds, model_indx='k', **kwargs):
         # store parameters
         self.unique_pars = parameters
         pars = list()
-        k0, kf = bounds[model_index]
+        k0, kf = bounds[model_indx]
         self.kmax = kf
         for p in self.unique_pars:
             for k in range(k0, kf + 1):
                 pars.append('{}{}'.format(p, k))
-        self.parameters = pars + [model_index]
+        self.parameters = pars + [model_indx]
         # store the model index
-        self.k = model_index
-        bit_generator = kwargs.pop('bit_generator', None)  #Py3XX: delete line
+        self.k = model_indx
+        bit_generator = kwargs.pop('bit_generator', None) #Py3XX: delete line
         self.bit_generator = bit_generator
         # model jumping proposal
-        self.model_proposal = BoundedDiscrete([model_index],\
-                                    {model_index: bounds[model_index]},
-                                    successive={model_index: True})
+        self.model_proposal = BoundedDiscrete([model_indx],
+                                              {model_indx: bounds[model_indx]},
+                                              successive={model_indx: True})
         # copy update proposal for each within model proposal
         self.proposals = [deepcopy(proposal) for i in range(k0, kf+1)]
         # rename the within model proposal parameters to reflect the index
@@ -134,9 +133,8 @@ class NestedTransdimensional(BaseProposal):
 
     def update(self, chain):
         pass
-        #for prop in self._all_proposals:
-        #    prop.update(chain)
-
+#        for prop in self._all_proposals:
+#            prop.update(chain)
 
     def jump(self, fromx, proposals_list):
         mcmc_move = proposals_list.active_mask.copy()
@@ -154,19 +152,21 @@ class NestedTransdimensional(BaseProposal):
                 proposals_list.active_mask))
 
         if dk > 0:
-            switch_indx = self.random_generator.choice(inact_indx[0],\
-                                    size=dk, replace=False).reshape(-1,)
+            switch_indx = self.random_generator.choice(inact_indx[0], size=dk,
+                                                       replace=False)
+            switch_indx = switch_indx.reshape(-1, )
             switch_props = proposals_list.proposals[switch_indx]
-            birth_pars = [item for t in [prop.parameters for prop in\
-                            switch_props] for item in t]
+            birth_pars = [item for t in [prop.parameters for prop
+                                         in switch_props] for item in t]
             # sample the prior
             out.update({p: self.prior_dist[p].rvs() for p in birth_pars})
         elif dk < 0:
-            switch_indx = self.random_generator.choice(act_indx[0],\
-                                    size=-dk, replace=False).reshape(-1,)
+            switch_indx = self.random_generator.choice(act_indx[0], size=-dk,
+                                                       replace=False)
+            switch_indx = switch_indx.reshape(-1, )
             switch_props = proposals_list.proposals[switch_indx]
-            death_pars = [item for t in [prop.parameters for prop in\
-                            switch_props] for item in t]
+            death_pars = [item for t in [prop.parameters for prop
+                                         in switch_props] for item in t]
             # set deaths to nans
             out.update({p: numpy.nan for p in death_pars})
             mcmc_move[switch_indx] = numpy.logical_not(mcmc_move[switch_indx])
