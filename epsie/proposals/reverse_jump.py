@@ -133,48 +133,48 @@ class NestedTransdimensional(BaseProposal):
         return lp
 
     def update(self, chain):
-        for prop in self._all_proposals:
-            prop.update(chain)
+        pass
+        #for prop in self._all_proposals:
+        #    prop.update(chain)
 
 
-    def jump(self, fromx, active_proposals, inactive_proposals):
-        # proposals for which to perform a standard MCMC move
-        mcmc_proposals = active_proposals.copy()
-        # proposals which are potentially either birth or death
-        switch_proposals = None
-        # copy the last point so not everything has to be overwritten
+    def jump(self, fromx, proposals_list):
+        mcmc_move = proposals_list.active_mask.copy()
+        switch_indx = None
+        # copy the last point so inactive proposals do not have to be
+        # explicitly copied
         out = fromx.copy()
         newk = self.model_proposal.jump({self.k: fromx[self.k]})
         out.update(newk)
 
         dk = out[self.k] - fromx[self.k]
         if dk != 0:
-            Ninact = len(inactive_proposals)
-            Nact = self.kmax - Ninact
+            act_indx = numpy.where(proposals_list.active_mask)
+            inact_indx = numpy.where(numpy.logical_not(
+                proposals_list.active_mask))
 
         if dk > 0:
-            choices = self.random_generator.choice(range(Ninact), size=dk,
-                                                   replace=False)
-            switch_proposals = [inactive_proposals[i] for i in choices]
+            switch_indx = self.random_generator.choice(inact_indx[0],\
+                                    size=dk, replace=False).reshape(-1,)
+            switch_props = proposals_list.proposals[switch_indx]
             birth_pars = [item for t in [prop.parameters for prop in\
-                            switch_proposals] for item in t]
+                            switch_props] for item in t]
             # sample the prior
             out.update({p: self.prior_dist[p].rvs() for p in birth_pars})
         elif dk < 0:
-            choices = self.random_generator.choice(range(Nact), size=-dk,
-                                                   replace=False)
-            switch_proposals = [active_proposals[i] for i in choices]
-
+            switch_indx = self.random_generator.choice(act_indx[0],\
+                                    size=-dk, replace=False).reshape(-1,)
+            switch_props = proposals_list.proposals[switch_indx]
             death_pars = [item for t in [prop.parameters for prop in\
-                            switch_proposals] for item in t]
+                            switch_props] for item in t]
             # set deaths to nans
             out.update({p: numpy.nan for p in death_pars})
-            __ = [mcmc_proposals.remove(prop) for prop in switch_proposals]
+            mcmc_move[switch_indx] = numpy.logical_not(mcmc_move[switch_indx])
 
         # do a MCMC move on all proposals that are not nans/just activated
-        for prop in mcmc_proposals:
+        for prop in proposals_list.proposals[mcmc_move]:
             out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-        return out, switch_proposals
+        return out, switch_indx
 
     @property
     def state(self):

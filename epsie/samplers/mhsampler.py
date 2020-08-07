@@ -73,6 +73,8 @@ class MetropolisHastingsSampler(BaseSampler):
         ----------
         nchains : int
             The number of Markov chains to create.
+        transdimensional : bool
+            Toggle denoting transdimensional MCMC
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")

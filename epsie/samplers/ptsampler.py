@@ -57,6 +57,9 @@ class ParallelTemperedSampler(BaseSampler):
     seed : int, optional
         Seed for the random number generator. If None provided, will create
         one.
+    transdimensional : bool, optional
+        A toggle denoting the use of reverse-jump MCMC. By default False. If
+        True proposals are split amongst active and inactive.
     pool : Pool object, optional
         Specify a process pool to use for parallelization. Default is to use a
         single core.
@@ -64,11 +67,12 @@ class ParallelTemperedSampler(BaseSampler):
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
                  proposals=None,
                  default_proposal=None, default_proposal_args=None, seed=None,
-                 pool=None):
+                 transdimensional=False, pool=None):
         self.parameters = parameters
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
         self.seed = seed
+        self.transdimensional = transdimensional
         self.pool = pool
         if isinstance(betas, (float, int)):
             # only single temperature; turn into list so things below won't
@@ -78,9 +82,10 @@ class ParallelTemperedSampler(BaseSampler):
             # betas is probably a list or tuple; convert to array so we can use
             # numpy functions
             betas = numpy.array(betas)
-        self.create_chains(nchains, betas, swap_interval)
+        self.create_chains(nchains, betas, transdimensional, swap_interval)
 
-    def create_chains(self, nchains, betas, swap_interval=1):
+    def create_chains(self, nchains, betas, transdimensional,
+                      swap_interval=1):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -90,6 +95,8 @@ class ParallelTemperedSampler(BaseSampler):
         betas : array
             Array of inverse temperatures to use for each parallel tempered
             chain.
+        transdimensional : bool
+            Toggle denoting transdimensional MCMC
         swap_interval : int, optional
             How often to calculate temperature swaps. Default is 1 (= swap on
             every iteration).
@@ -98,7 +105,7 @@ class ParallelTemperedSampler(BaseSampler):
             raise ValueError("nchains must be >= 1")
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals],
+            [copy.deepcopy(p) for p in self.proposals], transdimensional,
             betas=betas, swap_interval=swap_interval,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
@@ -117,7 +124,7 @@ class ParallelTemperedSampler(BaseSampler):
     @property
     def temperatures(self):
         """The temperatures used."""
-        return 1./betas
+        return 1./self.betas
 
     @property
     def swap_interval(self):

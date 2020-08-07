@@ -46,6 +46,10 @@ class ParallelTemperedChain(BaseChain):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
+    transdimensional : bool, optional
+        Boolean toggle denoting the use of reverse jump MCMC. By default false
+        for standard MCMC. If True proposals are split among active and
+        inactive.
     betas : array of floats, optional
         Array of inverse temperatures. Each beta must be in range 0 (= infinite
         temperature; i.e., only sample the prior) <= beta <= 1 (= coldest
@@ -80,13 +84,15 @@ class ParallelTemperedChain(BaseChain):
     random_state
     state
     hasblobs
+    transdimensional
     chain_id : int or None
         Integer identifying the chain.
     """
-    def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
-                 bit_generator=None, chain_id=0):
+    def __init__(self, parameters, model, proposals, transdimensional=False,
+                 betas=1., swap_interval=1, bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
+        self.transdimensional = transdimensional
         # store the temp
         self._betas = None
         self.betas = betas
@@ -110,7 +116,7 @@ class ParallelTemperedChain(BaseChain):
         # create a chain for each temperature
         self.chains = [
             Chain(parameters, model,
-                  [copy.deepcopy(p) for p in proposals],
+                  [copy.deepcopy(p) for p in proposals], transdimensional,
                   bit_generator=self.bit_generator, chain_id=chain_id,
                   beta=beta)
             for beta in self.betas]
@@ -539,6 +545,9 @@ class ParallelTemperedChain(BaseChain):
                          for swk in swap_index]
         new_stats = [self.chains[swk].current_stats
                      for swk in swap_index]
+        if self.transdimensional:
+            new_active = [self.chains[swk].proposals_list._active
+                          for swk in swap_index]
         if self.hasblobs:
             new_blobs = [self.chains[swk].current_blob
                          for swk in swap_index]
@@ -547,6 +556,9 @@ class ParallelTemperedChain(BaseChain):
         for (tk, chain) in enumerate(self.chains):
             chain._positions[ii] = new_positions[tk]
             chain._stats[ii] = new_stats[tk]
+            if self.transdimensional:
+                chain.proposals_list._active = new_active[tk]
+
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
         self._temperature_acceptance[ii//self.swap_interval] = {
