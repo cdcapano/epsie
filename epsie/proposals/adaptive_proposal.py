@@ -74,6 +74,9 @@ class AdaptiveProposalSupport(object):
             included in `parameters`.
         start_iter: int (optional)
             The iteration index when adaptation phase begins.
+        adaptation_duration: int (optional)
+            The number of adaptation steps. By default assumes the adaptation
+            never ends but decays.
         target_acceptance: float (optional)
             Target acceptance ratio. By default 0.234
 
@@ -83,6 +86,7 @@ class AdaptiveProposalSupport(object):
         ndim = len(self.parameters)
         self.componentwise_pars = componentwise_pars
         self.adaptation_duration = adaptation_duration
+
 
         self._mean = numpy.zeros(ndim)  # initial mean
         self._unit_cov = numpy.eye(ndim)  # inital covariance
@@ -207,6 +211,8 @@ class AdaptiveProposalSupport(object):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
+        # if start iteration is not 0 then take a weighted average to
+        # get an estimate of the initial mean and covariance
         if chain.iteration == self.start_iter - 1:
             weights = numpy.arange(chain.iteration, 0, -1)**(0.6)
             positions = numpy.vstack([chain.positions[p]
