@@ -54,6 +54,15 @@ class ParallelTemperedChain(BaseChain):
     swap_interval : int, optional
         For a parallel tempered chain, how often to calculate temperature
         swaps. Default is 1 (= swap on every iteration).
+    adaptive_betas : bool, optional
+        Specify whether to dynamically adjust the chain temperatures. Adopts
+        the algorithm outlined in [1].
+    tau : int, optional
+        Defines the swap iteration at which adjustments have been reduced to
+        half their initial amplitude ([1]). Default value is 1000.
+    nu : int, optional
+        Defines the initial amplitude of adjustments ([1]).
+        Default values is 10
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
         Use the given random bit generator for generating random variates. If
         an int or None is provided, a generator will be created instead using
@@ -82,9 +91,18 @@ class ParallelTemperedChain(BaseChain):
     hasblobs
     chain_id : int or None
         Integer identifying the chain.
+
+    References
+    ----------
+    [1] W. D. Vousden, W. M. Farr, I. Mandel, Dynamic temperature selection
+    for parallel tempering in Markov chain Monte Carlo simulations,
+    Monthly Notices of the Royal Astronomical Society, Volume 455,
+    Issue 2, 11 January 2016, Pages 1919–1937,
+    https://doi.org/10.1093/mnras/stv2422
     """
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
-                 bit_generator=None, chain_id=0):
+                 adaptive_betas=False, tau=1000, nu=10, bit_generator=None,
+                 chain_id=0):
         self.parameters = parameters
         self.model = model
         # store the temp
@@ -93,6 +111,9 @@ class ParallelTemperedChain(BaseChain):
         self.swap_interval = swap_interval
         self._temperature_acceptance = None
         self._temperature_swaps = None
+        self.adaptive_betas = adaptive_betas
+        self.tau = tau
+        self.nu = nu
         if self.ntemps > 1:
             # we pass ntemps=ntemps-1 here because there will be ntemps-1
             # acceptance ratios for ntemp levels
@@ -114,6 +135,9 @@ class ParallelTemperedChain(BaseChain):
                   bit_generator=self.bit_generator, chain_id=chain_id,
                   beta=beta)
             for beta in self.betas]
+        # calculate the initial log temperature differences
+        if adaptive_betas:
+            self._S = numpy.log(numpy.diff(1.0/self.betas[:-1]))
 
     @property
     def bit_generator(self):
@@ -553,3 +577,14 @@ class ParallelTemperedChain(BaseChain):
             'acceptance_ratio': ars}
         self._temperature_swaps[ii//self.swap_interval] = {
             'swap_index': swap_index}
+        # for adaptive PT adjust the temperature leves
+        if self.adaptive_betas:
+            decay = (self.tau/self.nu)/(ii // self.swap_interval + self.tau+1)
+            ars[ars > 1] = 1.
+            # adjust the log temperature differences
+            self._S += numpy.array([decay * (ars[i] - ars[i+1])
+                                   for i in range(self.ntemps - 2)])
+            # recursively update the temperature levels
+            # note: the coldest and hottest temperatures are kept fixed
+            for i in range(1, self.ntemps - 1):
+                self.betas[i] = 1/(1/self.betas[i-1] + numpy.exp(self._S[i-1]))
