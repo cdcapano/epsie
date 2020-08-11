@@ -87,7 +87,6 @@ class AdaptiveProposalSupport(object):
         self.componentwise_pars = componentwise_pars
         self.adaptation_duration = adaptation_duration
 
-
         self._mean = numpy.zeros(ndim)  # initial mean
         self._unit_cov = numpy.eye(ndim)  # inital covariance
         self._cov = self._unit_cov
