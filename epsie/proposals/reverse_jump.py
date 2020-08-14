@@ -30,10 +30,11 @@ class NestedTransdimensional(BaseProposal):
 
     Parameters
     ----------
-    proposals py:class `epsie.proposals`
+    proposal : py:class `epsie.proposals`
         The within model proposal for each signal. This is deep copied for
-        potential signals. For now assume a given maximum number of signals.
-    prior_dist: dict
+        potential signals, thus in the current implementation all consitutent
+        signals must share the same functional form.
+    prior_dist : dict
         Prior distributions for each parameter. Must be a class that contains
         a `rvs` method.
     bounds: dict
@@ -48,12 +49,12 @@ class NestedTransdimensional(BaseProposal):
 
     Attributes
     ----------
-    proposals: list
-        The constituent in proposals.
+    proposals: list of py:class `epsie.proposals`
+        The constituent in-model proposals.
     model_proposal: py:class `epsie.proposals.DiscreteBounded
         The model hopping proposal
     """
-    name = 'transdimensional'
+    name = 'nested_transdimensional'
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, parameters, proposal, prior_dist,

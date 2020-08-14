@@ -84,7 +84,7 @@ class ParallelTemperedSampler(BaseSampler):
             betas = numpy.array(betas)
         self.create_chains(nchains, betas, transdimensional, swap_interval)
 
-    def create_chains(self, nchains, betas, transdimensional,
+    def create_chains(self, nchains, betas, transdimensional=False,
                       swap_interval=1):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 

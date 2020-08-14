@@ -46,15 +46,15 @@ class ParallelTemperedChain(BaseChain):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
-    transdimensional : bool, optional
-        Boolean toggle denoting the use of reverse jump MCMC. By default false
-        for standard MCMC. If True proposals are split among active and
-        inactive.
     betas : array of floats, optional
         Array of inverse temperatures. Each beta must be in range 0 (= infinite
         temperature; i.e., only sample the prior) <= beta <= 1 (= coldest
         temperate; i.e., sample the standard posterior). Default is a single
         beta = 1.
+    transdimensional : bool, optional
+        Boolean toggle denoting the use of reverse jump MCMC. By default false
+        for standard MCMC. If True proposals are split among active and
+        inactive.
     swap_interval : int, optional
         For a parallel tempered chain, how often to calculate temperature
         swaps. Default is 1 (= swap on every iteration).
@@ -88,8 +88,9 @@ class ParallelTemperedChain(BaseChain):
     chain_id : int or None
         Integer identifying the chain.
     """
-    def __init__(self, parameters, model, proposals, transdimensional=False,
-                 betas=1., swap_interval=1, bit_generator=None, chain_id=0):
+    def __init__(self, parameters, model, proposals, betas=1.,
+                 transdimensional=False, swap_interval=1, bit_generator=None,
+                 chain_id=0):
         self.parameters = parameters
         self.model = model
         self.transdimensional = transdimensional
@@ -558,7 +559,6 @@ class ParallelTemperedChain(BaseChain):
             chain._stats[ii] = new_stats[tk]
             if self.transdimensional:
                 chain.proposals_list._active = new_active[tk]
-
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
         self._temperature_acceptance[ii//self.swap_interval] = {

@@ -66,7 +66,7 @@ class MetropolisHastingsSampler(BaseSampler):
         self.pool = pool
         self.create_chains(nchains, transdimensional)
 
-    def create_chains(self, nchains, transdimensional):
+    def create_chains(self, nchains, transdimensional=False):
         """Creates a list of :py:class:`chain.Chain`.
 
         Parameters

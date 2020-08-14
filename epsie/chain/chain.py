@@ -458,6 +458,15 @@ class Chain(BaseChain):
         self.blob0 = state['current_blob']
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
+        if self.transdimensional:
+            for prop in self.proposal_dist.proposals:
+                if numpy.alltrue(numpy.isnan([self._start[p]
+                                              for p in prop.parameters])):
+                    prop.active = False
+                else:
+                    prop.active = True
+            self.props_list = TransdimensionalProposalsList(
+                self.proposal_dist.proposals)
 
     def step(self):
         """Evolves the chain by a single step."""
@@ -501,10 +510,9 @@ class Chain(BaseChain):
         if accept:
             pos = proposal
             stats = {'logl': logl, 'logp': logp}
-            # if transdimensional switch proposals
+            # if RJMCMC and any swaps are to be performed
             if self.transdimensional and switch_indx is not None:
                 self.props_list.flip_proposals(switch_indx)
-
         else:
             # reject
             pos = current_pos
