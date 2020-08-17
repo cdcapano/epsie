@@ -105,8 +105,9 @@ class ParallelTemperedSampler(BaseSampler):
             raise ValueError("nchains must be >= 1")
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals], transdimensional,
-            betas=betas, swap_interval=swap_interval,
+            [copy.deepcopy(p) for p in self.proposals], betas=betas,
+            transdimensional=transdimensional,
+            swap_interval=swap_interval,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]

@@ -547,7 +547,7 @@ class ParallelTemperedChain(BaseChain):
         new_stats = [self.chains[swk].current_stats
                      for swk in swap_index]
         if self.transdimensional:
-            new_active = [self.chains[swk].proposals_list._active
+            new_active = [self.chains[swk].props_list._active
                           for swk in swap_index]
         if self.hasblobs:
             new_blobs = [self.chains[swk].current_blob
@@ -558,7 +558,7 @@ class ParallelTemperedChain(BaseChain):
             chain._positions[ii] = new_positions[tk]
             chain._stats[ii] = new_stats[tk]
             if self.transdimensional:
-                chain.proposals_list._active = new_active[tk]
+                chain.props_list._active = new_active[tk]
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
         self._temperature_acceptance[ii//self.swap_interval] = {

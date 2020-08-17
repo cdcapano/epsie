@@ -91,6 +91,7 @@ class NestedTransdimensional(BaseProposal):
                 # most proposals do not have .boundaries attribute
                 pass
         self.model_proposal.bit_generator = self.bit_generator
+        self.proposals = numpy.array(self.proposals)
         # store the prior distribution to sample new components on the go
         self._prior_dist = None
         self.prior_dist = prior_dist
@@ -118,64 +119,86 @@ class NestedTransdimensional(BaseProposal):
             raise ValueError('provide a prior for each parameter')
 
     def logpdf(self, xi, givenx):
-        # Check whether this is called before update and what happens to
-        # recently actived/deactivated proposals
-        # this is a huge bottleneck
+        # logpdf on the model index
+        current = givenx['state']
+        proposed = xi['state']
         lp = 0.0
-        for prop in self.proposals:
-            if prop.active:
-                x0 = {p: givenx[p] for p in prop.parameters}
-                x = {p: xi[p] for p in prop.parameters}
-                # for a now quick hack
-                lp_here = prop.logpdf(x, x0)
-                if numpy.isfinite(lp_here):
-                    lp += lp_here
+
+        dk = xi[self.k] - givenx[self.k]
+        if dk > 0:
+            # ones that are inactive in current but active in proposed
+            # and simply consider the prior probability on these
+            props = self.proposals[numpy.logical_and(current==False, proposed)]
+            pars = [par for pars in [prop.parameters for prop in props]
+                    for par in pars]
+            lp += sum([self.prior_dist[p].logpdf(xi[p]) for p in pars])
+        elif dk < 0:
+            # ones that are active in current but inactive in proposed
+            props = self.proposals[numpy.logical_and(current, proposed==False)]
+            N = len(props)
+            lp += numpy.log(N) - numpy.log(givenx[self.k])
+        # proposal probability on parameters that were just updated
+        props = self.proposals[numpy.logical_and(current, proposed)]
+        for prop in props:
+            lp += prop.logpdf({p: xi[p] for p in prop.parameters},
+                              {p: givenx[p] for p in prop.parameters})
+        # the model jumping probability
+        lp += self.model_proposal.logpdf({self.k: xi[self.k]},
+                                         {self.k: givenx[self.k]})
         return lp
 
     def update(self, chain):
         pass
-#        for prop in self._all_proposals:
-#            prop.update(chain)
 
-    def jump(self, fromx, proposals_list):
-        mcmc_move = proposals_list.active_mask.copy()
-        switch_indx = None
-        # copy the last point so inactive proposals do not have to be
-        # explicitly copied
+    def jump(self, fromx, props):
+        current_state = props.active_mask
+#        print('Currently active:')
+#        for prop in props.proposals[current_state]:
+#            print(prop.parameters)
+        # copy the last position
         out = fromx.copy()
-        newk = self.model_proposal.jump({self.k: fromx[self.k]})
-        out.update(newk)
-
+        out.update(self.model_proposal.jump({self.k: fromx[self.k]}))
         dk = out[self.k] - fromx[self.k]
+#        print(dk)
+        # flip some proposals according to what dk is
         if dk != 0:
-            act_indx = numpy.where(proposals_list.active_mask)
-            inact_indx = numpy.where(numpy.logical_not(
-                proposals_list.active_mask))
-
+            if dk > 0:
+                indx = numpy.where(numpy.logical_not(current_state))[0]
+            elif dk < 0:
+                indx = numpy.where(current_state)[0]
+            # randomly pick which proposals will be turned on/off
+            switch = self.random_generator.choice(indx, size=abs(dk),
+                                                  replace=False).reshape(-1,)
+            proposed_state = current_state.copy()
+            proposed_state[switch] = numpy.logical_not(proposed_state[switch])
+            # parameters to be turned on/off
+            switch_pars = [par for pars in [
+                prop.parameters for prop in props.proposals[switch]]
+                for par in pars]
+            update_proposals = props.proposals[numpy.logical_and(
+                current_state, proposed_state)]
+        else:
+            update_proposals = props.proposals[current_state]
+            proposed_state = current_state
+        # update the out object
         if dk > 0:
-            switch_indx = self.random_generator.choice(inact_indx[0], size=dk,
-                                                       replace=False)
-            switch_indx = switch_indx.reshape(-1, )
-            switch_props = proposals_list.proposals[switch_indx]
-            birth_pars = [item for t in [prop.parameters for prop
-                                         in switch_props] for item in t]
             # sample the prior
-            out.update({p: self.prior_dist[p].rvs() for p in birth_pars})
+            out.update({p: self.prior_dist[p].rvs() for p in switch_pars})
         elif dk < 0:
-            switch_indx = self.random_generator.choice(act_indx[0], size=-dk,
-                                                       replace=False)
-            switch_indx = switch_indx.reshape(-1, )
-            switch_props = proposals_list.proposals[switch_indx]
-            death_pars = [item for t in [prop.parameters for prop
-                                         in switch_props] for item in t]
-            # set deaths to nans
-            out.update({p: numpy.nan for p in death_pars})
-            mcmc_move[switch_indx] = numpy.logical_not(mcmc_move[switch_indx])
-
+            # set to nans
+            out.update({p: numpy.nan for p in switch_pars})
         # do a MCMC move on all proposals that are not nans/just activated
-        for prop in proposals_list.proposals[mcmc_move]:
+#        print(current_state)
+#        print(proposed_state)
+#        print('Proposed active')
+#        for prop in props.proposals[proposed_state]:
+#            print(prop.parameters)
+        for prop in update_proposals:
+            p = {p: fromx[p] for p in prop.parameters}
+#            print(prop.active)
+#            print('jumpoing from p: ', p)
             out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-        return out, switch_indx
+        return out, proposed_state
 
     @property
     def state(self):
