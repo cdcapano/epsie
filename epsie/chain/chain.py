@@ -510,8 +510,8 @@ class Chain(BaseChain):
                 else:
                     givenx = current_pos
                     xi = proposal
-                logar += self.proposal_dist.logpdf(givenx, xi) - \
-                        self.proposal_dist.logpdf(xi, givenx)
+                logar += (self.proposal_dist.logpdf(givenx, xi)
+                          - self.proposal_dist.logpdf(xi, givenx))
             if logar > 0:
                 ar = 1.
                 accept = True
