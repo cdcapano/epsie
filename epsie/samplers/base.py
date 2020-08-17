@@ -32,6 +32,7 @@ class BaseSampler(object):
     """Base class for samplers.
     """
     _parameters = None
+    _transdimensional = None
     _proposals = None
     _model = None
     _chains = None
@@ -49,6 +50,17 @@ class BaseSampler(object):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
         self._parameters = tuple(parameters)
+
+    @property
+    def transdimensional(self):
+        """Whether this is a transdimensional sampler"""
+        return self._transdimensional
+
+    @transdimensional.setter
+    def transdimensional(self, transdimensional):
+        if not isinstance(transdimensional, bool):
+            raise ValueError('must provide a bool for `transdimensional`')
+        self._transdimensional = transdimensional
 
     @property
     def proposals(self):

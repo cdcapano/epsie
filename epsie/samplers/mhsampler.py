@@ -64,9 +64,9 @@ class MetropolisHastingsSampler(BaseSampler):
         self.seed = seed
         self.transdimensional = transdimensional
         self.pool = pool
-        self.create_chains(nchains, transdimensional)
+        self.create_chains(nchains)
 
-    def create_chains(self, nchains, transdimensional=False):
+    def create_chains(self, nchains):
         """Creates a list of :py:class:`chain.Chain`.
 
         Parameters
@@ -80,7 +80,7 @@ class MetropolisHastingsSampler(BaseSampler):
             raise ValueError("nchains must be >= 1")
         self._chains = [Chain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals], transdimensional,
+            [copy.deepcopy(p) for p in self.proposals], self.transdimensional,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
