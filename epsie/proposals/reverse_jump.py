@@ -132,13 +132,8 @@ class NestedTransdimensional(BaseProposal):
                 numpy.logical_not(current), proposed)]
             pars = [par for pars in [prop.parameters for prop in props]
                     for par in pars]
+            # evaluate the prior since thats how new ones are proposed
             lp += sum([self.prior_dist[p].logpdf(xi[p]) for p in pars])
-        elif dk < 0:
-            # ones that are active in current but inactive in proposed
-            props = self.proposals[numpy.logical_and(
-                current, numpy.logical_not(proposed))]
-            N = len(props)
-            lp += numpy.log(N) - numpy.log(givenx[self.k])
         # proposal probability on parameters that were just updated
         props = self.proposals[numpy.logical_and(current, proposed)]
         for prop in props:
