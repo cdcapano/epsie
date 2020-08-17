@@ -120,8 +120,8 @@ class NestedTransdimensional(BaseProposal):
 
     def logpdf(self, xi, givenx):
         # logpdf on the model index
-        current = givenx['state']
-        proposed = xi['state']
+        current = givenx['_state']
+        proposed = xi['_state']
         lp = 0.0
 
         dk = xi[self.k] - givenx[self.k]
@@ -152,8 +152,9 @@ class NestedTransdimensional(BaseProposal):
     def update(self, chain):
         pass
 
-    def jump(self, fromx, props):
-        current_state = props.active_mask
+    def jump(self, fromx):
+        current_state = fromx['_state']
+        props = fromx.pop('_proposals')
         out = fromx.copy()
         out.update(self.model_proposal.jump({self.k: fromx[self.k]}))
         dk = out[self.k] - fromx[self.k]
@@ -172,8 +173,8 @@ class NestedTransdimensional(BaseProposal):
             switch_pars = [par for pars in [
                 prop.parameters for prop in props.proposals[switch]]
                 for par in pars]
-            update_proposals = props.proposals[numpy.logical_and(
-                current_state, proposed_state)]
+            update_proposals = props.proposals[numpy.logical_and(current_state,
+                                                       proposed_state)]
         else:
             update_proposals = props.proposals[current_state]
             proposed_state = current_state
@@ -188,7 +189,8 @@ class NestedTransdimensional(BaseProposal):
         for prop in update_proposals:
             p = {p: fromx[p] for p in prop.parameters}
             out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
-        return out, proposed_state
+        out.update({'_state': proposed_state})
+        return out
 
     @property
     def state(self):
