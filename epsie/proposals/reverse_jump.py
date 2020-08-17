@@ -70,7 +70,7 @@ class NestedTransdimensional(BaseProposal):
         self.parameters = pars + [model_indx]
         # store the model index
         self.k = model_indx
-        bit_generator = kwargs.pop('bit_generator', None) #Py3XX: delete line
+        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         self.bit_generator = bit_generator
         # model jumping proposal
         self.model_proposal = BoundedDiscrete([model_indx],
@@ -128,13 +128,15 @@ class NestedTransdimensional(BaseProposal):
         if dk > 0:
             # ones that are inactive in current but active in proposed
             # and simply consider the prior probability on these
-            props = self.proposals[numpy.logical_and(current==False, proposed)]
+            props = self.proposals[numpy.logical_and(
+                numpy.logical_not(current), proposed)]
             pars = [par for pars in [prop.parameters for prop in props]
                     for par in pars]
             lp += sum([self.prior_dist[p].logpdf(xi[p]) for p in pars])
         elif dk < 0:
             # ones that are active in current but inactive in proposed
-            props = self.proposals[numpy.logical_and(current, proposed==False)]
+            props = self.proposals[numpy.logical_and(
+                current, numpy.logical_not(proposed))]
             N = len(props)
             lp += numpy.log(N) - numpy.log(givenx[self.k])
         # proposal probability on parameters that were just updated
@@ -152,14 +154,9 @@ class NestedTransdimensional(BaseProposal):
 
     def jump(self, fromx, props):
         current_state = props.active_mask
-#        print('Currently active:')
-#        for prop in props.proposals[current_state]:
-#            print(prop.parameters)
-        # copy the last position
         out = fromx.copy()
         out.update(self.model_proposal.jump({self.k: fromx[self.k]}))
         dk = out[self.k] - fromx[self.k]
-#        print(dk)
         # flip some proposals according to what dk is
         if dk != 0:
             if dk > 0:
@@ -188,15 +185,8 @@ class NestedTransdimensional(BaseProposal):
             # set to nans
             out.update({p: numpy.nan for p in switch_pars})
         # do a MCMC move on all proposals that are not nans/just activated
-#        print(current_state)
-#        print(proposed_state)
-#        print('Proposed active')
-#        for prop in props.proposals[proposed_state]:
-#            print(prop.parameters)
         for prop in update_proposals:
             p = {p: fromx[p] for p in prop.parameters}
-#            print(prop.active)
-#            print('jumpoing from p: ', p)
             out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
         return out, proposed_state
 

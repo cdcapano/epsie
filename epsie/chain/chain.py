@@ -491,8 +491,6 @@ class Chain(BaseChain):
         else:
             logl, logp = r
             blob = None
-#        print('logl:', logl)
-#        print('logp: ',  logp)
         # evaluate
         current_logl = current_stats['logl']
         current_logp = current_stats['logp']
@@ -513,7 +511,7 @@ class Chain(BaseChain):
                     givenx = current_pos
                     xi = proposal
                 logar += self.proposal_dist.logpdf(givenx, xi) - \
-                         self.proposal_dist.logpdf(xi, givenx)
+                        self.proposal_dist.logpdf(xi, givenx)
             if logar > 0:
                 ar = 1.
                 accept = True
