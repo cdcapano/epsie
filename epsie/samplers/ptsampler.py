@@ -59,36 +59,17 @@ class ParallelTemperedSampler(BaseSampler):
     seed : int, optional
         Seed for the random number generator. If None provided, will create
         one.
-    adaptive_betas : bool, optional
-        Specify whether to dynamically adjust the chain temperatures. Adopts
-        the algorithm outlined in [1].
-    tau : int, optional
-        Defines the swap iteration at which adjustments have been reduced to
-        half their initial amplitude ([1]). Default value is 1000.
-    nu : int, optional
-        Defines the initial amplitude of adjustments ([1]).
-        Default values is 10
     pool : Pool object, optional
         Specify a process pool to use for parallelization. Default is to use a
         single core.
-
-    References
-    ----------
-    [1] W. D. Vousden, W. M. Farr, I. Mandel, Dynamic temperature selection
-    for parallel tempering in Markov chain Monte Carlo simulations,
-    Monthly Notices of the Royal Astronomical Society, Volume 455,
-    Issue 2, 11 January 2016, Pages 1919–1937,
-    https://doi.org/10.1093/mnras/stv2422
     """
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
-                 proposals=None,
-                 default_proposal=None, default_proposal_args=None, seed=None,
-                 adaptive_betas=False, tau=1000, nu=10, pool=None):
+                 proposals=None, adaptive_annealer=None, default_proposal=None,
+                 default_proposal_args=None, seed=None, pool=None):
         self.parameters = parameters
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
         self.seed = seed
-        self.adaptive_betas = adaptive_betas
         self.pool = pool
         if isinstance(betas, (float, int)):
             # only single temperature; turn into list so things below won't
@@ -98,9 +79,10 @@ class ParallelTemperedSampler(BaseSampler):
             # betas is probably a list or tuple; convert to array so we can use
             # numpy functions
             betas = numpy.array(betas)
-        self.create_chains(nchains, betas, swap_interval)
+        self.create_chains(nchains, betas, swap_interval, adaptive_annealer)
 
-    def create_chains(self, nchains, betas, swap_interval=1, tau=1000, nu=10):
+    def create_chains(self, nchains, betas, swap_interval=1,
+                      adaptive_annealer=None):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -113,6 +95,9 @@ class ParallelTemperedSampler(BaseSampler):
         swap_interval : int, optional
             How often to calculate temperature swaps. Default is 1 (= swap on
             every iteration).
+        adaptive_annealer : object, optional
+            Adaptive anneler adjusting temperatures on the go.
+            Default is `None`.
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
@@ -120,7 +105,7 @@ class ParallelTemperedSampler(BaseSampler):
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals],
             betas=betas, swap_interval=swap_interval,
-            adaptive_betas=self.adaptive_betas, tau=tau, nu=nu,
+            adaptive_annealer=adaptive_annealer,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
@@ -136,7 +121,7 @@ class ParallelTemperedSampler(BaseSampler):
     @property
     def ntemps(self):
         """Returns the number of temperatures used."""
-        return len(self.betas[0, :])
+        return self.betas.shape[1]
 
     @property
     def temperatures(self):
