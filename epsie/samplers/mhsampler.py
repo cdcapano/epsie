@@ -47,9 +47,6 @@ class MetropolisHastingsSampler(BaseSampler):
     seed : int, optional
         Seed for the random number generator. If None provided, will create
         one.
-    transdimensional : bool, optional
-        A toggle denoting the use of reverse-jump MCMC. By default False. If
-        True proposals are split amongst active and inactive.
     pool : Pool object, optional
         Specify a process pool to use for parallelization. Default is to use a
         single core.
@@ -57,12 +54,11 @@ class MetropolisHastingsSampler(BaseSampler):
 
     def __init__(self, parameters, model, nchains, proposals=None,
                  default_proposal=None, default_proposal_args=None, seed=None,
-                 transdimensional=False, pool=None):
+                 pool=None):
         self.parameters = parameters
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
         self.seed = seed
-        self.transdimensional = transdimensional
         self.pool = pool
         self.create_chains(nchains)
 
@@ -73,14 +69,12 @@ class MetropolisHastingsSampler(BaseSampler):
         ----------
         nchains : int
             The number of Markov chains to create.
-        transdimensional : bool
-            Toggle denoting transdimensional MCMC
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
         self._chains = [Chain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals], self.transdimensional,
+            [copy.deepcopy(p) for p in self.proposals],
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]

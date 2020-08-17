@@ -55,6 +55,7 @@ class NestedTransdimensional(BaseProposal):
         The model hopping proposal
     """
     name = 'nested_transdimensional'
+    transdimensional = True
 
     # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, parameters, proposal, prior_dist,
@@ -168,8 +169,8 @@ class NestedTransdimensional(BaseProposal):
             switch_pars = [par for pars in [
                 prop.parameters for prop in props.proposals[switch]]
                 for par in pars]
-            update_proposals = props.proposals[numpy.logical_and(current_state,
-                                                       proposed_state)]
+            update_proposals = props.proposals[
+                numpy.logical_and(current_state, proposed_state)]
         else:
             update_proposals = props.proposals[current_state]
             proposed_state = current_state

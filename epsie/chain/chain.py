@@ -53,10 +53,6 @@ class Chain(BaseChain):
         and only one proposal for every parameter. A single proposal may cover
         multiple parameters. Proposals must be instances of classes that
         inherit from :py:class:`epsie.proposals.BaseProposal`.
-    transdimensional : bool, optional
-        Boolean toggle denoting the use of reverse jump MCMC. By default false
-        for standard MCMC. If True proposals are split among active and
-        inactive.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
         Use the given random bit generator for generating random variates. If
         an int or None is provided, a generator will be created instead using
@@ -92,11 +88,20 @@ class Chain(BaseChain):
     proposal_dist : JointProposal
         The joint proposal used for all parameters.
     """
-    def __init__(self, parameters, model, proposals, transdimensional=False,
-                 bit_generator=None, chain_id=0, beta=1.):
+    def __init__(self, parameters, model, proposals, bit_generator=None,
+                 chain_id=0, beta=1.):
         self.parameters = parameters
-        self.transdimensional = transdimensional
         self.model = model
+        # look through passed in proposals if any are transdimensional
+        self.transdimensional = False
+        for prop in proposals:
+            try:
+                self.transdimensional = prop.transdimensional
+                if self.transdimensional:
+                    break
+            except AttributeError:
+                pass
+        # check if RJMCMC that only a single RJMCMC proposal is given
         if self.transdimensional:
             # for a transdimensional must provide a single proposal
             if isinstance(proposals, (list, tuple)):

@@ -51,10 +51,6 @@ class ParallelTemperedChain(BaseChain):
         temperature; i.e., only sample the prior) <= beta <= 1 (= coldest
         temperate; i.e., sample the standard posterior). Default is a single
         beta = 1.
-    transdimensional : bool, optional
-        Boolean toggle denoting the use of reverse jump MCMC. By default false
-        for standard MCMC. If True proposals are split among active and
-        inactive.
     swap_interval : int, optional
         For a parallel tempered chain, how often to calculate temperature
         swaps. Default is 1 (= swap on every iteration).
@@ -84,16 +80,13 @@ class ParallelTemperedChain(BaseChain):
     random_state
     state
     hasblobs
-    transdimensional
     chain_id : int or None
         Integer identifying the chain.
     """
     def __init__(self, parameters, model, proposals, betas=1.,
-                 transdimensional=False, swap_interval=1, bit_generator=None,
-                 chain_id=0):
+                 swap_interval=1, bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
-        self.transdimensional = transdimensional
         # store the temp
         self._betas = None
         self.betas = betas
@@ -117,10 +110,12 @@ class ParallelTemperedChain(BaseChain):
         # create a chain for each temperature
         self.chains = [
             Chain(parameters, model,
-                  [copy.deepcopy(p) for p in proposals], transdimensional,
+                  [copy.deepcopy(p) for p in proposals],
                   bit_generator=self.bit_generator, chain_id=chain_id,
                   beta=beta)
             for beta in self.betas]
+        self.transdimensional = any([chain.transdimensional
+                                     for chain in self.chains])
 
     @property
     def bit_generator(self):
