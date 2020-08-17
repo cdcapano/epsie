@@ -262,11 +262,6 @@ class BaseSampler(object):
         return self._concatenate_arrays('positions')
 
     @property
-    def proposed_positions(self):
-        """The history of positions from all of the chains."""
-        return self._concatenate_arrays('proposed_positions')
-
-    @property
     def current_positions(self):
         """The current position of the chains.
 

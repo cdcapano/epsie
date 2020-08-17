@@ -67,7 +67,6 @@ class ParallelTemperedChain(BaseChain):
     lastclear
     scratchlen
     positions
-    proposed_positions
     stats
     acceptance
     blobs
@@ -360,16 +359,6 @@ class ParallelTemperedChain(BaseChain):
         ``niterations``.
         """
         return self._concatenate_arrays('positions')
-
-    @property
-    def proposed_positions(self):
-        """The history of all of the proposed positions, as a structred array.
-
-        If ``ntemps > 1``, the returned array has shape
-        ``ntemps x niterations``. Otherwise, the returned array has shape
-        ``niterations``.
-        """
-        return self._concatenate_arrays('proposed_positions')
 
     @property
     def stats(self):
