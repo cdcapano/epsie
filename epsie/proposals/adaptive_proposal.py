@@ -128,13 +128,14 @@ class AdaptiveProposalSupport(object):
         if chain.iteration == self.start_iter - 1:
             weights = numpy.arange(chain.iteration, 0, -1)**(0.6)
             positions = numpy.vstack([chain.positions[p]
-                                     for p in chain.parameters]).T
+                                     for p in self.parameters]).T
             self._mean = numpy.average(positions, weights=weights, axis=0)
             self.cov = numpy.cov(positions, rowvar=False, aweights=weights)
 
         if 0 < chain.iteration - self.start_iter < (self.adaptation_duration):
             decay = self.decay(chain.iteration)
-            newpt = numpy.array(chain.positions[-1].tolist())
+            newpt = numpy.array([chain.current_position[p]
+                                 for p in self.parameters])
             # Update the first moment
             df = newpt - self._mean
             self._mean = self._mean + decay * df
