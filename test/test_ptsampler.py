@@ -24,6 +24,7 @@ import pytest
 import numpy
 import epsie
 from epsie import make_betas_ladder
+from epsie.chain.ptchain import DynamicalAnnealer
 from epsie.samplers import ParallelTemperedSampler
 from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
                     _anticompare_dict_array, _check_chains_are_different)
@@ -37,7 +38,8 @@ SEED = 2020
 
 
 def _create_sampler(model, nprocs, nchains=None, betas=None, swap_interval=1,
-                    seed=None, proposals=None, set_start=True):
+                    seed=None, proposals=None, adaptive_annealer=None,
+                    set_start=True):
     """Creates a sampler."""
     if nchains is None:
         nchains = NCHAINS
@@ -52,6 +54,7 @@ def _create_sampler(model, nprocs, nchains=None, betas=None, swap_interval=1,
                                       betas=betas, seed=seed,
                                       swap_interval=swap_interval,
                                       proposals=proposals,
+                                      adaptive_annealer=adaptive_annealer,
                                       pool=pool)
     if set_start:
         sampler.start_position = model.prior_rvs(size=nchains*ntemps,
@@ -325,3 +328,23 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
     if sampler.pool is not None:
         sampler.pool.close()
         sampler2.pool.close()
+
+
+@pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
+@pytest.mark.parametrize('nprocs', [1, 4])
+@pytest.mark.parametrize('nchains', [1, 5])
+@pytest.mark.parametrize('swap_interval', [1, 3])
+@pytest.mark.parametrize('annealer_cls', [DynamicalAnnealer])
+def test_beta_changes(model_cls, nprocs, nchains, swap_interval, annealer_cls):
+    model = model_cls()
+    annealer = annealer_cls()
+    sampler = _create_sampler(model, nprocs, nchains,
+                              swap_interval=swap_interval,
+                              adaptive_annealer=annealer)
+    initial_betas = sampler.betas
+    sampler.run(ITERINT)
+    current_betas = sampler.betas
+    assert numpy.all(initial_betas[:, 1:-1] != current_betas[:, 1:-1])
+    if sampler.pool is not None:
+        sampler.pool.close()
+
