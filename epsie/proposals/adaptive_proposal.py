@@ -69,7 +69,7 @@ class AdaptiveProposalSupport(object):
 
         """
         self.start_iter = start_iter
-        self.target_acc = target_acceptance
+        self.target_acceptance = target_acceptance
         ndim = len(self.parameters)
         self.adaptation_duration = adaptation_duration
 
@@ -122,16 +122,6 @@ class AdaptiveProposalSupport(object):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        # if start iteration is not 0 then take a weighted average to
-        # get an estimate of the initial mean and covariance.
-        # do this one iteration before start adaptation
-        if chain.iteration == self.start_iter - 1:
-            weights = numpy.arange(chain.iteration, 0, -1)**(0.6)
-            positions = numpy.vstack([chain.positions[p]
-                                     for p in self.parameters]).T
-            self._mean = numpy.average(positions, weights=weights, axis=0)
-            self.cov = numpy.cov(positions, rowvar=False, aweights=weights)
-
         if 0 < chain.iteration - self.start_iter < (self.adaptation_duration):
             decay = self.decay(chain.iteration)
             newpt = numpy.array([chain.current_position[p]
@@ -144,7 +134,7 @@ class AdaptiveProposalSupport(object):
             self._unit_cov += decay * (numpy.matmul(df, df.T) - self._unit_cov)
             # Update of the global scaling
             ar = min(1, chain.acceptance['acceptance_ratio'][-1])
-            self._log_lambda += decay * (ar - self.target_acc)
+            self._log_lambda += decay * (ar - self.target_acceptance)
 
             self.cov = numpy.exp(self._log_lambda) * self._unit_cov
 

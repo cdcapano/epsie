@@ -41,7 +41,8 @@ def _setup_proposal(model, params=None, start_iter=1,
                     adaptation_duration=None):
     if params is None:
         params = model.params
-    return AdaptiveProposal(params, start_iter, adaptation_duration)
+    return AdaptiveProposal(params, adaptation_duration=adaptation_duration)
+
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('adaptation_duration', [None, ADAPTATION_DURATION])
@@ -52,6 +53,7 @@ def test_cov_changes(nprocs, adaptation_duration, model=None):
         model = Model()
     proposal = _setup_proposal(model, adaptation_duration=adaptation_duration)
     _test_cov_changes(nprocs, proposal, model)
+
 
 def _test_cov_changes(nprocs, proposal, model):
     """Tests that the covariance changes after a few jumps."""
