@@ -116,8 +116,6 @@ def test_jumps_in_bounds(proposal_name, cov, kmin, kmax, successive):
         test_point = {'kappa': (kmin + kmax) // 2}
         jumps = numpy.array([proposal.jump(test_point)['kappa']
                              for __ in range(njumps)])
-        zero_jump = numpy.any(jumps == test_point['kappa'])
-
         assert numpy.any(jumps == test_point['kappa']) == successive['kappa']
     # check jump from outside bounds
     test_point = {'kappa': kmin - kmax}
