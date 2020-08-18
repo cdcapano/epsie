@@ -347,4 +347,3 @@ def test_beta_changes(model_cls, nprocs, nchains, swap_interval, annealer_cls):
     assert numpy.all(initial_betas[:, 1:-1] != current_betas[:, 1:-1])
     if sampler.pool is not None:
         sampler.pool.close()
-
