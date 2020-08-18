@@ -39,16 +39,18 @@ SWAP_INTERVAL = 1
 
 
 def _setup_proposal(name, parameters, boundaries=None, cov=None,
-                    adaptation_duration=None):
+                    successive=None, adaptation_duration=None):
     if name.startswith('adaptive'):
         if adaptation_duration is None:
             adaptation_duration = ADAPTATION_DURATION
         return proposals[name](parameters, boundaries,
-                               adaptation_duration)
+                               successive=successive,
+                               adaptation_duration=adaptation_duration)
     if 'bounded' in name:
-        return proposals[name](parameters, boundaries, cov=cov)
+        return proposals[name](parameters, boundaries, cov=cov,
+                               successive=successive)
     else:
-        return proposals[name](parameters, cov=cov)
+        return proposals[name](parameters, cov=cov, successive=successive)
 
 
 @pytest.mark.parametrize('proposal_name,cov',
@@ -58,13 +60,17 @@ def _setup_proposal(name, parameters, boundaries=None, cov=None,
                           ('adaptive_bounded_discrete', None)])
 @pytest.mark.parametrize('kmin,kmax',
                          [(0, 16), (1, 11)])
-def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
+@pytest.mark.parametrize('successive',
+                         [(None),
+                          ({'kappa': True}),
+                          ({'kappa': False})])
+def test_jumps_in_bounds(proposal_name, cov, kmin, kmax, successive):
     """Tests that all jumps are integers and in the given bounds.
 
     Also tests that the proposals can handle parameter names longer than 1.
     """
     proposal = _setup_proposal(proposal_name, ['kappa'],
-                               {'kappa': (kmin, kmax)}, cov)
+                               {'kappa': (kmin, kmax)}, cov, successive)
     # check the the number of dimensions is 1
     assert len(proposal.parameters) == 1
     assert proposal.parameters == ('kappa',)
@@ -80,6 +86,15 @@ def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
         assert js.dtype == numpy.int
         jumps[ii, :] = js
     assert ((jumps >= kmin) & (jumps <= kmax)).all()
+    # check successive jumps
+    if successive is not None:
+        test_point = {'kappa': (kmin + kmax) // 2}
+        jumps = numpy.array([proposal.jump(test_point)['kappa']
+                             for __ in range(njumps)])
+        if successive['kappa']:
+            assert numpy.any(jumps == test_point['kappa'])
+        else:
+            assert not numpy.any(jumps == test_point['kappa'])
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
