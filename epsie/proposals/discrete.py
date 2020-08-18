@@ -103,7 +103,7 @@ class NormalDiscrete(Normal):
         try:
             self._successive = {p: successive[p] for p in self.parameters}
         except KeyError:
-            raise ValueError('must provide zero_jump for each parameter')
+            raise ValueError('must provide `successive` for each parameter')
 
 
     def _cdf(self, pi, dx, std):
@@ -232,7 +232,7 @@ class BoundedDiscrete(BoundedNormal):
         try:
             self._successive = {p: successive[p] for p in self.parameters}
         except KeyError:
-            raise ValueError('must provide zero_jump for each parameter')
+            raise ValueError('must provide `successive`for each parameter')
 
     def _cdf(self, pi, x, a, b, mu, std):
         """Caches CDF for faster call back.
