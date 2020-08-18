@@ -99,6 +99,8 @@ class ParallelTemperedChain(BaseChain):
         self._temperature_swaps = None
         self.adaptive_annealer = adaptive_annealer
         if adaptive_annealer is not None:
+            # note that pass by reference is required here if setting
+            # Tmax=infty
             adaptive_annealer.setup_annealing(self.betas)
 
         if self.ntemps > 1:
@@ -578,6 +580,11 @@ class DynamicalAnnealer(object):
     nu : int, optional
         Defines the initial amplitude of adjustments ([1]).
         Default values is 10
+    Tmax_prior: bool, optional
+        Whether to set the hottest chain temperature to infinity. This only
+        rewrites the hottest chain temperature to be infty and keeps the other
+        chains as they were. By default sets it to infinity.
+
 
     References
     ----------
@@ -588,28 +595,37 @@ class DynamicalAnnealer(object):
     https://doi.org/10.1093/mnras/stv2422
     """
     _S = None
+    _tau = None
+    _nu = None
 
-    def __init__(self, tau=1000, nu=10):
-        self.tau = tau
-        self.nu = nu
+    def __init__(self, tau=1000, nu=10, Tmax_prior=True):
+        self.setup_decay(tau, nu)
+        self._Tmax_prior = Tmax_prior
+
+    def setup_decay(self, tau, nu):
+        """Set up constants for the vanishing decay"""
+        if not tau > nu:
+            return ValueError('`tau` must be at least larger than `nu`')
+        self._tau = tau
+        self._nu = nu
 
     def setup_annealing(self, betas):
         """Calculates the initial log diffs between temperature levels"""
         self._S = numpy.log(numpy.diff(1.0/betas[:-1]))
+        if self._Tmax_prior:
+            betas[-1] = 0.0
 
     def _decay(self, iteration):
         """ Vanishign decay to ensure detailed balance at later stages. Is set
         by `tau` and `nu`"""
-        return (self.tau/self.nu)/(iteration + self.tau)
+        return 1./self._nu * 1./(1 + iteration/self._tau)
 
     def __call__(self, chain):
         iteration = chain.iteration // chain.swap_interval  # - 1 here ?
         ars = chain.temperature_acceptance[:, -1]
         ars[ars > 1] = 1.
-        dS = numpy.array([self._decay(iteration) * (ars[i] - ars[i+1])
-                          for i in range(chain.ntemps - 2)])
-
-        self._S += dS
+        self._S += numpy.array([self._decay(iteration) * (ars[i] - ars[i+1])
+                                for i in range(chain.ntemps - 2)])
         # recursively update the temperature levels
         # note: the coldest and hottest temperatures are kept fixed
         for i in range(1, chain.ntemps - 1):
