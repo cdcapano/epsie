@@ -52,13 +52,14 @@ def _setup_proposal(name, parameters, boundaries=None, cov=None,
     else:
         return proposals[name](parameters, cov=cov, successive=successive)
 
+
 @pytest.mark.parametrize('proposal_name', [('discrete'),
                                            ('bounded_discrete')])
 def test_multiple_pars(proposal_name):
     with pytest.raises(ValueError, match=r".* `successive` .*"):
-        proposal = _setup_proposal(proposal_name, ['foo', 'bar'],
-                                   {'foo': (0, 10), 'bar': (0, 10)}, None,
-                                   successive={'foo': True})
+        _setup_proposal(proposal_name, ['foo', 'bar'],
+                        {'foo': (0, 10), 'bar': (0, 10)}, None,
+                        successive={'foo': True})
 
 
 @pytest.mark.parametrize('proposal_name,cov',
@@ -116,10 +117,8 @@ def test_jumps_in_bounds(proposal_name, cov, kmin, kmax, successive):
         jumps = numpy.array([proposal.jump(test_point)['kappa']
                              for __ in range(njumps)])
         zero_jump = numpy.any(jumps == test_point['kappa'])
-        if successive['kappa']:
-            assert zero_jump == True
-        else:
-            assert zero_jump == False
+
+        assert numpy.any(jumps == test_point['kappa']) == successive['kappa']
     # check jump from outside bounds
     test_point = {'kappa': kmin - kmax}
     with pytest.raises(ValueError, match=r"Given point .*"):
@@ -158,7 +157,7 @@ def test_logpdf(proposal_name):
                                            'bounded_discrete',
                                            'ss_adaptive_bounded_discrete',
                                            'adaptive_bounded_discrete'])
-def test_logpdf(proposal_name):
+def test_logpdf_successive(proposal_name):
     """Tests that the logpdf function is constant for two values with the same
     integer value for successive jumps
     """
@@ -176,8 +175,7 @@ def test_logpdf(proposal_name):
         assert numpy.isfinite(logp1)
         assert logp0 == logp1
     # test that a jump less than 1 from the given point has non-zero prob
-    assert numpy.isfinite(proposal.logpdf({'k': givenpt+0.4},
-                                          {'k': givenpt})) == True
+    assert numpy.isfinite(proposal.logpdf({'k': givenpt+0.4}, {'k': givenpt}))
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_discrete',
