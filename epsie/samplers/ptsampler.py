@@ -1,4 +1,6 @@
-# Copyright (C) 2019  Collin Capano
+# coding: utf-8
+
+# Copyright (C) 2020 Collin Capano, Richard Stiskalek
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
@@ -62,7 +64,7 @@ class ParallelTemperedSampler(BaseSampler):
         single core.
     """
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
-                 proposals=None, default_proposal=None,
+                 proposals=None, adaptive_annealer=None, default_proposal=None,
                  default_proposal_args=None, seed=None, pool=None):
         self.parameters = parameters
         self.model = model
@@ -77,9 +79,10 @@ class ParallelTemperedSampler(BaseSampler):
             # betas is probably a list or tuple; convert to array so we can use
             # numpy functions
             betas = numpy.array(betas)
-        self.create_chains(nchains, betas, swap_interval)
+        self.create_chains(nchains, betas, swap_interval, adaptive_annealer)
 
-    def create_chains(self, nchains, betas, swap_interval=1):
+    def create_chains(self, nchains, betas, swap_interval=1,
+                      adaptive_annealer=None):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -92,30 +95,37 @@ class ParallelTemperedSampler(BaseSampler):
         swap_interval : int, optional
             How often to calculate temperature swaps. Default is 1 (= swap on
             every iteration).
+        adaptive_annealer : object, optional
+            Adaptive anneler adjusting temperatures on the go.
+            Default is `None`.
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals], betas=betas,
-            swap_interval=swap_interval,
+            [copy.deepcopy(p) for p in self.proposals],
+            betas=betas, swap_interval=swap_interval,
+            adaptive_annealer=adaptive_annealer,
             bit_generator=create_bit_generator(self.seed, stream=cid),
             chain_id=cid)
             for cid in range(nchains)]
 
     @property
     def betas(self):
-        """The betas used."""
-        return self.chains[0].betas
+        """The betas used for each chain. Shape is (nchains, ntemps).
+        If temperatures are being dynamically adjusted each chain will
+        have a different set of temperatures.
+        """
+        return numpy.array([self.chains[i].betas for i in range(self.nchains)])
 
     @property
     def ntemps(self):
         """Returns the number of temperatures used."""
-        return len(self.betas)
+        return self.betas.shape[1]
 
     @property
     def temperatures(self):
-        """The temperatures used."""
+        """The temperatures used. Shape is (nchains, ntemps)"""
         return 1./self.betas
 
     @property
@@ -200,7 +210,7 @@ class ParallelTemperedSampler(BaseSampler):
     @property
     def temperature_swaps(self):
         """The history of all the temperature swaps from all of the chains.
-        
+
         If ntemps is 1, just returns None.
 
         .. note::

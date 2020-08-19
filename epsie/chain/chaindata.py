@@ -191,7 +191,7 @@ class ChainData(object):
             newshape = n
         else:
             newshape = (n, self.ntemps)
-        new = numpy.zeros(newshape, dtype=self._npdtype)
+        new = numpy.full(newshape, numpy.nan, dtype=self._npdtype)
 
         if self._data is None:
             self._data = new

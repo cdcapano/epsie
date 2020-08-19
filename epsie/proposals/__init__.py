@@ -22,6 +22,7 @@ from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
 from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
                              Boundaries, AdaptiveBoundedNormal)
+from .adaptive_proposal import AdaptiveProposal
 from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
@@ -48,4 +49,5 @@ proposals = {
     SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
     NestedTransdimensional.name: NestedTransdimensional,
+    AdaptiveProposal.name: AdaptiveProposal,
 }

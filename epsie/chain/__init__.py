@@ -19,4 +19,4 @@ from __future__ import absolute_import
 # promote chain classes to module namespace
 from .chaindata import ChainData
 from .chain import Chain
-from .ptchain import ParallelTemperedChain
+from .ptchain import (ParallelTemperedChain, DynamicalAnnealer)
