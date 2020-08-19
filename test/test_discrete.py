@@ -39,16 +39,27 @@ SWAP_INTERVAL = 1
 
 
 def _setup_proposal(name, parameters, boundaries=None, cov=None,
-                    adaptation_duration=None):
+                    successive=None, adaptation_duration=None):
     if name.startswith('adaptive'):
         if adaptation_duration is None:
             adaptation_duration = ADAPTATION_DURATION
         return proposals[name](parameters, boundaries,
-                               adaptation_duration)
+                               successive=successive,
+                               adaptation_duration=adaptation_duration)
     if 'bounded' in name:
-        return proposals[name](parameters, boundaries, cov=cov)
+        return proposals[name](parameters, boundaries, cov=cov,
+                               successive=successive)
     else:
-        return proposals[name](parameters, cov=cov)
+        return proposals[name](parameters, cov=cov, successive=successive)
+
+
+@pytest.mark.parametrize('proposal_name', [('discrete'),
+                                           ('bounded_discrete')])
+def test_multiple_pars(proposal_name):
+    with pytest.raises(ValueError, match=r".* `successive` .*"):
+        _setup_proposal(proposal_name, ['foo', 'bar'],
+                        {'foo': (0, 10), 'bar': (0, 10)}, None,
+                        successive={'foo': True})
 
 
 @pytest.mark.parametrize('proposal_name,cov',
@@ -58,13 +69,33 @@ def _setup_proposal(name, parameters, boundaries=None, cov=None,
                           ('adaptive_bounded_discrete', None)])
 @pytest.mark.parametrize('kmin,kmax',
                          [(0, 16), (1, 11)])
-def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
+@pytest.mark.parametrize('successive',
+                         [(None),
+                          ({'kappa': 1}),
+                          ({'kappa': True}),
+                          ({'kappa': False})])
+def test_jumps_in_bounds(proposal_name, cov, kmin, kmax, successive):
     """Tests that all jumps are integers and in the given bounds.
 
     Also tests that the proposals can handle parameter names longer than 1.
     """
+    if successive is not None:
+        if not isinstance(successive['kappa'], bool):
+            with pytest.raises(ValueError, match=r".* must .*"):
+                proposal = _setup_proposal(proposal_name, ['kappa'],
+                                           {'kappa': (kmin, kmax)}, cov,
+                                           successive)
+            return
+    if successive == {}:
+        with pytest.raises(ValueError, match=r".* must .*"):
+            proposal = _setup_proposal(proposal_name, ['kappa'],
+                                       {'kappa': (kmin, kmax)}, cov,
+                                       successive)
+            return
+
     proposal = _setup_proposal(proposal_name, ['kappa'],
-                               {'kappa': (kmin, kmax)}, cov)
+                               {'kappa': (kmin, kmax)}, cov, successive)
+
     # check the the number of dimensions is 1
     assert len(proposal.parameters) == 1
     assert proposal.parameters == ('kappa',)
@@ -80,6 +111,16 @@ def test_jumps_in_bounds(proposal_name, cov, kmin, kmax):
         assert js.dtype == numpy.int
         jumps[ii, :] = js
     assert ((jumps >= kmin) & (jumps <= kmax)).all()
+    # check successive jumps
+    if successive is not None:
+        test_point = {'kappa': (kmin + kmax) // 2}
+        jumps = numpy.array([proposal.jump(test_point)['kappa']
+                             for __ in range(njumps)])
+        assert numpy.any(jumps == test_point['kappa']) == successive['kappa']
+    # check jump from outside bounds
+    test_point = {'kappa': kmin - kmax}
+    with pytest.raises(ValueError, match=r"Given point .*"):
+        proposal.jump(test_point)
 
 
 @pytest.mark.parametrize('proposal_name', ['discrete',
@@ -107,6 +148,32 @@ def test_logpdf(proposal_name):
     # test that a jump less than 1 from the given point has 0 probability
     assert proposal.logpdf({'k': givenpt+0.4}, {'k': givenpt}) == -numpy.inf
 
+
+@pytest.mark.parametrize('proposal_name', ['discrete',
+                                           'ss_adaptive_discrete',
+                                           'adaptive_discrete',
+                                           'bounded_discrete',
+                                           'ss_adaptive_bounded_discrete',
+                                           'adaptive_bounded_discrete'])
+def test_logpdf_successive(proposal_name):
+    """Tests that the logpdf function is constant for two values with the same
+    integer value for successive jumps
+    """
+    model = PoissonModel()
+    proposal = _setup_proposal(proposal_name, model.params,
+                               model.prior_bounds,
+                               successive={model.params[0]: True})
+    givenpt = 3
+    for testpt in [1.2, 4.3, 3.8, 2.7, 3.2]:
+        logp0 = proposal.logpdf({'k': testpt}, {'k': givenpt})
+        logp1 = proposal.logpdf({'k': testpt+0.1}, {'k': givenpt})
+        assert isinstance(logp0, float)
+        assert numpy.isfinite(logp0)
+        assert isinstance(logp1, float)
+        assert numpy.isfinite(logp1)
+        assert logp0 == logp1
+    # test that a jump less than 1 from the given point has non-zero prob
+    assert numpy.isfinite(proposal.logpdf({'k': givenpt+0.4}, {'k': givenpt}))
 
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('proposal_name', ['ss_adaptive_discrete',
