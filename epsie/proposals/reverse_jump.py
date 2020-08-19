@@ -58,41 +58,29 @@ class NestedTransdimensional(BaseProposal):
     transdimensional = True
 
     # Py3XX: change kwargs to explicit random_state=None
-    def __init__(self, parameters, proposal, prior_dist,
-                 bounds, model_indx='k', **kwargs):
-        # store parameters
-        self.unique_pars = parameters
-        pars = list()
+    def __init__(self, parameters, proposals, prior_dist,
+                 bounds, model_index='k', **kwargs):
+        self.parameters = parameters + [model_index]
+
+
+
         k0, kf = bounds[model_indx]
         self.kmax = kf
-        for p in self.unique_pars:
-            for k in range(k0, kf + 1):
-                pars.append('{}{}'.format(p, k))
-        self.parameters = pars + [model_indx]
         # store the model index
         self.k = model_indx
         bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         self.bit_generator = bit_generator
-        # model jumping proposal
-        self.model_proposal = BoundedDiscrete([model_indx],
+        # proposal suggesting transdimensional jumps
+        self.td_proposal = BoundedDiscrete([model_indx],
                                               {model_indx: bounds[model_indx]},
                                               successive={model_indx: True})
-        # copy update proposal for each within model proposal
-        self.proposals = [deepcopy(proposal) for i in range(k0, kf+1)]
-        # rename the within model proposal parameters to reflect the index
-        # and have all proposals use the same random state
-        for k, prop in enumerate(self.proposals):
+
+        self.proposals = numpy.array(proposals)
+        # let all proposals share the same random generator
+        for prop in self.proposals + [self.td_proposal]:
             prop.bit_generator = self.bit_generator
-            prop.parameters = ['{}{}'.format(p, k+1) for p in prop.parameters]
-            try:
-                prop.boundaries = {'{}{}'.format(key, k+1): item for key, item
-                                   in zip(prop.boundaries.keys(),
-                                          prop.boundaries.values())}
-            except AttributeError:
-                # most proposals do not have .boundaries attribute
-                pass
-        self.model_proposal.bit_generator = self.bit_generator
-        self.proposals = numpy.array(self.proposals)
+
+
         # store the prior distribution to sample new components on the go
         self._prior_dist = None
         self.prior_dist = prior_dist
