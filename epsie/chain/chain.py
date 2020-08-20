@@ -19,8 +19,7 @@ from __future__ import absolute_import
 
 import numpy
 
-from epsie.proposals.joint import (JointProposal,
-                                   TransdimensionalProposalsList)
+from epsie.proposals.joint import JointProposal
 
 from .base import BaseChain
 from .chaindata import (ChainData, detect_dtypes)
@@ -92,29 +91,10 @@ class Chain(BaseChain):
                  chain_id=0, beta=1.):
         self.parameters = parameters
         self.model = model
-        # look through passed in proposals if any are transdimensional
-        self.transdimensional = False
-        for prop in proposals:
-            try:
-                self.transdimensional = prop.transdimensional
-                if self.transdimensional:
-                    break
-            except AttributeError:
-                pass
-        # check if RJMCMC that only a single RJMCMC proposal is given
-        if self.transdimensional:
-            # for a transdimensional must provide a single proposal
-            if isinstance(proposals, (list, tuple)):
-                if len(proposals) > 1:
-                    raise ValueError("For transdimensional must provide a "
-                                     "single transdimensional proposal")
-                else:
-                    self.proposal_dist = proposals[0]
-                self._props_list = None
-        else:
-            # combine the proposals into a joint proposal
-            self.proposal_dist = JointProposal(*proposals,
-                                               bit_generator=bit_generator)
+
+        self.transdimensional = None
+        self.proposal_dist = self._store_proposals(*proposals,
+                                                   bit_generator=bit_generator)
         # store the temp
         self.beta = beta
         self.chain_id = chain_id
@@ -131,6 +111,26 @@ class Chain(BaseChain):
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
+
+    def _store_proposals(self, *proposals, **kwargs):
+        """Store either a ``JointProposal`` or the transdimensional proposal
+        """
+        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
+        count = 0
+        for prop in proposals:
+            try:
+                if prop.transdimensional:
+                    self.transdimensional = True
+                    count += 1
+            except AttributeError:
+                prop.transdimensional = False
+
+        if self.transdimensional:
+            if count > 1:
+                raise ValueError("Can only provide a single transdimensinal "
+                                 "proposals that includes the constituent "
+                                 "proposals")
+        return JointProposal(*proposals, bit_generator=bit_generator)
 
     @property
     def hasblobs(self):
@@ -232,17 +232,23 @@ class Chain(BaseChain):
 
     def _activate_proposals(self):
         """Decide which proposals are initially active"""
-        # cast this to int as the discrete jump cannot accept ndarray
-        self._start[self.proposal_dist.k] = int(self._start[
-            self.proposal_dist.k])
+        # find the transdimensional proposal
         for prop in self.proposal_dist.proposals:
-            if numpy.alltrue(numpy.isnan([self._start[p]
-                                          for p in prop.parameters])):
-                prop.active = False
+            if prop.transdimensional:
+                break
+        # cast this to int as the discrete jump cannot accept ndarray
+        self._start[prop._index] = int(self._start[prop._index])
+        # activate proposals that do not have nans
+        for ptd in prop.proposals:
+            if all(numpy.isnan([self._start[p] for p in ptd.parameters])):
+                ptd.active = False
             else:
-                prop.active = True
-        self._props_list = TransdimensionalProposalsList(
-            self.proposal_dist.proposals)
+                ptd.active = True
+            if ptd.birth_distribution is None:
+                raise ValueError("must provide `birth distribution` "
+                                 "for transdimensional proposals")
+
+        self._active_props = numpy.array([p.active for p in prop.proposals])
 
     @property
     def stats0(self):
@@ -480,10 +486,10 @@ class Chain(BaseChain):
         current_pos = self.current_position
         current_stats = self.current_stats
         current_blob = self.current_blob
-        # create a proposal and test it
+        # transdimensional proposals need to know which proposals are active
         if self.transdimensional:
-            current_pos.update({'_proposals': self._props_list,
-                                '_state': self._props_list.active_mask})
+            current_pos.update({'_state': self._active_props})
+        # create a proposal and test it
         proposal = self.proposal_dist.jump(current_pos)
 
         r = self.model(**proposal)
@@ -515,13 +521,13 @@ class Chain(BaseChain):
                 accept = u <= ar
         if accept:
             if self.transdimensional:
-                self._props_list._active = proposal.pop('_state')
+                self._active_props = proposal.pop('_state')
             pos = proposal
             stats = {'logl': logl, 'logp': logp}
         else:
-            # reject
             if self.transdimensional:
                 __ = current_pos.pop('_state')
+            # reject
             pos = current_pos
             stats = current_stats
             blob = current_blob

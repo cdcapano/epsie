@@ -105,6 +105,7 @@ class BaseProposal(object):
     @random_state.setter
     def random_state(self, state):
         """Sets the state of bit_generator.
+        
         Parameters
         ----------
         state : dict
