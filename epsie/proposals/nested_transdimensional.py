@@ -2,8 +2,7 @@
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
+# option) any later version.  #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -67,7 +66,6 @@ class NestedTransdimensional(BaseProposal):
         self.setup_births(birth_distributions)
         self._index = self.model_proposal.parameters[0]
 
-
     @property
     def proposals(self):
         return self._proposals
@@ -78,17 +76,16 @@ class NestedTransdimensional(BaseProposal):
 
     def setup_proposals(self, model_proposal, proposals):
         # let all proposals share the same random generator
-        symmetric = list()
         for prop in proposals:
             prop.bit_generator = self.bit_generator
-            symmetric.append(prop.symmetric)
+            # counter for vanishing deay
+            prop._counter = 1
             # check the proposal parameters
-            if not all([par in self.parameters for par in prop.parameters]):
+            if not all(par in self.parameters for par in prop.parameters):
                 raise ValueError("Proposal parameters {} not found "
                                  " in `parameters`.".format(prop.parameters))
         # check the model proposal
         model_proposal.bit_generator = self.bit_generator
-        symmetric.append(model_proposal.symmetric)
         if len(model_proposal.parameters) > 1:
             raise ValueError("Model jump proposal should have single param")
         elif model_proposal.parameters[0] not in self.parameters:
@@ -98,7 +95,8 @@ class NestedTransdimensional(BaseProposal):
 
         self._proposals = numpy.array(proposals)
         self._model_proposal = model_proposal
-        self._symmetric = all(symmetric)
+        self._symmetric = all(prop.symmetric for prop in proposals)\
+                         and model_proposal.symmetric
 
     def setup_births(self, birth_distributions):
         """Matches birth distributions to proposals. Note that order of
@@ -147,7 +145,21 @@ class NestedTransdimensional(BaseProposal):
         return lp
 
     def update(self, chain):
-        pass
+        # check that proposal has been stepped inside at least twice in a row
+        if chain.iteration > 2:
+            for prop in self.proposals:
+                if not all(numpy.isnan(chain.positions[-1][p]) and
+                           numpy.isnan(chain.positions[-2][p])
+                           for p in prop.parameters):
+                    # save the current chain iteration and set the chain
+                    # iteration to the proposal iteration momentarily
+                    current_iteration = chain.iteration
+                    chain._iteration = prop._counter
+                    # call update with proposal iteration counter
+                    prop.update(chain)
+                    # set back the proposal iteration counter
+                    chain._iteration = current_iteration
+                    prop._counter += 1
 
     def jump(self, fromx):
         current_state = fromx['_state']
@@ -155,37 +167,35 @@ class NestedTransdimensional(BaseProposal):
         out.update(self.model_proposal.jump({self._index: fromx[self._index]}))
 
         dk = out[self._index] - fromx[self._index]
+        print(out[self._index], fromx[self._index])
         if dk != 0:
             if dk > 0:
                 indx = numpy.where(numpy.logical_not(current_state))[0]
             elif dk < 0:
                 indx = numpy.where(current_state)[0]
-
             # randomly pick which proposals will be turned on/off
             proposed_state = current_state.copy()
             mask = self.random_generator.choice(indx, size=abs(dk),
                                                 replace=False).reshape(-1,)
             proposed_state[mask] = numpy.logical_not(proposed_state[mask])
-            update_proposals = self.proposals[
-                numpy.logical_and(current_state, proposed_state)]
+            # create the boolean mask for which proposals are being flipped
+            if dk > 0:
+                bd_mask = numpy.logical_and(numpy.logical_not(current_state),
+                                            proposed_state)
+            else:
+                bd_mask = numpy.logical_and(current_state,
+                                            numpy.logical_not(proposed_state))
+            # update the out dictionary
+            for prop in self.proposals[bd_mask]:
+                if dk > 0:
+                    out.update(prop.birth_distribution.birth)
+                elif dk < 0:
+                    out.update({p: numpy.nan for p in prop.parameters})
         else:
-            update_proposals = self.proposals[current_state]
             proposed_state = current_state
-
-        # update the out dictionary
-        if dk > 0:
-            mask = numpy.logical_and(numpy.logical_not(current_state),
-                                     proposed_state)
-            for prop in self.proposals[mask]:
-                out.update(prop.birth_distribution.birth)
-        elif dk < 0:
-            mask = numpy.logical_and(current_state,
-                                     numpy.logical_not(proposed_state))
-            for prop in self.proposals[mask]:
-                out.update({p: numpy.nan for p in prop.parameters})
-
         # do an update move on all proposals that are not nans/just activated
-        for prop in update_proposals:
+        update_mask  = numpy.logical_and(current_state, proposed_state)
+        for prop in self.proposals[update_mask]:
             out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
         out.update({'_state': proposed_state})
         return out
