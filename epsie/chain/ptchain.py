@@ -125,8 +125,8 @@ class ParallelTemperedChain(BaseChain):
                   bit_generator=self.bit_generator, chain_id=chain_id,
                   beta=beta)
             for beta in self.betas]
-        self.transdimensional = any([chain.transdimensional
-                                     for chain in self.chains])
+        self.transdimensional = any(chain.transdimensional
+                                     for chain in self.chains)
 
     @property
     def bit_generator(self):
@@ -553,7 +553,7 @@ class ParallelTemperedChain(BaseChain):
         new_stats = [self.chains[swk].current_stats
                      for swk in swap_index]
         if self.transdimensional:
-            new_active = [self.chains[swk]._props_list._active
+            new_active = [self.chains[swk]._active_props
                           for swk in swap_index]
         if self.hasblobs:
             new_blobs = [self.chains[swk].current_blob
@@ -564,7 +564,7 @@ class ParallelTemperedChain(BaseChain):
             chain._positions[ii] = new_positions[tk]
             chain._stats[ii] = new_stats[tk]
             if self.transdimensional:
-                chain._props_list._active = new_active[tk]
+                chain._active_props = new_active[tk]
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
         self._temperature_acceptance[ii//self.swap_interval] = {

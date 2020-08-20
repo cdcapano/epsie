@@ -167,7 +167,6 @@ class NestedTransdimensional(BaseProposal):
         out.update(self.model_proposal.jump({self._index: fromx[self._index]}))
 
         dk = out[self._index] - fromx[self._index]
-        print(out[self._index], fromx[self._index])
         if dk != 0:
             if dk > 0:
                 indx = numpy.where(numpy.logical_not(current_state))[0]
