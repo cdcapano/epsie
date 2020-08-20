@@ -28,7 +28,7 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
-from .reverse_jump import NestedTransdimensional
+from .nested_transdimensional import NestedTransdimensional
 
 
 proposals = {
