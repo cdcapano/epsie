@@ -31,17 +31,14 @@ class NestedTransdimensional(BaseProposal):
     ----------
     parameters : (list of) str
         The names of the parameters to produce proposals for.
-    model_jump_proposal : py:class `epsie.proposals`
+    model_proposal : py:class `epsie.proposals`
         The model hopping proposals. This must be a discrete, bounded proposal.
-    transdimensional_proposals : list of py:class `epsie.proposals`
+    proposals : list of py:class `epsie.proposals`
         The transdimensional proposals that are being turned on/off.
     birth_distributions: list of objects
         Objects that match transdimensional proposals and are used to birth
         new samples and evaluate their proposal probability. Must use structure
         as given in the example.
-    global_proposals : list of py:class `epsie.proposals` (optional)
-        The global proposals that are shared by all transdimensional models.
-        By default `None`, meaning no global proposal.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
         The random bit generator to use, or an integer/None. If the latter, a
         bit generator will be created using
@@ -58,55 +55,49 @@ class NestedTransdimensional(BaseProposal):
     transdimensional = True
 
     # Py3XX: change kwargs to explicit random_state=None
-    def __init__(self, parameters, model_jump_proposal,
-                 transdimensional_proposals, birth_distributions,
-                 global_proposals=None, **kwargs):
+    def __init__(self, parameters, model_proposal, proposals,
+                 birth_distributions, **kwargs):
+        self._model_proposal = None
         self.parameters = parameters
         bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         self.bit_generator = bit_generator
         # store the proposals
-        self.setup_proposals(model_jump_proposal, global_proposals,
-                             transdimensional_proposals)
+        self.setup_proposals(model_proposal, proposals)
         # store the birth distributions
         self.setup_births(birth_distributions)
+        self._index = self.model_proposal.parameters[0]
+
 
     @property
     def proposals(self):
         return self._proposals
 
     @property
-    def birth_distributions(self):
-        return self._birth_distributions
+    def model_proposal(self):
+        return self._model_proposal
 
-    def setup_proposals(self, model_jump_proposal, global_proposals,
-                        transdimensional_proposals):
-        if global_proposals is not None:
-            global_proposals = numpy.array(global_proposals)
-        transdimensional_proposals = numpy.array(transdimensional_proposals)
-        proposals = {'model': model_jump_proposal,
-                     'global': global_proposals,
-                     'transdimensional': transdimensional_proposals}
+    def setup_proposals(self, model_proposal, proposals):
         # let all proposals share the same random generator
         symmetric = list()
-        for key, props in proposals.items():
-            if key == 'model':
-                props.bit_generator = self.bit_generator
-                symmetric.append(props.symmetric)
-                if len(props.parameters) > 1:
-                    raise ValueError("Model jump proposal should have a "
-                                     "single parameter")
-                elif props.parameters[0] not in self.parameters:
-                    raise ValueError("Model jump proposal parameter not found "
-                                     " in `parameters`.")
-            else:
-                for prop in props:
-                    prop.bit_generator = self.bit_generator
-                    symmetric.append(prop.symmetric)
-                    if not all([par in self.parameters
-                                for par in prop.parameters]):
-                        raise ValueError("Some proposal parameters not found "
-                                         " in `parameters`.")
-        self._proposals = proposals
+        for prop in proposals:
+            prop.bit_generator = self.bit_generator
+            symmetric.append(prop.symmetric)
+            # check the proposal parameters
+            if not all([par in self.parameters for par in prop.parameters]):
+                raise ValueError("Proposal parameters {} not found "
+                                 " in `parameters`.".format(prop.parameters))
+        # check the model proposal
+        model_proposal.bit_generator = self.bit_generator
+        symmetric.append(model_proposal.symmetric)
+        if len(model_proposal.parameters) > 1:
+            raise ValueError("Model jump proposal should have single param")
+        elif model_proposal.parameters[0] not in self.parameters:
+            raise ValueError("Model jump proposal parameter {} not found in "
+                             "`parameters`.".format(
+                                 model_proposal.parameters[0]))
+
+        self._proposals = numpy.array(proposals)
+        self._model_proposal = model_proposal
         self._symmetric = all(symmetric)
 
     def setup_births(self, birth_distributions):
@@ -115,11 +106,11 @@ class NestedTransdimensional(BaseProposal):
         # check all transdimensional proposals have their birth dists
         # and match the birth distribution to the given proposal. Also ensure
         # that no transdimensional proposal has more than a single birth dist
-        for prop in self.proposals['transdimensional']:
+        for prop in self.proposals:
             matched = 0
             for dist in birth_distributions:
                 if prop.parameters == tuple(dist.parameters):
-                    dist.set_bit_generator(self.bit_generator)
+                    dist.set_bit_generator(prop.bit_generator)
                     prop.birth_distribution = dist
                     matched += 1
             if matched == 0:
@@ -136,25 +127,21 @@ class NestedTransdimensional(BaseProposal):
     def logpdf(self, xi, givenx):
         lp = 0.0
         # logpdf on the model jump 
-        k = self.proposals['model'].parameters[0]
-        lp += self.proposals['model'].logpdf({k: xi[k]}, {k: givenx[k]})
-
+        lp += self.model_proposal.logpdf({self._index: xi[self._index]},
+                                         {self._index: givenx[self._index]})
         # logpdf on the transdimensional moves
-        current = givenx['_state']
-        proposed = xi['_state']
-        dk = xi[k] - givenx[k]
+        current_state = givenx['_state']
+        proposed_state = xi['_state']
+        dk = xi[self._index] - givenx[self._index]
         if dk > 0:
-            props = self.proposals['transdimensional'][numpy.logical_and(
-                numpy.logical_not(current), proposed)]
-
-            for prop in props:
+            mask = numpy.logical_and(numpy.logical_not(current_state),
+                                     proposed_state)
+            for prop in self.proposals[mask]:
                 lp += prop.birth_distribution.logpdf(
                     {p: xi[p] for p in prop.parameters})
         # logpdf on transdimensional moves that were only updated
-        # and on the global proposals
-        update_props = self.proposals['transdimensional'][numpy.logical_and(
-            current, proposed)]
-        for prop in numpy.hstack([update_props, self.proposals['global']]):
+        for prop in self.proposals[numpy.logical_and(current_state,
+                                                     proposed_state)]:
             lp += prop.logpdf({p: xi[p] for p in prop.parameters},
                               {p: givenx[p] for p in prop.parameters})
         return lp
@@ -165,17 +152,9 @@ class NestedTransdimensional(BaseProposal):
     def jump(self, fromx):
         current_state = fromx['_state']
         out = fromx.copy()
-        # update the global proposals if any
-        if self.proposals['global'] is not None:
-            for prop in self.proposals['global']:
-                out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
+        out.update(self.model_proposal.jump({self._index: fromx[self._index]}))
 
-        # update the transdimensional proposals
-        mod_prop = self.proposals['model']
-        td_props = self.proposals['transdimensional']
-        out.update(mod_prop.jump({mod_prop.parameters[0]:
-                                  fromx[mod_prop.parameters[0]]}))
-        dk = out[mod_prop.parameters[0]] - fromx[mod_prop.parameters[0]]
+        dk = out[self._index] - fromx[self._index]
         if dk != 0:
             if dk > 0:
                 indx = numpy.where(numpy.logical_not(current_state))[0]
@@ -184,26 +163,25 @@ class NestedTransdimensional(BaseProposal):
 
             # randomly pick which proposals will be turned on/off
             proposed_state = current_state.copy()
-            m = self.random_generator.choice(indx, size=abs(dk),
-                                             replace=False).reshape(-1,)
-            proposed_state[m] = numpy.logical_not(proposed_state[m])
-            update_proposals = td_props[numpy.logical_and(current_state,
-                                                          proposed_state)]
+            mask = self.random_generator.choice(indx, size=abs(dk),
+                                                replace=False).reshape(-1,)
+            proposed_state[mask] = numpy.logical_not(proposed_state[mask])
+            update_proposals = self.proposals[
+                numpy.logical_and(current_state, proposed_state)]
         else:
-            update_proposals = td_props[current_state]
+            update_proposals = self.proposals[current_state]
             proposed_state = current_state
 
         # update the out dictionary
         if dk > 0:
-            birth_proposals = td_props[numpy.logical_and(numpy.logical_not(
-                current_state), proposed_state)]
-            for prop in birth_proposals:
+            mask = numpy.logical_and(numpy.logical_not(current_state),
+                                     proposed_state)
+            for prop in self.proposals[mask]:
                 out.update(prop.birth_distribution.birth)
         elif dk < 0:
-            death_proposals = td_props[numpy.logical_and(
-                current_state, numpy.logical_not(proposed_state))]
-
-            for prop in death_proposals:
+            mask = numpy.logical_and(current_state,
+                                     numpy.logical_not(proposed_state))
+            for prop in self.proposals[mask]:
                 out.update({p: numpy.nan for p in prop.parameters})
 
         # do an update move on all proposals that are not nans/just activated
