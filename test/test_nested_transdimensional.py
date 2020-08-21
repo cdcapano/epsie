@@ -2,7 +2,8 @@
 
 # Copyright (C) 2020  Richard Stiskalek, Collin Capano
 # This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the # Free Software Foundation; either version 3 of the License, or (at your
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
 # option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but
@@ -16,7 +17,6 @@
 """Performs unit tests on the NestedTransdimensional proposal."""
 from __future__ import (print_function, absolute_import)
 
-from scipy import stats
 import numpy
 import pytest
 
@@ -30,7 +30,6 @@ from test_ptsampler import _create_sampler
 # from test_ptsampler import test_checkpointing as _test_checkpointing
 # from test_ptsampler import test_seed as _test_seed
 # from test_ptsampler import test_clear_memory as _test_clear_memory
-
 
 
 ITERINT = 64
