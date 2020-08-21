@@ -94,7 +94,7 @@ class NestedTransdimensional(BaseProposal):
         self._proposals = numpy.array(proposals)
         self._model_proposal = model_proposal
         self._symmetric = all(prop.symmetric for prop in proposals)\
-                         and model_proposal.symmetric
+                        and model_proposal.symmetric
 
     def setup_births(self, birth_distributions):
         """Matches birth distributions to proposals. Note that order of
@@ -191,7 +191,7 @@ class NestedTransdimensional(BaseProposal):
         else:
             proposed_state = current_state
         # do an update move on all proposals that are not nans/just activated
-        update_mask  = numpy.logical_and(current_state, proposed_state)
+        update_mask = numpy.logical_and(current_state, proposed_state)
         for prop in self.proposals[update_mask]:
             out.update(prop.jump({p: fromx[p] for p in prop.parameters}))
         out.update({'_state': proposed_state})

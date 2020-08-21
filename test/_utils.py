@@ -197,22 +197,23 @@ class PolynomialRegressionModel(object):
     """
     def __init__(self, seed=None):
         self.inmodel_pars = ['a']
+        self.params = ['a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'k']
         self.k = 'k'
         self.kmax = 5
         self.prior_dist = {'a': stats.uniform(-2., 4.),
-                           'k': stats.randint(0, self.kmax + 1),}
+                           'k': stats.randint(0, self.kmax + 1)}
         # Define the injected signal
         self.true_signal = {'a0': 0.0,
                             'a1': 1.0,
                             'a2': -0.5,
-                            'a3': np.nan,
-                            'a4': np.nan,
-                            'a5': np.nan,
-                            'k': 2,}
+                            'a3': numpy.nan,
+                            'a4': numpy.nan,
+                            'a5': numpy.nan,
+                            'k': 2}
 
-        np.random.seed(seed)
+        numpy.random.seed(seed)
         self.npoints = 51
-        self.t = np.linspace(0.0, 5, self.npoints)
+        self.t = numpy.linspace(0.0, 5, self.npoints)
         self.ysignal = self.reconstruct(**self.true_signal)
 
     def prior_rvs(self, nchains=1, ntemps=None):
@@ -220,12 +221,12 @@ class PolynomialRegressionModel(object):
         if ntemps is None:
             coeffs = self.prior_dist['a'].rvs(
                 size=nchains * (self.kmax + 1)).reshape(nchains, self.kmax + 1)
-            ks = np.full(nchains, np.nan, dtype=int)
+            ks = numpy.full(nchains, numpy.nan, dtype=int)
             for i in range(nchains):
-                rands = np.random.choice(range(self.kmax),
-                                         np.random.randint(self.kmax),
+                rands = numpy.random.choice(range(self.kmax),
+                                         numpy.random.randint(self.kmax),
                                          replace=False)
-                coeffs[i, 1:][rands] = np.nan
+                coeffs[i, 1:][rands] = numpy.nan
                 ks[i] = int(self.kmax - len(rands))
 
             for i in range(self.kmax + 1):
@@ -235,18 +236,18 @@ class PolynomialRegressionModel(object):
                 size=nchains * ntemps * (self.kmax + 1)).reshape(ntemps,
                                                                  nchains,
                                                                  self.kmax + 1)
-            ks = np.full((ntemps, nchains), np.nan, dtype=int)
+            ks = numpy.full((ntemps, nchains), numpy.nan, dtype=int)
             for i in range(nchains):
                 for j in range(ntemps):
-                    rands = np.random.choice(range(self.kmax),
-                                             np.random.randint(self.kmax),
+                    rands = numpy.random.choice(range(self.kmax),
+                                             numpy.random.randint(self.kmax),
                                              replace=False)
-                    coeffs[j, i, 1:][rands] = np.nan
+                    coeffs[j, i, 1:][rands] = numpy.nan
                     ks[j, i] = int(self.kmax - len(rands))
 
             for i in range(self.kmax + 1):
                 out.update({'a{}'.format(i): coeffs[:, :, i].reshape(
-                    ntemps, nchains )})
+                    ntemps, nchains)})
 
         out.update({'k': ks})
         return out
@@ -255,26 +256,26 @@ class PolynomialRegressionModel(object):
         lp = 0.0
         # Prior on the model index
         lp += sum(self.prior_dist[self.k].logpmf([kwargs[self.k]]))
-        coeffs = np.array([kwargs['a{}'.format(i)]
+        coeffs = numpy.array([kwargs['a{}'.format(i)]
                            for i in range(self.kmax + 1)])
         # take only ones that are active
-        coeffs = coeffs[np.isfinite(coeffs)]
+        coeffs = coeffs[numpy.isfinite(coeffs)]
         lp += self.prior_dist['a'].logpdf(coeffs).sum()
         return lp
 
     def reconstruct(self, **kwargs):
-        coeffs = np.array([kwargs['a{}'.format(i)]
+        coeffs = numpy.array([kwargs['a{}'.format(i)]
                            for i in range(self.kmax, -1, -1)])
-        coeffs[np.isnan(coeffs)] = 0.0
-        return np.polyval(coeffs, self.t)
+        coeffs[numpy.isnan(coeffs)] = 0.0
+        return numpy.polyval(coeffs, self.t)
 
     def loglikelihood(self, **kwargs):
         df = self.ysignal - self.reconstruct(**kwargs)
-        return - np.dot(df.T, df)
+        return - numpy.dot(df.T, df)
 
     def __call__(self, **kwargs):
         logp = self.logprior(**kwargs)
-        if logp == -np.inf:
+        if logp == -numpy.inf:
             logl = None
         else:
             logl = self.loglikelihood(**kwargs)

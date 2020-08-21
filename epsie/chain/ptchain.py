@@ -126,7 +126,7 @@ class ParallelTemperedChain(BaseChain):
                   beta=beta)
             for beta in self.betas]
         self.transdimensional = any(chain.transdimensional
-                                     for chain in self.chains)
+                                    for chain in self.chains)
 
     @property
     def bit_generator(self):

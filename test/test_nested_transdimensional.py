@@ -29,15 +29,16 @@ from _utils import PolynomialRegressionModel
 from epsie import make_betas_ladder
 
 from test_ptsampler import _create_sampler
-#from test_ptsampler import test_chains as _test_chains
-#from test_ptsampler import test_checkpointing as _test_checkpointing
-#from test_ptsampler import test_seed as _test_seed
-#from test_ptsampler import test_clear_memory as _test_clear_memory
+# from test_ptsampler import test_chains as _test_chains
+# from test_ptsampler import test_checkpointing as _test_checkpointing
+# from test_ptsampler import test_seed as _test_seed
+# from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
 ITERINT = 64
 ADAPTATION_DURATION = ITERINT//2
 SWAP_INTERVAL = 1
+
 
 # Move this elsewhere later
 class UniformBirthDistribution(object):
@@ -64,6 +65,7 @@ class UniformBirthDistribution(object):
                                                 - self.bounds[p][0]))
                     for p in self.parameters])
 
+
 # ADD ADAPTATION
 def _setup_proposal(model, cov=None):
     # Initialise the birth-objects for transdimensional parameters
@@ -77,7 +79,7 @@ def _setup_proposal(model, cov=None):
     # Model hopping proposal
     model_proposal = BoundedDiscrete(['k'],
                                      boundaries={'k': (0, len(td_proposals))},
-                                     successive={'k':True})
+                                     successive={'k': True})
     pars = ['a{}'.format(i) for i in range(1, 5+1)] + ['k']
     # Initialise the bundle transdimemnsional proposal
     return NestedTransdimensional(pars, model_proposal, td_proposals,
@@ -102,16 +104,3 @@ def test_something(nprocs, nchains, ntemps, model=None):
     # set the starting point
     sampler.start_position = model.prior_rvs(nchains, ntemps)
     sampler.run(ITERINT)
-
-
-
-
-
-
-
-
-
-
-
-
-
