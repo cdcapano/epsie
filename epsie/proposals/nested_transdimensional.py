@@ -93,8 +93,8 @@ class NestedTransdimensional(BaseProposal):
 
         self._proposals = numpy.array(proposals)
         self._model_proposal = model_proposal
-        self._symmetric = all(prop.symmetric for prop in proposals)\
-                        and model_proposal.symmetric
+        self._symmetric = (all(prop.symmetric for prop in proposals) and
+                           model_proposal.symmetric)
 
     def setup_births(self, birth_distributions):
         """Matches birth distributions to proposals. Note that order of

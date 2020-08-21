@@ -224,8 +224,8 @@ class PolynomialRegressionModel(object):
             ks = numpy.full(nchains, numpy.nan, dtype=int)
             for i in range(nchains):
                 rands = numpy.random.choice(range(self.kmax),
-                                         numpy.random.randint(self.kmax),
-                                         replace=False)
+                                            numpy.random.randint(self.kmax),
+                                            replace=False)
                 coeffs[i, 1:][rands] = numpy.nan
                 ks[i] = int(self.kmax - len(rands))
 
@@ -240,8 +240,8 @@ class PolynomialRegressionModel(object):
             for i in range(nchains):
                 for j in range(ntemps):
                     rands = numpy.random.choice(range(self.kmax),
-                                             numpy.random.randint(self.kmax),
-                                             replace=False)
+                                                numpy.random.randint(self.kmax),
+                                                replace=False)
                     coeffs[j, i, 1:][rands] = numpy.nan
                     ks[j, i] = int(self.kmax - len(rands))
 
@@ -257,7 +257,7 @@ class PolynomialRegressionModel(object):
         # Prior on the model index
         lp += sum(self.prior_dist[self.k].logpmf([kwargs[self.k]]))
         coeffs = numpy.array([kwargs['a{}'.format(i)]
-                           for i in range(self.kmax + 1)])
+                             for i in range(self.kmax + 1)])
         # take only ones that are active
         coeffs = coeffs[numpy.isfinite(coeffs)]
         lp += self.prior_dist['a'].logpdf(coeffs).sum()
@@ -265,7 +265,7 @@ class PolynomialRegressionModel(object):
 
     def reconstruct(self, **kwargs):
         coeffs = numpy.array([kwargs['a{}'.format(i)]
-                           for i in range(self.kmax, -1, -1)])
+                             for i in range(self.kmax, -1, -1)])
         coeffs[numpy.isnan(coeffs)] = 0.0
         return numpy.polyval(coeffs, self.t)
 

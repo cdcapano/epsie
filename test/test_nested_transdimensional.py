@@ -19,10 +19,14 @@
 from __future__ import (print_function, absolute_import)
 
 import itertools
-from randomgen import Generator
 from scipy import stats
 import pytest
 import numpy
+
+try:
+    from randomgen import RandomGenerator
+except ImportError:
+    from randomgen import Generator as RandomGenerator
 
 from epsie.proposals import (NestedTransdimensional, Normal, BoundedDiscrete)
 from _utils import PolynomialRegressionModel
@@ -42,14 +46,14 @@ SWAP_INTERVAL = 1
 
 # Move this elsewhere later
 class UniformBirthDistribution(object):
-    _random_generator = Generator()
+    _random_generator = None
 
     def __init__(self, parameters, bounds):
         self.parameters = parameters
         self.bounds = bounds
 
     def set_bit_generator(self, bit_generator):
-        self._random_generator = Generator(bit_generator)
+        self._random_generator = RandomGenerator(bit_generator)
 
     @property
     def birth(self):
