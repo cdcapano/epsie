@@ -21,6 +21,7 @@ from six import add_metaclass
 import numpy
 
 from .normal import Normal
+from .bounded_normal import BoundedNormal
 
 
 @add_metaclass(ABCMeta)
@@ -187,3 +188,41 @@ class AdaptiveProposal(AdaptiveProposalSupport, Normal):
         self.setup_adaptation(start_iter, adaptation_duration,
                               target_acceptance, **kwargs)
         self._isdiagonal = False
+
+
+class AdaptiveBoundedProposal(AdaptiveProposalSupport, BoundedNormal):
+    r"""A bounded adaptive proposal, using the algorithm from Andrieu et al. .
+
+    See :py:class:`AdaptiveProposalSupport` for details on the
+    adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. The boundaries will be used for the
+        prior widths in the adaptation algorithm.
+    start_iter: int (optional)
+        The iteration index when adaptation phase begins.
+    adaptation_duration : int
+        The number of iterations over which to apply the adaptation. No more
+        adaptation will be done once a chain exceeds this value.
+    target_acceptance: float (optional)
+        Target acceptance ratio. By default 0.234
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_bounded_proposal'
+    symmetric = False
+
+    def __init__(self, parameters, boundaries, start_iter=1,
+                 adaptation_duration=None, target_acceptance=0.234, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveBoundedProposal, self).__init__(parameters, boundaries)
+        # set up the adaptation parameters
+        self.setup_adaptation(start_iter, adaptation_duration,
+                              target_acceptance, **kwargs)

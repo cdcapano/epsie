@@ -133,7 +133,7 @@ class BoundedNormal(Normal):
 
 class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     r"""A bounded normal proposoal with adaptive variance, using the algorithm
-    from Vetich et al.
+    from Veitch et al.
 
     See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
