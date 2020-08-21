@@ -181,6 +181,106 @@ class PoissonModel(object):
         return logl, logp
 
 
+class PolynomialRegressionModel(object):
+    r""" A polynomial regression model.
+
+    The free parameters are the polynomial coefficients:
+
+        .. math::
+            y\left( x \right) = \sum_{n=0}^{5} a_n * x^{n}.
+    The coefficients :math `a_n` can be either turned on or off, thus
+    increasing or decreasing the dimensionality of the model.
+
+    This simple model is used to test the nested transdimensional proposal.
+
+    The initial inactive parameters must be set to `numpy.nan`.
+    """
+    def __init__(self, seed=None):
+        self.inmodel_pars = ['a']
+        self.k = 'k'
+        self.kmax = 5
+        self.prior_dist = {'a': stats.uniform(-2., 4.),
+                           'k': stats.randint(0, self.kmax + 1),}
+        # Define the injected signal
+        self.true_signal = {'a0': 0.0,
+                            'a1': 1.0,
+                            'a2': -0.5,
+                            'a3': np.nan,
+                            'a4': np.nan,
+                            'a5': np.nan,
+                            'k': 2,}
+
+        np.random.seed(seed)
+        self.npoints = 51
+        self.t = np.linspace(0.0, 5, self.npoints)
+        self.ysignal = self.reconstruct(**self.true_signal)
+
+    def prior_rvs(self, nchains=1, ntemps=None):
+        out = {}
+        if ntemps is None:
+            coeffs = self.prior_dist['a'].rvs(
+                size=nchains * (self.kmax + 1)).reshape(nchains, self.kmax + 1)
+            ks = np.full(nchains, np.nan, dtype=int)
+            for i in range(nchains):
+                rands = np.random.choice(range(self.kmax),
+                                         np.random.randint(self.kmax),
+                                         replace=False)
+                coeffs[i, 1:][rands] = np.nan
+                ks[i] = int(self.kmax - len(rands))
+
+            for i in range(self.kmax + 1):
+                out.update({'a{}'.format(i): coeffs[:, i].reshape(nchains, )})
+        else:
+            coeffs = self.prior_dist['a'].rvs(
+                size=nchains * ntemps * (self.kmax + 1)).reshape(ntemps,
+                                                                 nchains,
+                                                                 self.kmax + 1)
+            ks = np.full((ntemps, nchains), np.nan, dtype=int)
+            for i in range(nchains):
+                for j in range(ntemps):
+                    rands = np.random.choice(range(self.kmax),
+                                             np.random.randint(self.kmax),
+                                             replace=False)
+                    coeffs[j, i, 1:][rands] = np.nan
+                    ks[j, i] = int(self.kmax - len(rands))
+
+            for i in range(self.kmax + 1):
+                out.update({'a{}'.format(i): coeffs[:, :, i].reshape(
+                    ntemps, nchains )})
+
+        out.update({'k': ks})
+        return out
+
+    def logprior(self, **kwargs):
+        lp = 0.0
+        # Prior on the model index
+        lp += sum(self.prior_dist[self.k].logpmf([kwargs[self.k]]))
+        coeffs = np.array([kwargs['a{}'.format(i)]
+                           for i in range(self.kmax + 1)])
+        # take only ones that are active
+        coeffs = coeffs[np.isfinite(coeffs)]
+        lp += self.prior_dist['a'].logpdf(coeffs).sum()
+        return lp
+
+    def reconstruct(self, **kwargs):
+        coeffs = np.array([kwargs['a{}'.format(i)]
+                           for i in range(self.kmax, -1, -1)])
+        coeffs[np.isnan(coeffs)] = 0.0
+        return np.polyval(coeffs, self.t)
+
+    def loglikelihood(self, **kwargs):
+        df = self.ysignal - self.reconstruct(**kwargs)
+        return - np.dot(df.T, df)
+
+    def __call__(self, **kwargs):
+        logp = self.logprior(**kwargs)
+        if logp == -np.inf:
+            logl = None
+        else:
+            logl = self.loglikelihood(**kwargs)
+        return logl, logp
+
+
 #
 # =============================================================================
 #

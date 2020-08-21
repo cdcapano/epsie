@@ -14,13 +14,11 @@
 
 from __future__ import (absolute_import, division)
 
-from copy import deepcopy
 
 import numpy
 
 
 from .base import BaseProposal
-from .discrete import BoundedDiscrete
 
 
 class NestedTransdimensional(BaseProposal):
@@ -124,7 +122,7 @@ class NestedTransdimensional(BaseProposal):
 
     def logpdf(self, xi, givenx):
         lp = 0.0
-        # logpdf on the model jump 
+        # logpdf on the model jump
         lp += self.model_proposal.logpdf({self._index: xi[self._index]},
                                          {self._index: givenx[self._index]})
         # logpdf on the transdimensional moves
