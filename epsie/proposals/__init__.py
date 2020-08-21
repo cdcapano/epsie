@@ -18,11 +18,12 @@ from __future__ import absolute_import
 
 from .base import BaseProposal
 from .joint import JointProposal
-from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal)
+from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal,
+                     AdaptiveProposal)
 # we'll also promote the Boundaries class to the top-level
 from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
-                             Boundaries, AdaptiveBoundedNormal)
-from .adaptive_proposal import (AdaptiveProposal, AdaptiveBoundedProposal)
+                             Boundaries, AdaptiveBoundedNormal,
+                             AdaptiveBoundedProposal)
 from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
