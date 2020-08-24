@@ -683,9 +683,9 @@ class AdaptiveProposalSupport(object):
                  'log_lambda': self._log_lambda,
                  'unit_cov': self._unit_cov}
         if self.isdiagonal:
-            state.update({'cov': self._cov})
-        else:
             state.update({'std': self._std})
+        else:
+            state.update({'cov': self._cov})
         return state
 
     def set_state(self, state):
