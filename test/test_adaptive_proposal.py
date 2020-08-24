@@ -21,7 +21,8 @@ from __future__ import (print_function, absolute_import)
 import pytest
 import numpy
 
-from epsie.proposals import AdaptiveProposal
+from epsie.proposals import (AdaptiveProposal, AdaptiveBoundedProposal,
+                             AdaptiveAngularProposal)
 from _utils import Model
 
 from test_ptsampler import _create_sampler
@@ -36,22 +37,40 @@ ADAPTATION_DURATION = ITERINT//2
 SWAP_INTERVAL = 1
 
 
-def _setup_proposal(model, params=None, start_iter=1,
+def _setup_proposal(model, name, params=None, diagonal=False, start_iter=1,
                     adaptation_duration=None):
     if params is None:
         params = model.params
-    return AdaptiveProposal(params, adaptation_duration=adaptation_duration)
+    if name == 'adaptive_proposal':
+        return AdaptiveProposal(params, diagonal,
+                                adaptation_duration=adaptation_duration)
+    elif name == 'adaptive_bounded_proposal':
+        boundaries = {'x0': (-20., 20.), 'x1': (-40., 40.)}
+        return AdaptiveBoundedProposal(params, boundaries,
+                                       adaptation_duration=adaptation_duration)
+    elif name == 'adaptive_angular_proposal':
+        return AdaptiveProposal(params,
+                                adaptation_duration=adaptation_duration)
 
 
+
+@pytest.mark.parametrize('name', ['adaptive_proposal',
+                                  'adaptive_bounded_proposal',
+                                  'adaptive_angular_proposal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('adaptation_duration', [None, ADAPTATION_DURATION])
-def test_cov_changes(nprocs, adaptation_duration, model=None):
+@pytest.mark.parametrize('diagonal', [False, True])
+def test_cov_changes(name, nprocs, adaptation_duration, diagonal, model=None):
     """Tests that the covariance changes after a few jumps."""
     # use the test model
     if model is None:
         model = Model()
-    proposal = _setup_proposal(model, adaptation_duration=adaptation_duration)
-    _test_cov_changes(nprocs, proposal, model)
+    proposal = _setup_proposal(model, name, diagonal=diagonal,
+                               adaptation_duration=adaptation_duration)
+    if proposal.isdiagonal:
+        _test_std_changes(nprocs, proposal, model)
+    else:
+        _test_cov_changes(nprocs, proposal, model)
 
 
 def _test_cov_changes(nprocs, proposal, model):
@@ -96,40 +115,94 @@ def _test_cov_changes(nprocs, proposal, model):
         sampler.pool.close()
 
 
+def _test_std_changes(nprocs, proposal, model):
+    """Tests that the covariance changes after a few jumps."""
+    # we'll just use the PTSampler default setup from the ptsampler tests
+    sampler = _create_sampler(model, nprocs, proposals=[proposal])
+    # check that all temperatures and all chains have the same initial cov
+    N = len(proposal.parameters)
+    initial_std = numpy.zeros((sampler.nchains, sampler.ntemps, N))
+    for ii, ptchain in enumerate(sampler.chains):
+        for jj, subchain in enumerate(ptchain.chains):
+            thisprop = subchain.proposal_dist.proposals[0]
+            assert(thisprop.std == proposal.std).all()
+            initial_std[ii, jj, :] = thisprop.std
+
+    # run the sampler for the adaptation duration, and check that the
+    # covariance  of all chains and temperatures has changed
+    sampler.run(ADAPTATION_DURATION)
+    current_std = numpy.zeros((sampler.nchains, sampler.ntemps, N))
+    for ii, ptchain in enumerate(sampler.chains):
+        for jj, subchain in enumerate(ptchain.chains):
+            thisprop = subchain.proposal_dist.proposals[0]
+            current_std[ii, jj, :] = thisprop.std
+    assert (initial_std != current_std).all()
+
+    # the adaptive proposal supports shutting down the adaptation after
+    # the adaptation duratio. Now run past the adaptation duration
+    sampler.run(ITERINT//2)
+    previous_std = current_std
+    current_std = numpy.zeros((sampler.nchains, sampler.ntemps, N))
+    for ii, ptchain in enumerate(sampler.chains):
+        for jj, subchain in enumerate(ptchain.chains):
+            thisprop = subchain.proposal_dist.proposals[0]
+            current_std[ii, jj, ] = thisprop.std
+
+    if numpy.isfinite(proposal.adaptation_duration):
+        assert (previous_std == current_std).all()
+    else:
+        assert (previous_std != current_std).all()
+    # close the multiprocessing pool
+    if sampler.pool is not None:
+        sampler.pool.close()
+
+
+@pytest.mark.parametrize('name', ['adaptive_proposal',
+                                  'adaptive_bounded_proposal',
+                                  'adaptive_angular_proposal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_chains(nprocs):
+def test_chains(name, nprocs):
     """Runs the PTSampler ``test_chains`` test using the adaptive proposal.
     """
     model = Model()
     # we'll just use the adaptive normal for one of the params, to test
     # that using mixed proposals works
-    proposal = _setup_proposal(model, params=[list(model.params)[0]])
+    proposal = _setup_proposal(model, name,  params=[list(model.params)[0]])
     _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
 
 
+@pytest.mark.parametrize('name', ['adaptive_proposal',
+                                  'adaptive_bounded_proposal',
+                                  'adaptive_angular_proposal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_checkpointing(nprocs):
+def test_checkpointing(name, nprocs):
     """Performs the same checkpointing test as for the PTSampler, but using
     the adaptive proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model)
+    proposal = _setup_proposal(model, name)
     _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
+@pytest.mark.parametrize('name', ['adaptive_proposal',
+                                  'adaptive_bounded_proposal',
+                                  'adaptive_angular_proposal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_seed(nprocs):
+def test_seed(name, nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model)
+    proposal = _setup_proposal(model, name)
     _test_seed(Model, nprocs, proposals=[proposal])
 
 
+@pytest.mark.parametrize('name', ['adaptive_proposal',
+                                  'adaptive_bounded_proposal',
+                                  'adaptive_angular_proposal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_clear_memory(nprocs):
+def test_clear_memory(name, nprocs):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model)
+    proposal = _setup_proposal(model, name)
     _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])

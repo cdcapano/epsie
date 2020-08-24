@@ -25,7 +25,7 @@ from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
                              Boundaries, AdaptiveBoundedNormal,
                              AdaptiveBoundedProposal)
 from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular,
-                     AdaptiveAngularProposal)
+                      AdaptiveAngularProposal)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
