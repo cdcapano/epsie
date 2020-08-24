@@ -243,8 +243,10 @@ class AdaptiveBoundedProposal(AdaptiveProposalSupport, BoundedNormal):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveBoundedProposal, self).__init__(parameters, boundaries)
         # set up the adaptation parameters
-        self.setup_adaptation(start_iter, adaptation_duration,
-                              target_acceptance, **kwargs)
+        self.setup_adaptation(diagonal=True,
+                              adaptation_duration=adaptation_duration,
+                              start_iter=start_iter,
+                              target_acceptance=target_acceptance, **kwargs)
 
 
 class Boundaries(tuple):
