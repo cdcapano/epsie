@@ -18,7 +18,8 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport,
+                     AdaptiveProposalSupport)
 from .bounded_normal import Boundaries
 
 
@@ -190,3 +191,39 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
             # set the max std to be (1.49*2*pi)
             kwargs['max_cov'] = (1.49 * 2 * numpy.pi)**2
         self.setup_adaptation(**kwargs)
+
+
+class AdaptiveAngularProposal(AdaptiveProposalSupport, Angular):
+    r"""An angular proposal with adaptive variance, using the algorithm from
+    Andrieu & Thoms.
+
+    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    adaptation_duration: int (optional)
+        The number of adaptation steps. By default assumes the adaptation
+        never ends but decays.
+    start_iter: int (optional)
+        The iteration index when adaptation phase begins.
+    target_acceptance: float (optional)
+        Target acceptance ratio. By default 0.234
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'adaptive_angular_proposal'
+    symmetric = True
+
+    def __init__(self, parameters, adaptation_duration=None, start_iter=1,
+                 target_acceptance=0.234, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(AdaptiveAngularProposal, self).__init__(parameters)
+        # set up the adaptation parameters
+        self.setup_adaptation(diagonal=True,
+                              adaptation_duration=adaptation_duration,
+                              start_iter=start_iter,
+                              target_acceptance=target_acceptance, **kwargs)

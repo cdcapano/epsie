@@ -24,7 +24,8 @@ from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal,
 from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
                              Boundaries, AdaptiveBoundedNormal,
                              AdaptiveBoundedProposal)
-from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular)
+from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular,
+                     AdaptiveAngularProposal)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
@@ -54,4 +55,5 @@ proposals = {
     AdaptiveProposal.name: AdaptiveProposal,
     UniformBirthDistribution.name: UniformBirthDistribution,
     AdaptiveBoundedProposal.name: AdaptiveBoundedProposal,
+    AdaptiveAngularProposal.name: AdaptiveAngularProposal,
 }
