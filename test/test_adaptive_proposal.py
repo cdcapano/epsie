@@ -49,9 +49,8 @@ def _setup_proposal(model, name, params=None, diagonal=False, start_iter=1,
         return AdaptiveBoundedProposal(params, boundaries,
                                        adaptation_duration=adaptation_duration)
     elif name == 'adaptive_angular_proposal':
-        return AdaptiveProposal(params,
-                                adaptation_duration=adaptation_duration)
-
+        return AdaptiveAngularProposal(params,
+                                       adaptation_duration=adaptation_duration)
 
 
 @pytest.mark.parametrize('name', ['adaptive_proposal',
