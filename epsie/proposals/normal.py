@@ -163,8 +163,8 @@ class Normal(BaseProposal):
         # the normal RVS is much faster than the multivariate one, so use it
         # if we can
         if self.isdiagonal:
-            mu = [fromx[p] for p in self.parameters]
-            newpt = self.random_generator.normal(mu, self._std)
+            newpt = self.random_generator.normal(
+                [fromx[p] for p in self.parameters], self._std)
         else:
             newpt = self.random_generator.multivariate_normal(
                 [fromx[p] for p in self.parameters], self.cov)
@@ -583,26 +583,32 @@ class AdaptiveProposalSupport(object):
     _decay_const = None
     _adaptation_duration = None
 
-    def setup_adaptation(self, start_iter=1, adaptation_duration=None,
-                         target_acceptance=0.234):
+    def setup_adaptation(self, diagonal=False, adaptation_duration=None,
+                         start_iter=1, target_acceptance=0.234):
         r"""Sets up the adaptation parameters.
-        start_iter: int (optional)
-            The iteration index when adaptation phase begins.
+        diagonal : bool (optional)
+            Whether to train off-diagonal elements of the proposal covariance.
+            By default set to False; off-diagonal elements are being trained.
         adaptation_duration: int (optional)
             The number of adaptation steps. By default assumes the adaptation
             never ends but decays.
+        start_iter: int (optional)
+            The iteration index when adaptation phase begins.
         target_acceptance: float (optional)
             Target acceptance ratio. By default 0.234
-
         """
         self.start_iter = start_iter
         self.target_acceptance = target_acceptance
-        ndim = len(self.parameters)
         self.adaptation_duration = adaptation_duration
+        self._isdiagonal = diagonal
 
-        self._mean = numpy.zeros(ndim)  # initial mean
-        self._unit_cov = numpy.eye(ndim)  # inital covariance
-        self._cov = self._unit_cov
+        self._mean = numpy.zeros(self.ndim)  # initial mean
+        if self.isdiagonal:
+            self._unit_cov = numpy.ones(self.ndim)
+            self._std = self._unit_cov**0.5
+        else:
+            self._unit_cov = numpy.eye(self.ndim)  # inital covariance
+            self._cov = self._unit_cov
         self._log_lambda = 0
 
     @property
@@ -653,32 +659,44 @@ class AdaptiveProposalSupport(object):
             decay = self.decay(chain.iteration)
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
+            # Update of the global scaling
+            ar = min(1, chain.acceptance['acceptance_ratio'][-1])
+            self._log_lambda += decay * (ar - self.target_acceptance)
             # Update the first moment
             df = newpt - self._mean
             self._mean = self._mean + decay * df
             # Update the second moment
-            df = df.reshape(-1, 1)
-            self._unit_cov += decay * (numpy.matmul(df, df.T) - self._unit_cov)
-            # Update of the global scaling
-            ar = min(1, chain.acceptance['acceptance_ratio'][-1])
-            self._log_lambda += decay * (ar - self.target_acceptance)
-
-            self.cov = numpy.exp(self._log_lambda) * self._unit_cov
+            if self.isdiagonal:
+                self._unit_cov += decay * (df**2 - self._unit_cov)
+                self._std = (numpy.exp(0.5 * self._log_lambda)
+                             * self._unit_cov**0.5)
+            else:
+                df = df.reshape(-1, 1)
+                self._unit_cov += decay * (numpy.matmul(df, df.T)
+                                           - self._unit_cov)
+                self._cov = numpy.exp(self._log_lambda) * self._unit_cov
 
     @property
     def state(self):
-        return {'random_state': self.random_state,
-                'mean': self._mean,
-                'cov': self._cov,
-                'unit_cov': self._unit_cov,
-                'log_lambda': self._log_lambda}
+        state = {'random_state': self.random_state,
+                 'mean': self._mean,
+                 'log_lambda': self._log_lambda,
+                 'unit_cov': self._unit_cov}
+        if self.isdiagonal:
+            state.update({'cov': self._cov})
+        else:
+            state.update({'std': self._std})
+        return state
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._mean = state['mean']
-        self._cov = state['cov']
-        self._unit_cov = state['unit_cov']
         self._log_lambda = state['log_lambda']
+        self._unit_cov = state['unit_cov']
+        if self.isdiagonal:
+            self._std = state['std']
+        else:
+            self._cov = state['cov']
 
 
 class AdaptiveProposal(AdaptiveProposalSupport, Normal):
@@ -691,10 +709,13 @@ class AdaptiveProposal(AdaptiveProposalSupport, Normal):
     ----------
     parameters: (list of) str
         The names of the parameters.
-    start_iter: int (optional)
-        The iteration index when adaptation phase begins.
+    diagonal : bool (optional)
+        Whether to train off-diagonal elements of the proposal covariance.
+        By default set to False; off-diagonal elements are being trained.
     adaptation_duration: int (optional)
         The iteration index when adaptation phase ends. By default never ends.
+    start_iter: int (optional)
+        The iteration index when adaptation phase begins.
     target_acceptance: float (optional)
         Target acceptance ratio. By default 0.234
     \**kwargs:
@@ -705,11 +726,10 @@ class AdaptiveProposal(AdaptiveProposalSupport, Normal):
     name = 'adaptive_proposal'
     symmetric = False
 
-    def __init__(self, parameters, start_iter=1, adaptation_duration=None,
-                 target_acceptance=0.234, **kwargs):
+    def __init__(self, parameters, diagonal=False, adaptation_duration=None,
+                 start_iter=1, target_acceptance=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveProposal, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(start_iter, adaptation_duration,
+        self.setup_adaptation(diagonal, adaptation_duration, start_iter,
                               target_acceptance, **kwargs)
-        self._isdiagonal = False
