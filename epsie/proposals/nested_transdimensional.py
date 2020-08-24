@@ -16,7 +16,12 @@ from __future__ import (absolute_import, division)
 
 
 import numpy
+from scipy import stats
 
+try:
+    from randomgen import RandomGenerator
+except ImportError:
+    from randomgen import Generator as RandomGenerator
 
 from .base import BaseProposal
 
@@ -212,3 +217,53 @@ class NestedTransdimensional(BaseProposal):
             prop.set_state(state[frozenset(prop.parameters)])
         # set the state of the random number generator
         self.random_state = state['random_state']
+
+
+class UniformBirthDistribution(object):
+    """Birth distribution object used in nested transdimensional proposals
+    to propose birth to parameters which were previously inactive. This
+    particular implementation assumes a uniform proposal distribution.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters to produce proposals for.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two.
+
+    Properties
+    ----------
+    birth : dict
+        Returns random variate sample from the uniform distribution for each
+        parameter.
+
+    Methods
+    ------
+    logpdf : py:func
+        Evalues the logpdf proposal ratio. Takes dictionary of parameters as
+        input.
+    """
+    name = 'uniform_birth_distribution'
+    _random_generator = None
+
+    def __init__(self, parameters, bounds):
+        self.parameters = parameters
+        self.bounds = bounds
+
+    def set_bit_generator(self, bit_generator):
+        self._random_generator = RandomGenerator(bit_generator)
+
+    @property
+    def birth(self):
+        if self._random_generator is None:
+            raise ValueError('must set the random generator first')
+        return {p: self._random_generator.uniform(self.bounds[p][0],
+                                                  self.bounds[p][1])
+                for p in self.parameters}
+
+    def logpdf(self, xi):
+        return sum([stats.uniform.logpdf(xi[p], loc=self.bounds[p][0],
+                                         scale=(self.bounds[p][1]
+                                                - self.bounds[p][0]))
+                    for p in self.parameters])

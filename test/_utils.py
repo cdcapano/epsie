@@ -20,10 +20,6 @@ from scipy import stats
 import epsie
 from epsie.proposals import Boundaries
 
-try:
-    from randomgen import RandomGenerator
-except ImportError:
-    from randomgen import Generator as RandomGenerator
 
 #
 # =============================================================================
@@ -285,31 +281,6 @@ class PolynomialRegressionModel(object):
         else:
             logl = self.loglikelihood(**kwargs)
         return logl, logp
-
-
-class UniformBirthDistribution(object):
-    _random_generator = None
-
-    def __init__(self, parameters, bounds):
-        self.parameters = parameters
-        self.bounds = bounds
-
-    def set_bit_generator(self, bit_generator):
-        self._random_generator = RandomGenerator(bit_generator)
-
-    @property
-    def birth(self):
-        if self._random_generator is None:
-            raise ValueError('must set the random generator first')
-        return {p: self._random_generator.uniform(self.bounds[p][0],
-                                                  self.bounds[p][1])
-                for p in self.parameters}
-
-    def logpdf(self, xi):
-        return sum([stats.uniform.logpdf(xi[p], loc=self.bounds[p][0],
-                                         scale=(self.bounds[p][1]
-                                                - self.bounds[p][0]))
-                    for p in self.parameters])
 
 
 #

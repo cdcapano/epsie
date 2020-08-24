@@ -28,7 +28,8 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
-from .nested_transdimensional import NestedTransdimensional
+from .nested_transdimensional import (NestedTransdimensional,
+                                      UniformBirthDistribution)
 
 
 proposals = {
@@ -50,4 +51,5 @@ proposals = {
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
     NestedTransdimensional.name: NestedTransdimensional,
     AdaptiveProposal.name: AdaptiveProposal,
+    UniformBirthDistribution.name: UniformBirthDistribution,
 }

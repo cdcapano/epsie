@@ -21,8 +21,9 @@ import numpy
 import pytest
 
 
-from epsie.proposals import (NestedTransdimensional, Normal, BoundedDiscrete)
-from _utils import (PolynomialRegressionModel, UniformBirthDistribution)
+from epsie.proposals import (NestedTransdimensional, Normal, BoundedDiscrete,
+                             UniformBirthDistribution)
+from _utils import PolynomialRegressionModel
 from epsie import make_betas_ladder
 
 from test_ptsampler import _create_sampler
