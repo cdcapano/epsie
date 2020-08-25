@@ -476,6 +476,8 @@ class Chain(BaseChain):
         self.blob0 = state['current_blob']
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
+        # set the positions` dtypes to match the starting point
+        self._positions.dtypes = detect_dtypes(self._start)
         if self.transdimensional:
             self._activate_proposals()
 
