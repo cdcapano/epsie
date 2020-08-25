@@ -21,9 +21,9 @@ import numpy
 import pytest
 
 
-from epsie.proposals import (NestedTransdimensional,BoundedDiscrete, Normal,
+from epsie.proposals import (NestedTransdimensional, BoundedDiscrete, Normal,
                              SSAdaptiveNormal, AdaptiveNormal,
-                             AdaptiveProposal, UniformBirthDistribution,)
+                             AdaptiveProposal, UniformBirthDistribution)
 from _utils import PolynomialRegressionModel
 from epsie import make_betas_ladder
 
@@ -68,6 +68,7 @@ def _setup_proposal(model, td_proposal, cov=None):
     # Initialise the bundle transdimemnsional proposal
     return NestedTransdimensional(pars, model_proposal, td_proposals,
                                   birth_dists)
+
 
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',
                                          'ss_adaptive_normal',
@@ -124,7 +125,6 @@ def test_seed(td_proposal, nprocs):
     model = PolynomialRegressionModel()
     proposal = _setup_proposal(model, td_proposal)
     _test_seed(PolynomialRegressionModel, nprocs, proposals=[proposal])
-
 
 
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',

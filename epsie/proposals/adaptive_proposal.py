@@ -124,7 +124,6 @@ class AdaptiveProposalSupport(object):
             dk = chain.iteration - (self.start_iter - 1)
 
         if 1 < dk < self.adaptation_duration:
-#            print('Updating: ', self.parameters)
             decay = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])

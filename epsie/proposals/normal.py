@@ -478,7 +478,7 @@ class SSAdaptiveSupport(object):
         try:
             n_iter = chain._counter
         except AttributeError:
-            n_ter = chain.iteration
+            n_iter = chain.iteration
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)
