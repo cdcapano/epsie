@@ -338,8 +338,12 @@ class AdaptiveSupport(object):
         This prepares the proposal for the next jump.
         """
         # subtact 1 from the start iteration, since the update happens after
-        # the jump
-        dk = chain.iteration - (self.start_iteration - 1)
+        # the jump and try chain._counter in case of transdimensional props
+        try:
+            dk = chain._counter - (self.start_iteration - 1)
+        except AttributeError:
+            dk = chain.iteration - (self.start_iteration - 1)
+
         if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
@@ -471,7 +475,10 @@ class SSAdaptiveSupport(object):
         This prepares the proposal for the next jump.
         """
         self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = chain.iteration
+        try:
+            n_iter = chain._counter
+        except AttributeError:
+            n_ter = chain.iteration
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)

@@ -114,16 +114,18 @@ class AdaptiveProposalSupport(object):
         self._decay_const = (adaptation_duration)**(-0.6)
         self._adaptation_duration = adaptation_duration
 
-    def decay(self, iteration):
-        """Adaptive decay to ensure vanishing adaptation."""
-        return (iteration - self.start_iter + 1)**(-0.6) - self._decay_const
-
     def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        if 0 < chain.iteration - self.start_iter < (self.adaptation_duration):
-            decay = self.decay(chain.iteration)
+        try:
+            dk = chain._counter - (self.start_iter - 1)
+        except AttributeError:
+            dk = chain.iteration - (self.start_iter - 1)
+
+        if 1 < dk < self.adaptation_duration:
+#            print('Updating: ', self.parameters)
+            decay = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update the first moment
@@ -142,14 +144,14 @@ class AdaptiveProposalSupport(object):
     def state(self):
         return {'random_state': self.random_state,
                 'mean': self._mean,
-                'cov': self._cov,
+                'cov': self.cov,
                 'unit_cov': self._unit_cov,
                 'log_lambda': self._log_lambda}
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._mean = state['mean']
-        self._cov = state['cov']
+        self.cov = state['cov']
         self._unit_cov = state['unit_cov']
         self._log_lambda = state['log_lambda']
 

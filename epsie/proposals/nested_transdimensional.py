@@ -23,6 +23,7 @@ try:
 except ImportError:
     from randomgen import Generator as RandomGenerator
 
+import epsie
 from .base import BaseProposal
 
 
@@ -111,7 +112,7 @@ class NestedTransdimensional(BaseProposal):
             matched = 0
             for dist in birth_distributions:
                 if prop.parameters == tuple(dist.parameters):
-                    dist.set_bit_generator(prop.bit_generator)
+                    dist.bit_generator = prop.bit_generator
                     prop.birth_distribution = dist
                     matched += 1
             if matched == 0:
@@ -149,19 +150,23 @@ class NestedTransdimensional(BaseProposal):
 
     def update(self, chain):
         # check that proposal has been stepped inside at least twice in a row
-        if chain.iteration > 2:
+        if chain.iteration > 1:
             for prop in self.proposals:
-                if not all(numpy.isnan(chain.positions[-1][p]) and
-                           numpy.isnan(chain.positions[-2][p])
-                           for p in prop.parameters):
+                current = chain.positions[-1]
+                if len(chain) == 1:
+                    previous = chain.start_position
+                else:
+                    previous = chain.positions[-2]
+
+                c1 = not all(numpy.isnan(previous[p]) for p in prop.parameters)
+                c2 = not all(numpy.isnan(current[p]) for p in prop.parameters)
+                if c1 and c2:
                     # save the current chain iteration and set the chain
                     # iteration to the proposal iteration momentarily
-                    current_iteration = chain.iteration
-                    chain._iteration = prop._counter
+                    chain._counter = prop._counter
                     # call update with proposal iteration counter
                     prop.update(chain)
                     # set back the proposal iteration counter
-                    chain._iteration = current_iteration
                     prop._counter += 1
 
     def jump(self, fromx):
@@ -205,16 +210,35 @@ class NestedTransdimensional(BaseProposal):
     @property
     def state(self):
         # get all of the proposals state
-        state = {frozenset(prop.parameters): prop.state
-                 for prop in self._all_proposals}
+        state = {}
+        birth_state = {}
+        counts = {}
+        for prop in self.proposals:
+            state.update({frozenset(prop.parameters): prop.state})
+            # Get the random states of birth dists
+            birth_state.update(
+                {frozenset(prop.parameters): prop.birth_distribution.state})
+            # Get the number of update steps in each proposal
+            counts.update({frozenset(prop.parameters): prop._counter})
+
+        state.update({'_births': birth_state})
+        state.update({'_counts': counts})
+        state.update({frozenset(self.model_proposal.parameters):
+                      self.model_proposal.state})
         # add the global random state
         state['random_state'] = self.random_state
         return state
 
     def set_state(self, state):
-        # set each proposals' state
-        for prop in (self.proposals + [self.model_proposal]):
+        # set each proposals' state, birth dist's state and proposal counters
+        for prop in self.proposals:
             prop.set_state(state[frozenset(prop.parameters)])
+            prop.birth_distribution.set_state(
+                state['_births'][frozenset(prop.parameters)])
+            prop._counter = state['_counts'][frozenset(prop.parameters)]
+
+        self.model_proposal.set_state(state[frozenset(
+            self.model_proposal.parameters)])
         # set the state of the random number generator
         self.random_state = state['random_state']
 
@@ -246,24 +270,77 @@ class UniformBirthDistribution(object):
     """
     name = 'uniform_birth_distribution'
     _random_generator = None
+    _bit_generator = None
 
     def __init__(self, parameters, bounds):
         self.parameters = parameters
         self.bounds = bounds
+        self.scale = {p: bounds[p][1] - bounds[p][0] for p in parameters}
 
-    def set_bit_generator(self, bit_generator):
-        self._random_generator = RandomGenerator(bit_generator)
+    @property
+    def bit_generator(self):
+        """The random bit generator instance being used.
+        """
+        try:
+            return self._bit_generator
+        except AttributeError:
+            self._bit_generator = epsie.create_bit_generator()
+            return self._bit_generator
+
+    @bit_generator.setter
+    def bit_generator(self, bit_generator):
+        """Sets the random bit generator.
+
+        Parameters
+        ----------
+        bit_generator : :py:class:`epsie.BIT_GENERATOR`, int, or None
+            Either the bit generator to use or an integer/None. If the latter,
+            a generator will be created by passing ``bit_generator`` as the
+            ``seed`` argument to :py:func:`epsie.create_bit_generator`.
+        """
+        if not isinstance(bit_generator, epsie.BIT_GENERATOR):
+            bit_generator = epsie.create_bit_generator(bit_generator)
+        self._bit_generator = bit_generator
+
+    @property
+    def random_generator(self):
+        """The random number generator.
+
+        This is an instance of :py:class:`randgen.RandomGenerator` that is
+        derived from the bit generator. It provides methods to create random
+        draws from various distributions.
+        """
+        return RandomGenerator(self.bit_generator)
+
+    @property
+    def random_state(self):
+        """The current state of the random bit generator.
+        """
+        return self.bit_generator.state
+
+    @random_state.setter
+    def random_state(self, state):
+        """Sets the state of bit_generator.
+        Parameters
+        ----------
+        state : dict
+            Dictionary giving the state to set.
+        """
+        self.bit_generator.state = state
+
+    @property
+    def state(self):
+        return {'random_state': self.random_state}
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
 
     @property
     def birth(self):
-        if self._random_generator is None:
-            raise ValueError('must set the random generator first')
-        return {p: self._random_generator.uniform(self.bounds[p][0],
-                                                  self.bounds[p][1])
-                for p in self.parameters}
+        return {p: self.random_generator.uniform(
+            self.bounds[p][0], self.bounds[p][1]) for p in self.parameters}
 
     def logpdf(self, xi):
-        return sum([stats.uniform.logpdf(xi[p], loc=self.bounds[p][0],
-                                         scale=(self.bounds[p][1]
-                                                - self.bounds[p][0]))
-                    for p in self.parameters])
+        return sum([stats.uniform.logpdf(
+            xi[p], loc=self.bounds[p][0], scale=self.scale[p])
+            for p in self.parameters])
