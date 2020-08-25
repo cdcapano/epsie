@@ -327,13 +327,6 @@ def _anticompare_dict_array(a, b):
     assert list(a.keys()) == list(b.keys())
     # now check the values
     assert not all([(a[p] == b[p]).all() for p in a])
-#    for p in a:
-#        try:
-#            numpy.testing.assert_equal(a[p], b[p])
-#            different = False
-#        except AssertionError:
-#            different = True
-#        assert different
 
 
 def _check_chains_are_different(chain, other, test_blobs,
