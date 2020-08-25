@@ -2,8 +2,7 @@
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
+# option) any later version.  #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -195,6 +194,8 @@ class PolynomialRegressionModel(object):
 
     The initial inactive parameters must be set to `numpy.nan`.
     """
+    blob_params = None
+
     def __init__(self, seed=None):
         self.inmodel_pars = ['a']
         self.params = ['a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'k']
@@ -216,7 +217,8 @@ class PolynomialRegressionModel(object):
         self.t = numpy.linspace(0.0, 5, self.npoints)
         self.ysignal = self.reconstruct(**self.true_signal)
 
-    def prior_rvs(self, nchains=1, ntemps=None):
+    def prior_rvs(self, size=None, shape=None):
+        ntemps, nchains = shape
         out = {}
         if ntemps is None:
             coeffs = self.prior_dist['a'].rvs(
@@ -311,8 +313,10 @@ def _compare_dict_array(a, b):
     """
     # first check that keys are the same
     assert list(a.keys()) == list(b.keys())
-    # now check the values
-    assert all([(a[p] == b[p]).all() for p in a])
+    # now check the values. Here need to check value by value because
+    # comparisons of ``numpy.nan == numpy.nan`` returns False
+    for p in a:
+        numpy.testing.assert_equal(a[p], b[p])
 
 
 def _anticompare_dict_array(a, b):
@@ -322,7 +326,14 @@ def _anticompare_dict_array(a, b):
     # first check that keys are the same
     assert list(a.keys()) == list(b.keys())
     # now check the values
-    assert not all([(a[p] == b[p]).all() for p in a])
+    comps  = list()
+    for p in a:
+        try:
+            numpy.testing.assert_equal(a,b)
+            equal = True
+        except AssertionError:
+            equal = False
+        assert not equal
 
 
 def _check_chains_are_different(chain, other, test_blobs,
