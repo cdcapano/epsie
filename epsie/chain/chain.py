@@ -19,7 +19,7 @@ from __future__ import absolute_import
 
 import numpy
 
-from epsie.proposals.joint import JointProposal
+from epsie.proposals import JointProposal
 
 from .base import BaseChain
 from .chaindata import (ChainData, detect_dtypes)
