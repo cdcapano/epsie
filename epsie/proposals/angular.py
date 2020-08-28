@@ -206,9 +206,9 @@ class AdaptiveAngularProposal(AdaptiveProposalSupport, Angular):
     adaptation_duration: int (optional)
         The number of adaptation steps. By default assumes the adaptation
         never ends but decays.
-    start_iter: int (optional)
+    start_iteration: int (optional)
         The iteration index when adaptation phase begins.
-    target_acceptance: float (optional)
+    target_rate: float (optional)
         Target acceptance ratio. By default 0.234
     \**kwargs :
         All other keyword arguments are passed to
@@ -218,12 +218,12 @@ class AdaptiveAngularProposal(AdaptiveProposalSupport, Angular):
     name = 'adaptive_angular_proposal'
     symmetric = True
 
-    def __init__(self, parameters, adaptation_duration=None, start_iter=1,
-                 target_acceptance=0.234, **kwargs):
+    def __init__(self, parameters, adaptation_duration=None, start_iteration=1,
+                 target_rate=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveAngularProposal, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True,
                               adaptation_duration=adaptation_duration,
-                              start_iter=start_iter,
-                              target_acceptance=target_acceptance, **kwargs)
+                              start_iteration=start_iteration,
+                              target_rate=target_rate, **kwargs)

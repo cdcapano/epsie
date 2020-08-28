@@ -1,4 +1,4 @@
-# Copyright (C) 2019  Collin Capano
+# Copyright (C) 2020 Collin Capano, Richard Stiskalek
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
@@ -578,27 +578,27 @@ class AdaptiveProposalSupport(object):
     18. 10.1007/s11222-008-9110-y.
     """
 
-    _target_acceptance = None
-    _start_iter = None
+    _target_rate = None
+    _start_iteration = None
     _decay_const = None
     _adaptation_duration = None
 
     def setup_adaptation(self, diagonal=False, adaptation_duration=None,
-                         start_iter=1, target_acceptance=0.234):
+                         start_iteration=1, target_rate=0.234):
         r"""Sets up the adaptation parameters.
         diagonal : bool (optional)
             Whether to train off-diagonal elements of the proposal covariance.
             By default set to False; off-diagonal elements are being trained.
-        adaptation_duration: int (optional)
+        adaptation_duration : int (optional)
             The number of adaptation steps. By default assumes the adaptation
             never ends but decays.
-        start_iter: int (optional)
+        start_iteration : int (optional)
             The iteration index when adaptation phase begins.
-        target_acceptance: float (optional)
-            Target acceptance ratio. By default 0.234
+        target_rate : float (optional)
+            Target acceptance rate. By default 0.234
         """
-        self.start_iter = start_iter
-        self.target_acceptance = target_acceptance
+        self.start_iteration = start_iteration
+        self.target_rate = target_rate
         self.adaptation_duration = adaptation_duration
         self._isdiagonal = diagonal
 
@@ -612,27 +612,27 @@ class AdaptiveProposalSupport(object):
         self._log_lambda = 0
 
     @property
-    def start_iter(self):
+    def start_iteration(self):
         """The iteration that the adaption begins."""
-        return self._start_iter
+        return self._start_iteration
 
-    @start_iter.setter
-    def start_iter(self, start_iter):
+    @start_iteration.setter
+    def start_iteration(self, start_iteration):
         """Sets the start iteration, making sure it is >= 1."""
-        if start_iter < 1:
-            raise ValueError("start_iter must be >= 1")
-        self._start_iter = start_iter
+        if start_iteration < 1:
+            raise ValueError("``start_iteration`` must be >= 1")
+        self._start_iteration = start_iteration
 
     @property
-    def target_acceptance(self):
+    def target_rate(self):
         """Target acceptance ratio."""
-        return self._target_acceptance
+        return self._target_rate
 
-    @target_acceptance.setter
-    def target_acceptance(self, target_acceptance):
-        if not 0.0 < target_acceptance < 1.0:
-            raise ValueError("Target acceptance must be in range (0, 1)")
-        self._target_acceptance = target_acceptance
+    @target_rate.setter
+    def target_rate(self, target_rate):
+        if not 0.0 < target_rate < 1.0:
+            raise ValueError("Target acceptance rate  must be in range (0, 1)")
+        self._target_rate = target_rate
 
     @property
     def adaptation_duration(self):
@@ -649,19 +649,19 @@ class AdaptiveProposalSupport(object):
 
     def decay(self, iteration):
         """Adaptive decay to ensure vanishing adaptation."""
-        return (iteration - self.start_iter + 1)**(-0.6) - self._decay_const
+        return (iteration - self.start_iteration + 1)**(-0.6) - self._decay_const
 
     def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        if 0 < chain.iteration - self.start_iter < (self.adaptation_duration):
+        if 0 < chain.iteration - self.start_iteration < (self.adaptation_duration):
             decay = self.decay(chain.iteration)
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update of the global scaling
             ar = min(1, chain.acceptance['acceptance_ratio'][-1])
-            self._log_lambda += decay * (ar - self.target_acceptance)
+            self._log_lambda += decay * (ar - self.target_rate)
             # Update the first moment
             df = newpt - self._mean
             self._mean = self._mean + decay * df
@@ -714,9 +714,9 @@ class AdaptiveProposal(AdaptiveProposalSupport, Normal):
         By default set to False; off-diagonal elements are being trained.
     adaptation_duration: int (optional)
         The iteration index when adaptation phase ends. By default never ends.
-    start_iter: int (optional)
+    start_iteration: int (optional)
         The iteration index when adaptation phase begins.
-    target_acceptance: float (optional)
+    target_rate: float (optional)
         Target acceptance ratio. By default 0.234
     \**kwargs:
         All other keyword arguments are passed to
@@ -727,9 +727,9 @@ class AdaptiveProposal(AdaptiveProposalSupport, Normal):
     symmetric = False
 
     def __init__(self, parameters, diagonal=False, adaptation_duration=None,
-                 start_iter=1, target_acceptance=0.234, **kwargs):
+                 start_iteration=1, target_rate=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveProposal, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal, adaptation_duration, start_iter,
-                              target_acceptance, **kwargs)
+        self.setup_adaptation(diagonal, adaptation_duration, start_iteration,
+                              target_rate, **kwargs)

@@ -223,12 +223,12 @@ class AdaptiveBoundedProposal(AdaptiveProposalSupport, BoundedNormal):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
-    start_iter: int (optional)
+    start_iteration: int (optional)
         The iteration index when adaptation phase begins.
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
-    target_acceptance: float (optional)
+    target_rate: float (optional)
         Target acceptance ratio. By default 0.234
     \**kwargs :
         All other keyword arguments are passed to
@@ -238,15 +238,15 @@ class AdaptiveBoundedProposal(AdaptiveProposalSupport, BoundedNormal):
     name = 'adaptive_bounded_proposal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, start_iter=1,
-                 adaptation_duration=None, target_acceptance=0.234, **kwargs):
+    def __init__(self, parameters, boundaries, start_iteration=1,
+                 adaptation_duration=None, target_rate=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveBoundedProposal, self).__init__(parameters, boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True,
                               adaptation_duration=adaptation_duration,
-                              start_iter=start_iter,
-                              target_acceptance=target_acceptance, **kwargs)
+                              start_iteration=start_iteration,
+                              target_rate=target_rate, **kwargs)
 
 
 class Boundaries(tuple):

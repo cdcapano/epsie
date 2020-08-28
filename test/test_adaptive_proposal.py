@@ -37,8 +37,8 @@ ADAPTATION_DURATION = ITERINT//2
 SWAP_INTERVAL = 1
 
 
-def _setup_proposal(model, name, params=None, diagonal=False, start_iter=1,
-                    adaptation_duration=None):
+def _setup_proposal(model, name, params=None, diagonal=False,
+                    start_iteration=1, adaptation_duration=None):
     if params is None:
         params = model.params
     if name == 'adaptive_proposal':
