@@ -21,8 +21,8 @@ from __future__ import (print_function, absolute_import)
 import pytest
 import numpy
 
-from epsie.proposals import (AdaptiveProposal, AdaptiveBoundedProposal,
-                             AdaptiveAngularProposal)
+from epsie.proposals import (ATAdaptiveNormal, ATAdaptiveBoundedNormal,
+                             ATAdaptiveAngular)
 from _utils import Model
 
 from test_ptsampler import _create_sampler
@@ -41,21 +41,23 @@ def _setup_proposal(model, name, params=None, diagonal=False,
                     start_iteration=1, adaptation_duration=None):
     if params is None:
         params = model.params
-    if name == 'adaptive_proposal':
+    if name == 'at_adaptive_normal':
         return AdaptiveProposal(params, diagonal,
                                 adaptation_duration=adaptation_duration)
-    elif name == 'adaptive_bounded_proposal':
+    elif name == 'at_adaptive_bounded_normal':
         boundaries = {'x0': (-20., 20.), 'x1': (-40., 40.)}
         return AdaptiveBoundedProposal(params, boundaries,
                                        adaptation_duration=adaptation_duration)
-    elif name == 'adaptive_angular_proposal':
+    elif name == 'at_adaptive_angular':
         return AdaptiveAngularProposal(params,
                                        adaptation_duration=adaptation_duration)
+    else:
+        raise ValueError('invalid proposal')
 
 
-@pytest.mark.parametrize('name', ['adaptive_proposal',
-                                  'adaptive_bounded_proposal',
-                                  'adaptive_angular_proposal'])
+@pytest.mark.parametrize('name', ['at_adaptive_normal',
+                                  'at_adaptive_bounded_normal',
+                                  'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('adaptation_duration', [None, ADAPTATION_DURATION])
 @pytest.mark.parametrize('diagonal', [False, True])
@@ -156,9 +158,9 @@ def _test_std_changes(nprocs, proposal, model):
         sampler.pool.close()
 
 
-@pytest.mark.parametrize('name', ['adaptive_proposal',
-                                  'adaptive_bounded_proposal',
-                                  'adaptive_angular_proposal'])
+@pytest.mark.parametrize('name', ['at_adaptive_normal',
+                                  'at_adaptive_bounded_normal',
+                                  'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_chains(name, nprocs):
     """Runs the PTSampler ``test_chains`` test using the adaptive proposal.
@@ -170,9 +172,9 @@ def test_chains(name, nprocs):
     _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
 
 
-@pytest.mark.parametrize('name', ['adaptive_proposal',
-                                  'adaptive_bounded_proposal',
-                                  'adaptive_angular_proposal'])
+@pytest.mark.parametrize('name', ['at_adaptive_normal',
+                                  'at_adaptive_bounded_normal',
+                                  'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_checkpointing(name, nprocs):
     """Performs the same checkpointing test as for the PTSampler, but using
@@ -183,9 +185,9 @@ def test_checkpointing(name, nprocs):
     _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
-@pytest.mark.parametrize('name', ['adaptive_proposal',
-                                  'adaptive_bounded_proposal',
-                                  'adaptive_angular_proposal'])
+@pytest.mark.parametrize('name', ['at_adaptive_normal',
+                                  'at_adaptive_bounded_normal',
+                                  'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_seed(name, nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive proposal.

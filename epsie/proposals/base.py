@@ -151,8 +151,6 @@ class BaseProposal(object):
     @nsteps.setter
     def nsteps(self, nsteps):
         """Sets the new number of steps done with a proposal"""
-#        if self.nsteps is None:
-#            self._nsteps = 1
         self._nsteps = nsteps
 
     # Py3XX: uncomment the next two lines
