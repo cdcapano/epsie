@@ -19,13 +19,13 @@ from __future__ import absolute_import
 from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal,
-                     AdaptiveProposal)
+                     ATAdaptiveNormal)
 # we'll also promote the Boundaries class to the top-level
 from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
                              Boundaries, AdaptiveBoundedNormal,
-                             AdaptiveBoundedProposal)
+                             ATAdaptiveBoundedNormal)
 from .angular import (Angular, SSAdaptiveAngular, AdaptiveAngular,
-                      AdaptiveAngularProposal)
+                      ATAdaptiveAngular)
 from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        AdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
@@ -52,8 +52,8 @@ proposals = {
     SSAdaptiveBoundedDiscrete.name: SSAdaptiveBoundedDiscrete,
     AdaptiveBoundedDiscrete.name: AdaptiveBoundedDiscrete,
     NestedTransdimensional.name: NestedTransdimensional,
-    AdaptiveProposal.name: AdaptiveProposal,
     UniformBirthDistribution.name: UniformBirthDistribution,
-    AdaptiveBoundedProposal.name: AdaptiveBoundedProposal,
-    AdaptiveAngularProposal.name: AdaptiveAngularProposal,
+    ATAdaptiveNormal.name: ATAdaptiveNormal,
+    ATAdaptiveBoundedNormal.name: ATAdaptiveBoundedNormal,
+    ATAdaptiveAngular.name: ATAdaptiveAngular,
 }

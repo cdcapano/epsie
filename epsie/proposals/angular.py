@@ -19,7 +19,7 @@ import numpy
 from scipy import stats
 
 from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport,
-                     AdaptiveProposalSupport)
+                     ATAdaptiveSupport)
 from .bounded_normal import Boundaries
 
 
@@ -193,7 +193,7 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
         self.setup_adaptation(**kwargs)
 
 
-class AdaptiveAngularProposal(AdaptiveProposalSupport, Angular):
+class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
     r"""An angular proposal with adaptive variance, using the algorithm from
     Andrieu & Thoms.
 
@@ -215,13 +215,13 @@ class AdaptiveAngularProposal(AdaptiveProposalSupport, Angular):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_angular_proposal'
+    name = 'at_adaptive_angular'
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration=None, start_iteration=1,
                  target_rate=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveAngularProposal, self).__init__(parameters)
+        super(ATAdaptiveAngular, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True,
                               adaptation_duration=adaptation_duration,

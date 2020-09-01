@@ -27,6 +27,9 @@ from scipy import stats
 
 import epsie
 
+import warnings
+warnings.filterwarnings("ignore", "Generator", FutureWarning)
+
 
 @add_metaclass(ABCMeta)
 class BaseProposal(object):
@@ -106,7 +109,6 @@ class BaseProposal(object):
     @random_state.setter
     def random_state(self, state):
         """Sets the state of bit_generator.
-        
         Parameters
         ----------
         state : dict

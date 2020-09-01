@@ -551,8 +551,8 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
 
 
 @add_metaclass(ABCMeta)
-class AdaptiveProposalSupport(object):
-    r""" Utility class for adding adaptive covariance proposal support.
+class ATAdaptiveSupport(object):
+    r"""Utility class for adding ATAdaptiveNormal proposal support.
 
     The adaptation algorithm is based on Algorithm 4 in [1].
 
@@ -577,7 +577,6 @@ class AdaptiveProposalSupport(object):
     A tutorial on adaptive MCMC. Statistics and Computing.
     18. 10.1007/s11222-008-9110-y.
     """
-
     _target_rate = None
     _start_iteration = None
     _decay_const = None
@@ -699,11 +698,10 @@ class AdaptiveProposalSupport(object):
             self._cov = state['cov']
 
 
-class AdaptiveProposal(AdaptiveProposalSupport, Normal):
+class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     r"""Uses a normal distribution with adaptive covariance for proposals.
 
-    See :py:class:`AdaptiveProposalSupport` for details on the adaptation
-    algorithm.
+    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -723,13 +721,13 @@ class AdaptiveProposal(AdaptiveProposalSupport, Normal):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_proposal'
+    name = 'at_adaptive_normal'
     symmetric = False
 
     def __init__(self, parameters, diagonal=False, adaptation_duration=None,
                  start_iteration=1, target_rate=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveProposal, self).__init__(parameters)
+        super(ATAdaptiveNormal, self).__init__(parameters)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal, adaptation_duration, start_iteration,
                               target_rate, **kwargs)

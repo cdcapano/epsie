@@ -19,7 +19,7 @@ import numpy
 from scipy import stats
 
 from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport,
-                     AdaptiveProposalSupport)
+                     ATAdaptiveSupport)
 
 
 class BoundedNormal(Normal):
@@ -209,11 +209,10 @@ class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
         self.setup_adaptation(**kwargs)
 
 
-class AdaptiveBoundedProposal(AdaptiveProposalSupport, BoundedNormal):
+class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
     r"""A bounded adaptive proposal, using the algorithm from Andrieu & Thoms.
 
-    See :py:class:`AdaptiveProposalSupport` for details on the
-    adaptation algorithm.
+    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
@@ -235,13 +234,13 @@ class AdaptiveBoundedProposal(AdaptiveProposalSupport, BoundedNormal):
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
-    name = 'adaptive_bounded_proposal'
+    name = 'at_adaptive_bounded_normal'
     symmetric = False
 
     def __init__(self, parameters, boundaries, start_iteration=1,
                  adaptation_duration=None, target_rate=0.234, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedProposal, self).__init__(parameters, boundaries)
+        super(ATAdaptiveBoundedNormal, self).__init__(parameters, boundaries)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True,
                               adaptation_duration=adaptation_duration,
