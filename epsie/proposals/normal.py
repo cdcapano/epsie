@@ -646,41 +646,41 @@ class ATAdaptiveSupport(object):
         self._decay_const = (adaptation_duration)**(-0.6)
         self._adaptation_duration = adaptation_duration
 
-    def decay(self, iteration):
-        """Adaptive decay to ensure vanishing adaptation."""
-        return (iteration - self.start_iteration + 1)**(-0.6) - self._decay_const
-
     def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        if 0 < chain.iteration - self.start_iteration < (self.adaptation_duration):
-            decay = self.decay(chain.iteration)
+        dk = self.nsteps - self.start_iteration
+        if 1 < dk < self.adaptation_duration:
+            dk = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update of the global scaling
             ar = min(1, chain.acceptance['acceptance_ratio'][-1])
-            self._log_lambda += decay * (ar - self.target_rate)
+            self._log_lambda += dk * (ar - self.target_rate)
             # Update the first moment
             df = newpt - self._mean
-            self._mean = self._mean + decay * df
+            self._mean = self._mean + dk * df
             # Update the second moment
             if self.isdiagonal:
-                self._unit_cov += decay * (df**2 - self._unit_cov)
+                self._unit_cov += dk * (df**2 - self._unit_cov)
                 self._std = (numpy.exp(0.5 * self._log_lambda)
                              * self._unit_cov**0.5)
             else:
                 df = df.reshape(-1, 1)
-                self._unit_cov += decay * (numpy.matmul(df, df.T)
-                                           - self._unit_cov)
+                self._unit_cov += dk * (numpy.matmul(df, df.T)
+                                        - self._unit_cov)
                 self._cov = numpy.exp(self._log_lambda) * self._unit_cov
+        # dont forget to increment number of steps
+        self.nsteps += 1
 
     @property
     def state(self):
         state = {'random_state': self.random_state,
                  'mean': self._mean,
                  'log_lambda': self._log_lambda,
-                 'unit_cov': self._unit_cov}
+                 'unit_cov': self._unit_cov,
+                 'nsteps': self._nsteps}
         if self.isdiagonal:
             state.update({'std': self._std})
         else:
@@ -692,6 +692,7 @@ class ATAdaptiveSupport(object):
         self._mean = state['mean']
         self._log_lambda = state['log_lambda']
         self._unit_cov = state['unit_cov']
+        self._nsteps = state['nsteps']
         if self.isdiagonal:
             self._std = state['std']
         else:
