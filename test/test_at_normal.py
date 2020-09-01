@@ -42,15 +42,15 @@ def _setup_proposal(model, name, params=None, diagonal=False,
     if params is None:
         params = model.params
     if name == 'at_adaptive_normal':
-        return AdaptiveProposal(params, diagonal,
+        return ATAdaptiveNormal(params, diagonal,
                                 adaptation_duration=adaptation_duration)
     elif name == 'at_adaptive_bounded_normal':
         boundaries = {'x0': (-20., 20.), 'x1': (-40., 40.)}
-        return AdaptiveBoundedProposal(params, boundaries,
+        return ATAdaptiveBoundedNormal(params, boundaries,
                                        adaptation_duration=adaptation_duration)
     elif name == 'at_adaptive_angular':
-        return AdaptiveAngularProposal(params,
-                                       adaptation_duration=adaptation_duration)
+        return ATAdaptiveAngular(params,
+                                 adaptation_duration=adaptation_duration)
     else:
         raise ValueError('invalid proposal')
 
@@ -197,9 +197,9 @@ def test_seed(name, nprocs):
     _test_seed(Model, nprocs, proposals=[proposal])
 
 
-@pytest.mark.parametrize('name', ['adaptive_proposal',
-                                  'adaptive_bounded_proposal',
-                                  'adaptive_angular_proposal'])
+@pytest.mark.parametrize('name', ['at_adaptive_normal',
+                                  'at_adaptive_bounded_normal',
+                                  'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_clear_memory(name, nprocs):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive proposal.
