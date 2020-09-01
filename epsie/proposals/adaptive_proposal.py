@@ -118,26 +118,24 @@ class AdaptiveProposalSupport(object):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        try:
-            dk = chain._counter - (self.start_iter - 1)
-        except AttributeError:
-            dk = chain.iteration - (self.start_iter - 1)
-
+        dk = self.nsteps - self.start_iter
         if 1 < dk < self.adaptation_duration:
-            decay = dk**(-0.6) - self._decay_const
+            dk = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update the first moment
             df = newpt - self._mean
-            self._mean = self._mean + decay * df
+            self._mean = self._mean + dk * df
             # Update the second moment
             df = df.reshape(-1, 1)
-            self._unit_cov += decay * (numpy.matmul(df, df.T) - self._unit_cov)
+            self._unit_cov += dk * (numpy.matmul(df, df.T) - self._unit_cov)
             # Update of the global scaling
             ar = min(1, chain.acceptance['acceptance_ratio'][-1])
-            self._log_lambda += decay * (ar - self.target_acceptance)
+            self._log_lambda += dk * (ar - self.target_acceptance)
 
             self.cov = numpy.exp(self._log_lambda) * self._unit_cov
+        # don't forget to increment this
+        self.nsteps += 1
 
     @property
     def state(self):
@@ -145,7 +143,8 @@ class AdaptiveProposalSupport(object):
                 'mean': self._mean,
                 'cov': self.cov,
                 'unit_cov': self._unit_cov,
-                'log_lambda': self._log_lambda}
+                'log_lambda': self._log_lambda,
+                'nsteps': self._nsteps}
 
     def set_state(self, state):
         self.random_state = state['random_state']
@@ -153,6 +152,7 @@ class AdaptiveProposalSupport(object):
         self.cov = state['cov']
         self._unit_cov = state['unit_cov']
         self._log_lambda = state['log_lambda']
+        self._nsteps = state['nsteps']
 
 
 class AdaptiveProposal(AdaptiveProposalSupport, Normal):

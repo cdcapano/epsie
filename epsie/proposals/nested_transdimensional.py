@@ -82,8 +82,6 @@ class NestedTransdimensional(BaseProposal):
         # let all proposals share the same random generator
         for prop in proposals:
             prop.bit_generator = self.bit_generator
-            # counter for vanishing deay
-            prop._counter = 1
             # check the proposal parameters
             if not all(par in self.parameters for par in prop.parameters):
                 raise ValueError("Proposal parameters {} not found "
@@ -152,22 +150,15 @@ class NestedTransdimensional(BaseProposal):
         # check that proposal has been stepped inside at least twice in a row
         if chain.iteration > 1:
             for prop in self.proposals:
-                current = chain.positions[-1]
+                curr = chain.positions[-1]
                 if len(chain) == 1:
-                    previous = chain.start_position
+                    prev = chain.start_position
                 else:
-                    previous = chain.positions[-2]
+                    prev = chain.positions[-2]
 
-                c1 = not all(numpy.isnan(previous[p]) for p in prop.parameters)
-                c2 = not all(numpy.isnan(current[p]) for p in prop.parameters)
-                if c1 and c2:
-                    # save the current chain iteration and set the chain
-                    # iteration to the proposal iteration momentarily
-                    chain._counter = prop._counter
-                    # call update with proposal iteration counter
+                if (not all(numpy.isnan(prev[p]) for p in prop.parameters) and
+                    not all(numpy.isnan(curr[p]) for p in prop.parameters)):
                     prop.update(chain)
-                    # set back the proposal iteration counter
-                    prop._counter += 1
 
     def jump(self, fromx):
         current_state = fromx['_state']
@@ -212,17 +203,13 @@ class NestedTransdimensional(BaseProposal):
         # get all of the proposals state
         state = {}
         birth_state = {}
-        counts = {}
         for prop in self.proposals:
             state.update({frozenset(prop.parameters): prop.state})
             # Get the random states of birth dists
             birth_state.update(
                 {frozenset(prop.parameters): prop.birth_distribution.state})
-            # Get the number of update steps in each proposal
-            counts.update({frozenset(prop.parameters): prop._counter})
 
         state.update({'_births': birth_state})
-        state.update({'_counts': counts})
         state.update({frozenset(self.model_proposal.parameters):
                       self.model_proposal.state})
         # add the global random state
@@ -235,7 +222,6 @@ class NestedTransdimensional(BaseProposal):
             prop.set_state(state[frozenset(prop.parameters)])
             prop.birth_distribution.set_state(
                 state['_births'][frozenset(prop.parameters)])
-            prop._counter = state['_counts'][frozenset(prop.parameters)]
 
         self.model_proposal.set_state(state[frozenset(
             self.model_proposal.parameters)])
