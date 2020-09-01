@@ -58,6 +58,7 @@ class BaseProposal(object):
     """
     name = None
     _parameters = None
+    _nsteps = None
 
     @property
     def bit_generator(self):
@@ -135,6 +136,22 @@ class BaseProposal(object):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
         self._parameters = tuple(parameters)
+
+    @property
+    def nsteps(self):
+        """Returns number of update iterations with this proposal. While
+        for a standard adaptive MCMC this will match the length of the chain
+        for a transdimensional proposal it will differ."""
+        if self._nsteps is None:
+            self._nsteps = 1 # not 0 because this gets updated after the move
+        return self._nsteps
+
+    @nsteps.setter
+    def nsteps(self, nsteps):
+        """Sets the new number of steps done with a proposal"""
+#        if self.nsteps is None:
+#            self._nsteps = 1
+        self._nsteps = nsteps
 
     # Py3XX: uncomment the next two lines
     # @property
