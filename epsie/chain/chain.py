@@ -81,6 +81,7 @@ class Chain(BaseChain):
     random_state
     state
     hasblobs
+    transdimensional
     chain_id : int or None
         Integer identifying the chain.
     proposal_dist : JointProposal
@@ -90,9 +91,10 @@ class Chain(BaseChain):
                  chain_id=0, beta=1.):
         self.parameters = parameters
         self.model = model
-        # combine the proposals into a joint proposal
-        self.proposal_dist = JointProposal(*proposals,
-                                           bit_generator=bit_generator)
+
+        self.transdimensional = None
+        self.proposal_dist = self._store_proposals(*proposals,
+                                                   bit_generator=bit_generator)
         # store the temp
         self.beta = beta
         self.chain_id = chain_id
@@ -109,6 +111,26 @@ class Chain(BaseChain):
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
+
+    def _store_proposals(self, *proposals, **kwargs):
+        """Store either a ``JointProposal`` or the transdimensional proposal
+        """
+        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
+        count = 0
+        for prop in proposals:
+            try:
+                if prop.transdimensional:
+                    self.transdimensional = True
+                    count += 1
+            except AttributeError:
+                prop.transdimensional = False
+
+        if self.transdimensional:
+            if count > 1:
+                raise ValueError("Can only provide a single transdimensinal "
+                                 "proposals that includes the constituent "
+                                 "proposals")
+        return JointProposal(*proposals, bit_generator=bit_generator)
 
     @property
     def hasblobs(self):
@@ -191,6 +213,9 @@ class Chain(BaseChain):
         self._positions.dtypes = detect_dtypes(position)
         # evaluate logl, p at this point
         r = self.model(**position)
+        # if transdimensional decide which are active and store
+        if self.transdimensional:
+            self._activate_proposals()
         try:
             logl, logp, blob = r
             self._hasblobs = True
@@ -204,6 +229,26 @@ class Chain(BaseChain):
             self._blobs = ChainData(blob.keys(), dtypes=detect_dtypes(blob))
         self.stats0 = {'logl': logl, 'logp': logp}
         self.blob0 = blob
+
+    def _activate_proposals(self):
+        """Decide which proposals are initially active"""
+        # find the transdimensional proposal
+        for prop in self.proposal_dist.proposals:
+            if prop.transdimensional:
+                break
+        # cast this to int as the discrete jump cannot accept ndarray
+        self._start[prop._index] = int(self._start[prop._index])
+        # activate proposals that do not have nans
+        for ptd in prop.proposals:
+            if all(numpy.isnan([self._start[p] for p in ptd.parameters])):
+                ptd.active = False
+            else:
+                ptd.active = True
+            if ptd.birth_distribution is None:
+                raise ValueError("must provide `birth distribution` "
+                                 "for transdimensional proposals")
+
+        self._active_props = numpy.array([p.active for p in prop.proposals])
 
     @property
     def stats0(self):
@@ -431,6 +476,10 @@ class Chain(BaseChain):
         self.blob0 = state['current_blob']
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
+        # set the positions` dtypes to match the starting point
+        self._positions.dtypes = detect_dtypes(self._start)
+        if self.transdimensional:
+            self._activate_proposals()
 
     def step(self):
         """Evolves the chain by a single step."""
@@ -439,8 +488,12 @@ class Chain(BaseChain):
         current_pos = self.current_position
         current_stats = self.current_stats
         current_blob = self.current_blob
+        # transdimensional proposals need to know which proposals are active
+        if self.transdimensional:
+            current_pos.update({'_state': self._active_props})
         # create a proposal and test it
         proposal = self.proposal_dist.jump(current_pos)
+
         r = self.model(**proposal)
         if self._hasblobs:
             logl, logp, blob = r
@@ -460,13 +513,22 @@ class Chain(BaseChain):
             if not self.proposal_dist.symmetric:
                 logar += self.proposal_dist.logpdf(current_pos, proposal) - \
                          self.proposal_dist.logpdf(proposal, current_pos)
-            ar = numpy.exp(logar)
-            u = self.random_generator.uniform()
-            accept = u <= ar
+
+            if logar > 0:
+                ar = 1.
+                accept = True
+            else:
+                ar = numpy.exp(logar)
+                u = self.random_generator.uniform()
+                accept = u <= ar
         if accept:
+            if self.transdimensional:
+                self._active_props = proposal.pop('_state')
             pos = proposal
             stats = {'logl': logl, 'logp': logp}
         else:
+            if self.transdimensional:
+                __ = current_pos.pop('_state')
             # reject
             pos = current_pos
             stats = current_stats

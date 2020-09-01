@@ -337,9 +337,7 @@ class AdaptiveSupport(object):
 
         This prepares the proposal for the next jump.
         """
-        # subtact 1 from the start iteration, since the update happens after
-        # the jump
-        dk = chain.iteration - (self.start_iteration - 1)
+        dk = self.nsteps - self.start_iteration
         if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
@@ -353,15 +351,19 @@ class AdaptiveSupport(object):
             lzidx = newsigmas < 0
             newsigmas[lzidx] = sigmas[lzidx]
             self._std = newsigmas
+        # don't forget to increment this
+        self.nsteps += 1
 
     @property
     def state(self):
         return {'random_state': self.random_state,
-                'std': self._std}
+                'std': self._std,
+                'nsteps': self._nsteps}
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._std = state['std']
+        self._nsteps = state['nsteps']
 
 
 class AdaptiveNormal(AdaptiveSupport, Normal):
@@ -471,7 +473,7 @@ class SSAdaptiveSupport(object):
         This prepares the proposal for the next jump.
         """
         self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = chain.iteration
+        n_iter = self.nsteps
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)
@@ -491,11 +493,14 @@ class SSAdaptiveSupport(object):
             max_cov = alpha * self._cov.max()
             if max_cov <= self.max_std**2:
                 self._cov *= alpha
+        # don't forget to increment
+        self.nsteps += 1
 
     @property
     def state(self):
         state = {'random_state': self.random_state,
-                 'n_accepted': self.n_accepted}
+                 'n_accepted': self.n_accepted,
+                 'nsteps': self._nsteps}
         if self.isdiagonal:
             state.update({'std': self._std})
         else:
@@ -505,6 +510,7 @@ class SSAdaptiveSupport(object):
     def set_state(self, state):
         self.random_state = state['random_state']
         self.n_accepted = state['n_accepted']
+        self._nsteps = state['nsteps']
         if self.isdiagonal:
             self._std = state['std']
         else:

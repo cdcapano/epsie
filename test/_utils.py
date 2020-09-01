@@ -2,8 +2,7 @@
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
-# option) any later version.
-#
+# option) any later version.  #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -181,6 +180,111 @@ class PoissonModel(object):
         return logl, logp
 
 
+class PolynomialRegressionModel(object):
+    r""" A polynomial regression model.
+
+    The free parameters are the polynomial coefficients:
+
+        .. math::
+            y\left( x \right) = \sum_{n=0}^{5} a_n * x^{n}.
+    The coefficients :math `a_n` can be either turned on or off, thus
+    increasing or decreasing the dimensionality of the model.
+
+    This simple model is used to test the nested transdimensional proposal.
+
+    The initial inactive parameters must be set to `numpy.nan`.
+    """
+    blob_params = None
+
+    def __init__(self, seed=None):
+        self.inmodel_pars = ['a']
+        self.params = ['a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'k']
+        self.k = 'k'
+        self.kmax = 5
+        self.prior_dist = {'a': stats.uniform(-2., 4.),
+                           'k': stats.randint(0, self.kmax + 1)}
+        # Define the injected signal
+        self.true_signal = {'a0': 0.0,
+                            'a1': 1.0,
+                            'a2': -0.5,
+                            'a3': numpy.nan,
+                            'a4': numpy.nan,
+                            'a5': numpy.nan,
+                            'k': 2}
+
+        numpy.random.seed(seed)
+        self.npoints = 51
+        self.t = numpy.linspace(0.0, 5, self.npoints)
+        self.ysignal = self.reconstruct(**self.true_signal)
+
+    def prior_rvs(self, size=None, shape=None):
+        ntemps, nchains = shape
+        out = {}
+        if ntemps is None:
+            coeffs = self.prior_dist['a'].rvs(
+                size=nchains * (self.kmax + 1)).reshape(nchains, self.kmax + 1)
+            ks = numpy.full(nchains, numpy.nan, dtype=int)
+            for i in range(nchains):
+                rands = numpy.random.choice(range(self.kmax),
+                                            numpy.random.randint(self.kmax),
+                                            replace=False)
+                coeffs[i, 1:][rands] = numpy.nan
+                ks[i] = int(self.kmax - len(rands))
+
+            for i in range(self.kmax + 1):
+                out.update({'a{}'.format(i): coeffs[:, i].reshape(nchains, )})
+        else:
+            coeffs = self.prior_dist['a'].rvs(
+                size=nchains * ntemps * (self.kmax + 1)).reshape(ntemps,
+                                                                 nchains,
+                                                                 self.kmax + 1)
+            ks = numpy.full((ntemps, nchains), numpy.nan, dtype=int)
+            for i in range(nchains):
+                for j in range(ntemps):
+                    rands = numpy.random.choice(range(self.kmax),
+                                                numpy.random.randint(
+                                                    self.kmax),
+                                                replace=False)
+                    coeffs[j, i, 1:][rands] = numpy.nan
+                    ks[j, i] = int(self.kmax - len(rands))
+
+            for i in range(self.kmax + 1):
+                out.update({'a{}'.format(i): coeffs[:, :, i].reshape(
+                    ntemps, nchains)})
+
+        out.update({'k': ks})
+        return out
+
+    def logprior(self, **kwargs):
+        lp = 0.0
+        # Prior on the model index
+        lp += sum(self.prior_dist[self.k].logpmf([kwargs[self.k]]))
+        coeffs = numpy.array([kwargs['a{}'.format(i)]
+                             for i in range(self.kmax + 1)])
+        # take only ones that are active
+        coeffs = coeffs[numpy.isfinite(coeffs)]
+        lp += self.prior_dist['a'].logpdf(coeffs).sum()
+        return lp
+
+    def reconstruct(self, **kwargs):
+        coeffs = numpy.array([kwargs['a{}'.format(i)]
+                             for i in range(self.kmax, -1, -1)])
+        coeffs[numpy.isnan(coeffs)] = 0.0
+        return numpy.polyval(coeffs, self.t)
+
+    def loglikelihood(self, **kwargs):
+        df = self.ysignal - self.reconstruct(**kwargs)
+        return - numpy.dot(df.T, df)
+
+    def __call__(self, **kwargs):
+        logp = self.logprior(**kwargs)
+        if logp == -numpy.inf:
+            logl = None
+        else:
+            logl = self.loglikelihood(**kwargs)
+        return logl, logp
+
+
 #
 # =============================================================================
 #
@@ -209,8 +313,10 @@ def _compare_dict_array(a, b):
     """
     # first check that keys are the same
     assert list(a.keys()) == list(b.keys())
-    # now check the values
-    assert all([(a[p] == b[p]).all() for p in a])
+    # now check the values. Here need to check value by value because
+    # comparisons of ``numpy.nan == numpy.nan`` returns False
+    for p in a:
+        numpy.testing.assert_equal(a[p], b[p])
 
 
 def _anticompare_dict_array(a, b):
