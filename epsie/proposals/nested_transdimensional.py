@@ -150,14 +150,16 @@ class NestedTransdimensional(BaseProposal):
         # check that proposal has been stepped inside at least twice in a row
         if chain.iteration > 1:
             for prop in self.proposals:
-                curr = chain.positions[-1]
+                current = chain.positions[-1]
                 if len(chain) == 1:
-                    prev = chain.start_position
+                    previous = chain.start_position
                 else:
-                    prev = chain.positions[-2]
+                    previous = chain.positions[-2]
 
-                if (not all(numpy.isnan(prev[p]) for p in prop.parameters) and
-                    not all(numpy.isnan(curr[p]) for p in prop.parameters)):
+                pars = prop.parameters
+                condition1 = not all(numpy.isnan(previous[p]) for p in pars)
+                condition2 = not all(numpy.isnan(current[p]) for p in pars)
+                if condition1 and condition2:
                     prop.update(chain)
 
     def jump(self, fromx):
