@@ -23,12 +23,11 @@ import pytest
 
 from epsie.proposals import (NestedTransdimensional, BoundedDiscrete, Normal,
                              SSAdaptiveNormal, AdaptiveNormal,
-                             AdaptiveProposal, UniformBirthDistribution)
+                             ATAdaptiveNormal, UniformBirthDistribution)
 from _utils import PolynomialRegressionModel
 from epsie import make_betas_ladder
 
 from test_ptsampler import _create_sampler
-# from test_ptsampler import test_chains as _test_chains
 from test_ptsampler import test_checkpointing as _test_checkpointing
 from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
@@ -57,7 +56,7 @@ def _setup_proposal(model, td_proposal, cov=None):
         td_proposals = [SSAdaptiveNormal(['a{}'.format(i)])
                         for i in range(1, 5+1)]
     elif td_proposal == 'adaptive_proposal':
-        td_proposals = [AdaptiveProposal(['a{}'.format(i)])
+        td_proposals = [ATAdaptiveNormal(['a{}'.format(i)])
                         for i in range(1, 5+1)]
 
     # Model hopping proposal

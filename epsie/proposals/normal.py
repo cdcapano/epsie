@@ -1,4 +1,4 @@
-# Copyright (C) 2019  Collin Capano
+# Copyright (C) 2020 Collin Capano, Richard Stiskalek
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3 of the License, or (at your
@@ -163,8 +163,8 @@ class Normal(BaseProposal):
         # the normal RVS is much faster than the multivariate one, so use it
         # if we can
         if self.isdiagonal:
-            mu = [fromx[p] for p in self.parameters]
-            newpt = self.random_generator.normal(mu, self._std)
+            newpt = self.random_generator.normal(
+                [fromx[p] for p in self.parameters], self._std)
         else:
             newpt = self.random_generator.multivariate_normal(
                 [fromx[p] for p in self.parameters], self.cov)
@@ -539,3 +539,196 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
         super(SSAdaptiveNormal, self).__init__(parameters, cov=cov)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
+
+
+#
+# =============================================================================
+#
+#                   Andrieu & Thoms  adaptive algorithm
+#
+# =============================================================================
+#
+
+
+@add_metaclass(ABCMeta)
+class ATAdaptiveSupport(object):
+    r"""Utility class for adding ATAdaptiveNormal proposal support.
+
+    The adaptation algorithm is based on Algorithm 4 in [1].
+
+    See [1] for details.
+
+    Notes
+    ----------
+    For the vanishing decay we use
+
+    .. math::
+        \gamma_{g+1} = \left(g - g_{0}\right)^{-0.6} - C,
+
+    where :math: `g_{0}` is the iteration at which adaptation starts,
+    by default :math: `g_{0}=1` and :math: `C` is a positive constant
+    ensuring that when the adaptation phase ends the vanishing decay tends to
+    zero. By default assumes that the adaptation phase never ends (only
+    decays with time)
+
+    References
+    ----------
+    [1] Andrieu, Christophe & Thoms, Johannes. (2008).
+    A tutorial on adaptive MCMC. Statistics and Computing.
+    18. 10.1007/s11222-008-9110-y.
+    """
+    _target_rate = None
+    _start_iteration = None
+    _decay_const = None
+    _adaptation_duration = None
+
+    def setup_adaptation(self, diagonal=False, adaptation_duration=None,
+                         start_iteration=1, target_rate=0.234):
+        r"""Sets up the adaptation parameters.
+        diagonal : bool (optional)
+            Whether to train off-diagonal elements of the proposal covariance.
+            By default set to False; off-diagonal elements are being trained.
+        adaptation_duration : int (optional)
+            The number of adaptation steps. By default assumes the adaptation
+            never ends but decays.
+        start_iteration : int (optional)
+            The iteration index when adaptation phase begins.
+        target_rate : float (optional)
+            Target acceptance rate. By default 0.234
+        """
+        self.start_iteration = start_iteration
+        self.target_rate = target_rate
+        self.adaptation_duration = adaptation_duration
+        self._isdiagonal = diagonal
+
+        self._mean = numpy.zeros(self.ndim)  # initial mean
+        if self.isdiagonal:
+            self._unit_cov = numpy.ones(self.ndim)
+            self._std = self._unit_cov**0.5
+        else:
+            self._unit_cov = numpy.eye(self.ndim)  # inital covariance
+            self._cov = self._unit_cov
+        self._log_lambda = 0
+
+    @property
+    def start_iteration(self):
+        """The iteration that the adaption begins."""
+        return self._start_iteration
+
+    @start_iteration.setter
+    def start_iteration(self, start_iteration):
+        """Sets the start iteration, making sure it is >= 1."""
+        if start_iteration < 1:
+            raise ValueError("``start_iteration`` must be >= 1")
+        self._start_iteration = start_iteration
+
+    @property
+    def target_rate(self):
+        """Target acceptance ratio."""
+        return self._target_rate
+
+    @target_rate.setter
+    def target_rate(self, target_rate):
+        if not 0.0 < target_rate < 1.0:
+            raise ValueError("Target acceptance rate  must be in range (0, 1)")
+        self._target_rate = target_rate
+
+    @property
+    def adaptation_duration(self):
+        return self._adaptation_duration
+
+    @adaptation_duration.setter
+    def adaptation_duration(self, adaptation_duration):
+        if adaptation_duration is None:
+            self._decay_const = 0.
+            self._adaptation_duration = numpy.infty
+            return
+        self._decay_const = (adaptation_duration)**(-0.6)
+        self._adaptation_duration = adaptation_duration
+
+    def update(self, chain):
+        """Updates the adaptation based on whether the last jump was accepted.
+        This prepares the proposal for the next jump.
+        """
+        dk = self.nsteps - self.start_iteration
+        if 1 < dk < self.adaptation_duration:
+            dk = dk**(-0.6) - self._decay_const
+            newpt = numpy.array([chain.current_position[p]
+                                 for p in self.parameters])
+            # Update of the global scaling
+            ar = min(1, chain.acceptance['acceptance_ratio'][-1])
+            self._log_lambda += dk * (ar - self.target_rate)
+            # Update the first moment
+            df = newpt - self._mean
+            self._mean = self._mean + dk * df
+            # Update the second moment
+            if self.isdiagonal:
+                self._unit_cov += dk * (df**2 - self._unit_cov)
+                self._std = (numpy.exp(0.5 * self._log_lambda)
+                             * self._unit_cov**0.5)
+            else:
+                df = df.reshape(-1, 1)
+                self._unit_cov += dk * (numpy.matmul(df, df.T)
+                                        - self._unit_cov)
+                self._cov = numpy.exp(self._log_lambda) * self._unit_cov
+        # dont forget to increment number of steps
+        self.nsteps += 1
+
+    @property
+    def state(self):
+        state = {'random_state': self.random_state,
+                 'mean': self._mean,
+                 'log_lambda': self._log_lambda,
+                 'unit_cov': self._unit_cov,
+                 'nsteps': self._nsteps}
+        if self.isdiagonal:
+            state.update({'std': self._std})
+        else:
+            state.update({'cov': self._cov})
+        return state
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
+        self._mean = state['mean']
+        self._log_lambda = state['log_lambda']
+        self._unit_cov = state['unit_cov']
+        self._nsteps = state['nsteps']
+        if self.isdiagonal:
+            self._std = state['std']
+        else:
+            self._cov = state['cov']
+
+
+class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
+    r"""Uses a normal distribution with adaptive covariance for proposals.
+
+    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters: (list of) str
+        The names of the parameters.
+    diagonal : bool (optional)
+        Whether to train off-diagonal elements of the proposal covariance.
+        By default set to False; off-diagonal elements are being trained.
+    adaptation_duration: int (optional)
+        The iteration index when adaptation phase ends. By default never ends.
+    start_iteration: int (optional)
+        The iteration index when adaptation phase begins.
+    target_rate: float (optional)
+        Target acceptance ratio. By default 0.234
+    \**kwargs:
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'at_adaptive_normal'
+    symmetric = False
+
+    def __init__(self, parameters, diagonal=False, adaptation_duration=None,
+                 start_iteration=1, target_rate=0.234, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(ATAdaptiveNormal, self).__init__(parameters)
+        # set up the adaptation parameters
+        self.setup_adaptation(diagonal, adaptation_duration, start_iteration,
+                              target_rate, **kwargs)

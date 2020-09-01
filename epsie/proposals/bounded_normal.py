@@ -18,7 +18,8 @@ from __future__ import absolute_import
 import numpy
 from scipy import stats
 
-from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport)
+from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport,
+                     ATAdaptiveSupport)
 
 
 class BoundedNormal(Normal):
@@ -133,7 +134,7 @@ class BoundedNormal(Normal):
 
 class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     r"""A bounded normal proposoal with adaptive variance, using the algorithm
-    from Vetich et al.
+    from Veitch et al.
 
     See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
 
@@ -206,6 +207,45 @@ class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
             maxwidth = max(map(abs, self.boundaries.values()))
             kwargs['max_cov'] = (1.49*maxwidth)**2
         self.setup_adaptation(**kwargs)
+
+
+class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
+    r"""A bounded adaptive proposal, using the algorithm from Andrieu & Thoms.
+
+    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two. The boundaries will be used for the
+        prior widths in the adaptation algorithm.
+    start_iteration: int (optional)
+        The iteration index when adaptation phase begins.
+    adaptation_duration : int
+        The number of iterations over which to apply the adaptation. No more
+        adaptation will be done once a chain exceeds this value.
+    target_rate: float (optional)
+        Target acceptance ratio. By default 0.234
+    \**kwargs :
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
+    """
+    name = 'at_adaptive_bounded_normal'
+    symmetric = False
+
+    def __init__(self, parameters, boundaries, start_iteration=1,
+                 adaptation_duration=None, target_rate=0.234, **kwargs):
+        # set the parameters, initialize the covariance matrix
+        super(ATAdaptiveBoundedNormal, self).__init__(parameters, boundaries)
+        # set up the adaptation parameters
+        self.setup_adaptation(diagonal=True,
+                              adaptation_duration=adaptation_duration,
+                              start_iteration=start_iteration,
+                              target_rate=target_rate, **kwargs)
 
 
 class Boundaries(tuple):
