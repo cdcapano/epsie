@@ -143,7 +143,7 @@ class BaseProposal(object):
         for a standard adaptive MCMC this will match the length of the chain
         for a transdimensional proposal it will differ."""
         if self._nsteps is None:
-            self._nsteps = 1 # not 0 because this gets updated after the move
+            self._nsteps = 1  # not 0 because this gets updated after the move
         return self._nsteps
 
     @nsteps.setter
