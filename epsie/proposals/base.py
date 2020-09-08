@@ -32,12 +32,12 @@ warnings.filterwarnings("ignore", "Generator", FutureWarning)
 
 
 @add_metaclass(ABCMeta)
-class BaseProposal(object):
-    """Abstract base class for all proposal classes.
+class BaseRandom(object):
+    """Abstract base class for handling random number generation for proposals
+    ans birth distributions.
 
     All proposals must inherit from this class, as it handles random number
-    generation, and lays out all of the functions/attributes that a sampler
-    will try to access.
+    generation.
 
     .. warning ::
         All proposals must use the random number generator provided by this
@@ -48,7 +48,7 @@ class BaseProposal(object):
 
     In addition to the abstract methods/properties, all samplers must set
     a ``parameters`` attribute. This is a list of the names of the parameters
-    the proposal produces jumps for.
+    the proposal produces jumps and births for.
 
     Attributes
     ----------
@@ -56,18 +56,14 @@ class BaseProposal(object):
     random_generator
     random_state
     parameters
-    symmetric
     state
     """
     name = None
     _parameters = None
-    _nsteps = None
 
     @property
     def bit_generator(self):
         """The random bit generator instance being used.
-
-        A bit generator will be created if it doesn't exist yet.
         """
         try:
             return self._bit_generator
@@ -116,6 +112,28 @@ class BaseProposal(object):
         """
         self.bit_generator.state = state
 
+    # Py3XX: uncomment the next two lines
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
+    def state(self):
+        """Returns all information needed to produce a deterministic jump.
+        The information returned by this property should be everything needed
+        such that if you pass it to set_state, you will get the same proposal
+        on the next call of jump.
+        The information should be returned as a dictionary. At the very least,
+        this should include the current state of the proposal's
+        ``random_state``. For adaptive proposals, this may also include the
+        buffer used to adjust the proposal distribution.
+        """
+        pass
+
+    @abstractmethod
+    def set_state(self, state):
+        """Set all information needed to produce a deterministic jump.
+        """
+        pass
+
     @property
     def parameters(self):
         """Sorted tuple of the parameters that proposals are produced for."""
@@ -138,6 +156,27 @@ class BaseProposal(object):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
         self._parameters = tuple(parameters)
+
+
+@add_metaclass(ABCMeta)
+class BaseProposal(BaseRandom):
+    """Abstract base class for all proposal classes.
+
+    All proposals must inherit from this class, as it lays out all of the
+    functions/attributes that a sampler will try to access.
+
+    In addition to the abstract methods/properties, all samplers must set
+    a ``parameters`` attribute. This is a list of the names of the parameters
+    the proposal produces jumps for.
+
+    Attributes
+    ----------
+    symmetric
+    state
+    nsteps
+    """
+    name = None
+    _nsteps = None
 
     @property
     def nsteps(self):
@@ -170,30 +209,6 @@ class BaseProposal(object):
         means that the current state of the proposal satisfies the above
         condition; it does not necessarily mean that transitions between states
         be symmetric.
-        """
-        pass
-
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
-    def state(self):
-        """Returns all information needed to produce a deterministic jump.
-
-        The information returned by this property should be everything needed
-        such that if you pass it to set_state, you will get the same proposal
-        on the next call of jump.
-
-        The information should be returned as a dictionary. At the very least,
-        this should include the current state of the proposal's
-        ``random_state``. For adaptive proposals, this may also include the
-        buffer used to adjust the proposal distribution.
-        """
-        pass
-
-    @abstractmethod
-    def set_state(self, state):
-        """Set all information needed to produce a deterministic jump.
         """
         pass
 
@@ -255,22 +270,12 @@ class BaseProposal(object):
         """
         pass
 
-
 @add_metaclass(ABCMeta)
-class BaseRandom(object):
-    """Abstract base class for handling random number generation for birth
-    distributions.
+class BaseBirth(BaseRandom):
+    """Abstract base class for all birth classes.
 
-    All proposals must inherit from this class, as it handles random number
-    generation, and lays out all of the functions/attributes that a sampler
-    will try to access.
-
-    .. warning ::
-        All proposals must use the random number generator provided by this
-        class (see the ``random_generator`` attribute) for creating random
-        numbers. **Do not attempt to use scipy/numpy's random number
-        generator.** Use of any other generator may result in chains not being
-        independent of each other when run in a parallel environment.
+    All birth distributions must inherit from this class, as it lays out all of
+    the functions/attributes that a sampler will try to access.
 
     In addition to the abstract methods/properties, all samplers must set
     a ``parameters`` attribute. This is a list of the names of the parameters
@@ -278,93 +283,60 @@ class BaseRandom(object):
 
     Attributes
     ----------
-    bit_generator
-    random_generator
-    random_state
-    parameters
     symmetric
     state
     """
     name = None
-    _parameters = None
 
-    @property
-    def bit_generator(self):
-        """The random bit generator instance being used.
+    # Py3XX: uncomment the next two lines
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
+    def birth(self):
+        """This should provide random samples from the birth distribution.
+
+        Samples should be returned as a dictionary mapping parameters to
+        the proposed birth.
         """
-        try:
-            return self._bit_generator
-        except AttributeError:
-            self._bit_generator = epsie.create_bit_generator()
-            return self._bit_generator
+        pass
 
-    @bit_generator.setter
-    def bit_generator(self, bit_generator):
-        """Sets the random bit generator.
+    @abstractmethod
+    def logpdf(self, xi):
+        """The log pdf of the birth distribution at a point.
 
         Parameters
         ----------
-        bit_generator : :py:class:`epsie.BIT_GENERATOR`, int, or None
-            Either the bit generator to use or an integer/None. If the latter,
-            a generator will be created by passing ``bit_generator`` as the
-            ``seed`` argument to :py:func:`epsie.create_bit_generator`.
+        xi : dict
+            Dictionary mapping parameter names to values to evaluate.
+
+        Returns
+        -------
+        float :
+            The log pdf of a birth at ``xi``.
         """
-        if not isinstance(bit_generator, epsie.BIT_GENERATOR):
-            bit_generator = epsie.create_bit_generator(bit_generator)
-        self._bit_generator = bit_generator
+        pass
 
-    @property
-    def random_generator(self):
-        """The random number generator.
+    def pdf(self, xi):
+        """The pdf of the birth proposal at the given values.
 
-        This is an instance of :py:class:`randgen.RandomGenerator` that is
-        derived from the bit generator. It provides methods to create random
-        draws from various distributions.
-        """
-        return RandomGenerator(self.bit_generator)
-
-    @property
-    def random_state(self):
-        """The current state of the random bit generator.
-        """
-        return self.bit_generator.state
-
-    @random_state.setter
-    def random_state(self, state):
-        """Sets the state of bit_generator.
-        Parameters
-        ----------
-        state : dict
-            Dictionary giving the state to set.
-        """
-        self.bit_generator.state = state
-
-    @property
-    def state(self):
-        return {'random_state': self.random_state}
-
-    def set_state(self, state):
-        self.random_state = state['random_state']
-
-    @property
-    def parameters(self):
-        """Sorted tuple of the parameters that proposals are produced for."""
-        if self._parameters is None:
-            raise AttributeError("no parameters set")
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, parameters):
-        """Sets the parameters.
-
-        The parameters are stored as a tuple.
+        This just expoentiates ``logpdf``.
 
         Parameters
         ----------
-        parameters : (list of) str
-            The names of the parameters. This may either be a list of strings,
-            or (for a single parameter), a string.
+        xi : dict
+            Dictionary mapping parameter names to values to evaluate.
+
+        Returns
+        -------
+        float :
+            The pdf of a birth at ``xi``.
         """
-        if isinstance(parameters, six.string_types):
-            parameters = [parameters]
-        self._parameters = tuple(parameters)
+        return numpy.exp(self.logpdf(xi))
+
+    def update(self, chain):
+        """Update the state of the birth distribution after a jump.
+
+        This method may optionally be implemented by a birth. It is called
+        after a birth is evaluated.
+        """
+        pass
