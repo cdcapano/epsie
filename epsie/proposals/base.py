@@ -267,6 +267,7 @@ class BaseProposal(BaseRandom):
         """
         pass
 
+
 @add_metaclass(ABCMeta)
 class BaseBirth(BaseRandom):
     """Abstract base class for all birth classes.

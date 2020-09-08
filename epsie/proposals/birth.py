@@ -20,9 +20,9 @@ import numpy
 from scipy import stats
 
 
-import epsie
 from .base import BaseBirth
 from .bounded_normal import Boundaries
+
 
 class UniformBirth(BaseBirth):
     """Uniform birth distribution object used in nested transdimensional
