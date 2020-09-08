@@ -531,9 +531,14 @@ class ParallelTemperedChain(BaseChain):
             tj = tk - 1
             loglj = stats['logl'][tj]
             swj = swap_index[tj]
-            ar = numpy.exp(dbetas[tj]*(loglj - loglk))
-            u = self.random_generator.uniform()
-            swap = u <= ar
+            logar = dbetas[tj]*(loglj - loglk)
+            if logar > 0:
+                ar = 1.
+                swap = True
+            else:
+                ar = numpy.exp(dbetas[tj]*(loglj - loglk))
+                u = self.random_generator.uniform()
+                swap = u <= ar
             if swap:
                 # move the colder index into the current slot...
                 swap_index[tk] = swj
