@@ -27,6 +27,9 @@ from scipy import stats
 
 import epsie
 
+import warnings
+warnings.filterwarnings("ignore", "Generator", FutureWarning)
+
 
 @add_metaclass(ABCMeta)
 class BaseProposal(object):
@@ -251,3 +254,117 @@ class BaseProposal(object):
         the history of the chain.
         """
         pass
+
+
+@add_metaclass(ABCMeta)
+class BaseRandom(object):
+    """Abstract base class for handling random number generation for birth
+    distributions.
+
+    All proposals must inherit from this class, as it handles random number
+    generation, and lays out all of the functions/attributes that a sampler
+    will try to access.
+
+    .. warning ::
+        All proposals must use the random number generator provided by this
+        class (see the ``random_generator`` attribute) for creating random
+        numbers. **Do not attempt to use scipy/numpy's random number
+        generator.** Use of any other generator may result in chains not being
+        independent of each other when run in a parallel environment.
+
+    In addition to the abstract methods/properties, all samplers must set
+    a ``parameters`` attribute. This is a list of the names of the parameters
+    the proposal produces jumps for.
+
+    Attributes
+    ----------
+    bit_generator
+    random_generator
+    random_state
+    parameters
+    symmetric
+    state
+    """
+    name = None
+    _parameters = None
+
+    @property
+    def bit_generator(self):
+        """The random bit generator instance being used.
+        """
+        try:
+            return self._bit_generator
+        except AttributeError:
+            self._bit_generator = epsie.create_bit_generator()
+            return self._bit_generator
+
+    @bit_generator.setter
+    def bit_generator(self, bit_generator):
+        """Sets the random bit generator.
+
+        Parameters
+        ----------
+        bit_generator : :py:class:`epsie.BIT_GENERATOR`, int, or None
+            Either the bit generator to use or an integer/None. If the latter,
+            a generator will be created by passing ``bit_generator`` as the
+            ``seed`` argument to :py:func:`epsie.create_bit_generator`.
+        """
+        if not isinstance(bit_generator, epsie.BIT_GENERATOR):
+            bit_generator = epsie.create_bit_generator(bit_generator)
+        self._bit_generator = bit_generator
+
+    @property
+    def random_generator(self):
+        """The random number generator.
+
+        This is an instance of :py:class:`randgen.RandomGenerator` that is
+        derived from the bit generator. It provides methods to create random
+        draws from various distributions.
+        """
+        return RandomGenerator(self.bit_generator)
+
+    @property
+    def random_state(self):
+        """The current state of the random bit generator.
+        """
+        return self.bit_generator.state
+
+    @random_state.setter
+    def random_state(self, state):
+        """Sets the state of bit_generator.
+        Parameters
+        ----------
+        state : dict
+            Dictionary giving the state to set.
+        """
+        self.bit_generator.state = state
+
+    @property
+    def state(self):
+        return {'random_state': self.random_state}
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
+
+    @property
+    def parameters(self):
+        """Sorted tuple of the parameters that proposals are produced for."""
+        if self._parameters is None:
+            raise AttributeError("no parameters set")
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters):
+        """Sets the parameters.
+
+        The parameters are stored as a tuple.
+
+        Parameters
+        ----------
+        parameters : (list of) str
+            The names of the parameters. This may either be a list of strings,
+            or (for a single parameter), a string.
+        """
+        if isinstance(parameters, six.string_types):
+            parameters = [parameters]
+        self._parameters = tuple(parameters)
