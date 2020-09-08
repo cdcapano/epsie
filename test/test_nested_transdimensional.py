@@ -23,7 +23,8 @@ import pytest
 
 from epsie.proposals import (NestedTransdimensional, BoundedDiscrete, Normal,
                              SSAdaptiveNormal, AdaptiveNormal,
-                             ATAdaptiveNormal, UniformBirthDistribution)
+                             ATAdaptiveNormal, UniformBirth, NormalBirth,
+                             LogNormalBirth)
 from _utils import PolynomialRegressionModel
 from epsie import make_betas_ladder
 
@@ -38,11 +39,21 @@ ADAPTATION_DURATION = ITERINT//2
 SWAP_INTERVAL = 1
 
 
-def _setup_proposal(model, td_proposal, cov=None):
+def _setup_proposal(model, td_proposal, birth_dist, cov=None):
     # Initialise the birth-objects for transdimensional parameters
-    birth_dists = [UniformBirthDistribution(['a{}'.format(i)],
-                                            {'a{}'.format(i): (-2., 2.)})
-                   for i in range(1, 5+1)]
+    if birth_dist == 'uniform':
+        birth_dists = [UniformBirth(
+            ['a{}'.format(i)], {'a{}'.format(i): (0., 4.)})
+            for i in range(1, 5+1)]
+    elif birth_dist == 'normal':
+        birth_dists = [NormalBirth(
+            ['a{}'.format(i)], {'a{}'.format(i): 1.0}, {'a{}'.format(i): 1.0})
+            for i in range(1, 5+1)]
+    elif birth_dist == 'lognormal':
+        birth_dists = [LogNormalBirth(
+            ['a{}'.format(i)], {'a{}'.format(i): 1.0}, {'a{}'.format(i): 0.7})
+            for i in range(1, 5+1)]
+
     # Initialies transdimensional proposals
     if td_proposal == 'normal':
         td_proposals = [Normal(['a{}'.format(i)], cov=cov)
@@ -72,17 +83,19 @@ def _setup_proposal(model, td_proposal, cov=None):
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',
                                          'ss_adaptive_normal',
                                          'adaptive_proposal'])
+@pytest.mark.parametrize('birth_dist', ['uniform', 'normal', 'lognormal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('nchains', [1, 4])
 @pytest.mark.parametrize('ntemps', [2, 3])
-def test_active_parameters(td_proposal, nprocs, nchains, ntemps, model=None):
+def test_active_parameters(td_proposal, birth_dist, nprocs, nchains, ntemps,
+                           model=None):
     """Tests that the standard deviation changes after a few jumps for the type
     of proposal specified by ``proposal_name``.
     """
     # use the test model
     if model is None:
         model = PolynomialRegressionModel()
-    proposal = _setup_proposal(model, td_proposal)
+    proposal = _setup_proposal(model, td_proposal, birth_dist)
     # we'll just use the PTSampler default setup from the ptsampler tests
     betas = make_betas_ladder(ntemps, 1e3)
     sampler = _create_sampler(model, nprocs, nchains=nchains, betas=betas,
@@ -103,13 +116,14 @@ def test_active_parameters(td_proposal, nprocs, nchains, ntemps, model=None):
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',
                                          'ss_adaptive_normal',
                                          'adaptive_proposal'])
+@pytest.mark.parametrize('birth_dist', ['uniform', 'normal', 'lognormal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_checkpointing(td_proposal, nprocs):
+def test_checkpointing(td_proposal, birth_dist, nprocs):
     """Performs the same checkpointing test as for the PTSampler, but using
     the adaptive normal proposal.
     """
     model = PolynomialRegressionModel()
-    proposal = _setup_proposal(model, td_proposal)
+    proposal = _setup_proposal(model, td_proposal, birth_dist)
     _test_checkpointing(PolynomialRegressionModel, nprocs,
                         proposals=[proposal])
 
@@ -117,24 +131,26 @@ def test_checkpointing(td_proposal, nprocs):
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',
                                          'ss_adaptive_normal',
                                          'adaptive_proposal'])
+@pytest.mark.parametrize('birth_dist', ['uniform', 'normal', 'lognormal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_seed(td_proposal, nprocs):
+def test_seed(td_proposal, birth_dist, nprocs):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
     """
     model = PolynomialRegressionModel()
-    proposal = _setup_proposal(model, td_proposal)
+    proposal = _setup_proposal(model, td_proposal, birth_dist)
     _test_seed(PolynomialRegressionModel, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',
                                          'ss_adaptive_normal',
                                          'adaptive_proposal'])
+@pytest.mark.parametrize('birth_dist', ['uniform', 'normal', 'lognormal'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_clear_memory(td_proposal, nprocs):
+def test_clear_memory(td_proposal, birth_dist, nprocs):
     """Runs the PTSampler ``test_clear_memoory`` using the adaptive normal
     proposal.
     """
     model = PolynomialRegressionModel()
-    proposal = _setup_proposal(model, td_proposal)
+    proposal = _setup_proposal(model, td_proposal, birth_dist)
     _test_clear_memory(PolynomialRegressionModel, nprocs, SWAP_INTERVAL,
                        proposals=[proposal])

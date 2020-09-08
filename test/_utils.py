@@ -201,12 +201,12 @@ class PolynomialRegressionModel(object):
         self.params = ['a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'k']
         self.k = 'k'
         self.kmax = 5
-        self.prior_dist = {'a': stats.uniform(-2., 4.),
+        self.prior_dist = {'a': stats.uniform(0., 4.),
                            'k': stats.randint(0, self.kmax + 1)}
         # Define the injected signal
         self.true_signal = {'a0': 0.0,
-                            'a1': 1.0,
-                            'a2': -0.5,
+                            'a1': 2.5,
+                            'a2': 0.5,
                             'a3': numpy.nan,
                             'a4': numpy.nan,
                             'a5': numpy.nan,
