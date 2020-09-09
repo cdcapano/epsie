@@ -108,6 +108,7 @@ class Chain(BaseChain):
         self._blobs = None
         self._hasblobs = False
         self._start = None
+        self._proposed_position = None
         self._logp0 = None
         self._logl0 = None
         self._blob0 = None
@@ -360,6 +361,19 @@ class Chain(BaseChain):
         return pos
 
     @property
+    def proposed_position(self):
+        """Dictionary of the current proposed position of the chain."""
+        if self.iteration == 0:
+            raise ValueError("No proposed position as chain hasn't been "
+                             "stepped yet; run step() at least once")
+        return self._proposed_position
+
+    @proposed_position.setter
+    def proposed_position(self, proposed_position):
+        """Sets the current proposed position of the chain."""
+        self._proposed_position = proposed_position
+
+    @property
     def current_stats(self):
         """Dictionary giving the log likelihood and log prior of the current
         position.
@@ -444,6 +458,7 @@ class Chain(BaseChain):
         state['proposal_dist'] = self.proposal_dist.state
         state['iteration'] = self.iteration
         state['current_position'] = self.current_position
+        state['proposed_position'] = self.proposed_position
         state['current_stats'] = self.current_stats
         state['hasblobs'] = self.hasblobs
         if self.hasblobs:
@@ -474,12 +489,31 @@ class Chain(BaseChain):
         self.stats0 = state['current_stats']
         self._hasblobs = state['hasblobs']
         self.blob0 = state['current_blob']
+        self.proposed_position = state['proposed_position']
         # set the proposals' states
         self.proposal_dist.set_state(state['proposal_dist'])
         # set the positions` dtypes to match the starting point
         self._positions.dtypes = detect_dtypes(self._start)
         if self.transdimensional:
             self._activate_proposals()
+
+    def _acceptance_ratio(self, logp, logl, proposal,
+                          current_logp, current_logl, current_pos):
+        """Calculates the acceptance ratio and evaluates acceptance"""
+        logar = logp + logl * self.beta \
+                - current_logl * self.beta - current_logp
+        if not self.proposal_dist.symmetric:
+            logar += self.proposal_dist.logpdf(current_pos, proposal) - \
+                     self.proposal_dist.logpdf(proposal, current_pos)
+        if logar > 0:
+            ar = 1.
+            accept = True
+        else:
+            ar = numpy.exp(logar)
+            u = self.random_generator.uniform()
+            accept = u <= ar
+        return accept, ar
+
 
     def step(self):
         """Evolves the chain by a single step."""
@@ -493,6 +527,7 @@ class Chain(BaseChain):
             current_pos.update({'_state': self._active_props})
         # create a proposal and test it
         proposal = self.proposal_dist.jump(current_pos)
+        self.proposed_position = proposal.copy()
 
         r = self.model(**proposal)
         if self._hasblobs:
@@ -508,19 +543,9 @@ class Chain(BaseChain):
             accept = False
             ar = 0.
         else:
-            logar = logp + logl * self.beta \
-                    - current_logl * self.beta - current_logp
-            if not self.proposal_dist.symmetric:
-                logar += self.proposal_dist.logpdf(current_pos, proposal) - \
-                         self.proposal_dist.logpdf(proposal, current_pos)
-
-            if logar > 0:
-                ar = 1.
-                accept = True
-            else:
-                ar = numpy.exp(logar)
-                u = self.random_generator.uniform()
-                accept = u <= ar
+            accept, ar = self._acceptance_ratio(logp, logl, proposal,
+                                                current_logp, current_logl,
+                                                current_pos)
         if accept:
             if self.transdimensional:
                 self._active_props = proposal.pop('_state')

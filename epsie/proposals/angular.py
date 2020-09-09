@@ -218,12 +218,13 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
     name = 'at_adaptive_angular'
     symmetric = True
 
-    def __init__(self, parameters, adaptation_duration=None, start_iteration=1,
-                 target_rate=0.234, **kwargs):
+    def __init__(self, parameters, componentwise=False,
+                 adaptation_duration=None, start_iteration=1,
+                 target_rate=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveAngular, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal=True,
+        self.setup_adaptation(diagonal=True, componentwise=componentwise,
                               adaptation_duration=adaptation_duration,
                               start_iteration=start_iteration,
                               target_rate=target_rate, **kwargs)
