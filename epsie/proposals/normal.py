@@ -171,13 +171,13 @@ class Normal(BaseProposal):
         return dict(zip(self.parameters, newpt))
 
     def logpdf(self, xi, givenx):
-        means = [givenx[p] for p in self.parameters]
+        mu = [givenx[p] for p in self.parameters]
         xi = [xi[p] for p in self.parameters]
         if self.isdiagonal:
-            logp = stats.norm.logpdf(xi, loc=means, scale=self._std).sum()
+            logp = stats.norm.logpdf(xi, loc=mu, scale=self._std).sum()
         else:
-            logp = stats.multivariate_normal.logpdf(xi, mean=means,
-                                                    cov=self._cov)
+            logp = stats.multivariate_normal.logpdf(xi, mean=mu, cov=self._cov,
+                                                    allow_singular=True)
         return logp
 
 

@@ -29,12 +29,12 @@ import epsie
 
 
 @add_metaclass(ABCMeta)
-class BaseProposal(object):
-    """Abstract base class for all proposal classes.
+class BaseRandom(object):
+    """Abstract base class for handling random number generation for proposals
+    ans birth distributions.
 
     All proposals must inherit from this class, as it handles random number
-    generation, and lays out all of the functions/attributes that a sampler
-    will try to access.
+    generation.
 
     .. warning ::
         All proposals must use the random number generator provided by this
@@ -45,7 +45,7 @@ class BaseProposal(object):
 
     In addition to the abstract methods/properties, all samplers must set
     a ``parameters`` attribute. This is a list of the names of the parameters
-    the proposal produces jumps for.
+    the proposal produces jumps and births for.
 
     Attributes
     ----------
@@ -53,18 +53,14 @@ class BaseProposal(object):
     random_generator
     random_state
     parameters
-    symmetric
     state
     """
     name = None
     _parameters = None
-    _nsteps = None
 
     @property
     def bit_generator(self):
         """The random bit generator instance being used.
-
-        A bit generator will be created if it doesn't exist yet.
         """
         try:
             return self._bit_generator
@@ -113,6 +109,28 @@ class BaseProposal(object):
         """
         self.bit_generator.state = state
 
+    # Py3XX: uncomment the next two lines
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
+    def state(self):
+        """Returns all information needed to produce a deterministic jump.
+        The information returned by this property should be everything needed
+        such that if you pass it to set_state, you will get the same proposal
+        on the next call of jump.
+        The information should be returned as a dictionary. At the very least,
+        this should include the current state of the proposal's
+        ``random_state``. For adaptive proposals, this may also include the
+        buffer used to adjust the proposal distribution.
+        """
+        pass
+
+    @abstractmethod
+    def set_state(self, state):
+        """Set all information needed to produce a deterministic jump.
+        """
+        pass
+
     @property
     def parameters(self):
         """Sorted tuple of the parameters that proposals are produced for."""
@@ -135,6 +153,27 @@ class BaseProposal(object):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
         self._parameters = tuple(parameters)
+
+
+@add_metaclass(ABCMeta)
+class BaseProposal(BaseRandom):
+    """Abstract base class for all proposal classes.
+
+    All proposals must inherit from this class, as it lays out all of the
+    functions/attributes that a sampler will try to access.
+
+    In addition to the abstract methods/properties, all samplers must set
+    a ``parameters`` attribute. This is a list of the names of the parameters
+    the proposal produces jumps for.
+
+    Attributes
+    ----------
+    symmetric
+    state
+    nsteps
+    """
+    name = None
+    _nsteps = None
 
     @property
     def nsteps(self):
@@ -167,30 +206,6 @@ class BaseProposal(object):
         means that the current state of the proposal satisfies the above
         condition; it does not necessarily mean that transitions between states
         be symmetric.
-        """
-        pass
-
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
-    def state(self):
-        """Returns all information needed to produce a deterministic jump.
-
-        The information returned by this property should be everything needed
-        such that if you pass it to set_state, you will get the same proposal
-        on the next call of jump.
-
-        The information should be returned as a dictionary. At the very least,
-        this should include the current state of the proposal's
-        ``random_state``. For adaptive proposals, this may also include the
-        buffer used to adjust the proposal distribution.
-        """
-        pass
-
-    @abstractmethod
-    def set_state(self, state):
-        """Set all information needed to produce a deterministic jump.
         """
         pass
 
@@ -249,5 +264,77 @@ class BaseProposal(object):
         by the Markov chains just after a jump is evaluated. It can be used by,
         e.g., adaptive jump proposals that change their state depending on
         the history of the chain.
+        """
+        pass
+
+
+@add_metaclass(ABCMeta)
+class BaseBirth(BaseRandom):
+    """Abstract base class for all birth classes.
+
+    All birth distributions must inherit from this class, as it lays out all of
+    the functions/attributes that a sampler will try to access.
+
+    In addition to the abstract methods/properties, all samplers must set
+    a ``parameters`` attribute. This is a list of the names of the parameters
+    the proposal produces jumps for.
+
+    Attributes
+    ----------
+    symmetric
+    state
+    """
+    name = None
+
+    # Py3XX: uncomment the next two lines
+    # @property
+    # @abstractmethod
+    @abstractproperty  # Py3XX: delete line
+    def birth(self):
+        """This should provide random samples from the birth distribution.
+
+        Samples should be returned as a dictionary mapping parameters to
+        the proposed birth.
+        """
+        pass
+
+    @abstractmethod
+    def logpdf(self, xi):
+        """The log pdf of the birth distribution at a point.
+
+        Parameters
+        ----------
+        xi : dict
+            Dictionary mapping parameter names to values to evaluate.
+
+        Returns
+        -------
+        float :
+            The log pdf of a birth at ``xi``.
+        """
+        pass
+
+    def pdf(self, xi):
+        """The pdf of the birth proposal at the given values.
+
+        This just expoentiates ``logpdf``.
+
+        Parameters
+        ----------
+        xi : dict
+            Dictionary mapping parameter names to values to evaluate.
+
+        Returns
+        -------
+        float :
+            The pdf of a birth at ``xi``.
+        """
+        return numpy.exp(self.logpdf(xi))
+
+    def update(self, chain):
+        """Update the state of the birth distribution after a jump.
+
+        This method may optionally be implemented by a birth. It is called
+        after a birth is evaluated.
         """
         pass
