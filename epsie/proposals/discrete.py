@@ -20,7 +20,7 @@ import numpy
 from scipy import stats
 
 from .normal import (Normal, AdaptiveSupport, SSAdaptiveSupport)
-from .bounded_normal import (BoundedNormal)
+from .bounded_normal import BoundedNormal
 
 
 class NormalDiscrete(Normal):
@@ -68,13 +68,19 @@ class NormalDiscrete(Normal):
         Dictionary of bools, keys must be parameters and items bools. If False
         then the proposal never produces the same integer on successive jumps.
         Default is False for all parameters
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     """
     name = 'discrete'
     symmetric = True
     _successive = None
 
-    def __init__(self, parameters, cov=None, successive=None):
-        super(NormalDiscrete, self).__init__(parameters, cov=cov)
+    def __init__(self, parameters, cov=None, successive=None, isfast=False):
+        super(NormalDiscrete, self).__init__(parameters, cov=cov,
+                                             isfast=isfast)
         # this only works for diagonal pdfs
         if not self.isdiagonal:
             raise ValueError("Only independent variables are supported "
@@ -198,13 +204,20 @@ class BoundedDiscrete(BoundedNormal):
         Dictionary of bools, keys must be parameters and items bools. If False
         then the proposal never produces the same integer on successive jumps.
         Default is False for all parameters
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     """
     name = 'bounded_discrete'
     symmetric = False
     _successive = None
 
-    def __init__(self, parameters, boundaries, cov=None, successive=None):
-        super(BoundedDiscrete, self).__init__(parameters, boundaries, cov=cov)
+    def __init__(self, parameters, boundaries, cov=None, successive=None,
+                 isfast=False):
+        super(BoundedDiscrete, self).__init__(parameters, boundaries, cov=cov,
+                                              isfast=isfast)
         self.successive = successive
         # ensure boundaries are integers
         self.boundaries = {p: (int(numpy.floor(b.lower)),
@@ -346,6 +359,11 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -354,10 +372,12 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
     name = 'ss_adaptive_discrete'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, successive=None, **kwargs):
+    def __init__(self, parameters, cov=None, successive=None, isfast=False,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveNormalDiscrete, self).__init__(parameters, cov=cov,
-                                                       successive=successive)
+                                                       successive=successive,
+                                                       isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -381,6 +401,11 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -390,10 +415,11 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
     symmetric = False
 
     def __init__(self, parameters, boundaries,  cov=None, successive=None,
-                 **kwargs):
+                 isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveBoundedDiscrete, self).__init__(
-            parameters, boundaries, cov=cov, successive=successive)
+            parameters, boundaries, cov=cov, successive=successive,
+            isfast=isfast)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*abs(bounds)
@@ -419,6 +445,11 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -428,10 +459,11 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
-                 successive=None, **kwargs):
+                 successive=None, isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormalDiscrete, self).__init__(parameters,
-                                                     successive=successive)
+                                                     successive=successive,
+                                                     isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
@@ -452,6 +484,11 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -461,10 +498,10 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
-                 successive=None, **kwargs):
+                 successive=None, isfast=isfast, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveBoundedDiscrete, self).__init__(
-            parameters, boundaries, successive=successive)
+            parameters, boundaries, successive=successive, isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
 

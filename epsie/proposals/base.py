@@ -55,10 +55,13 @@ class BaseProposal(object):
     parameters
     symmetric
     state
+    nsteps
+
     """
     name = None
     _parameters = None
     _nsteps = None
+    _isfast = None
 
     @property
     def bit_generator(self):
@@ -135,6 +138,18 @@ class BaseProposal(object):
         if isinstance(parameters, six.string_types):
             parameters = [parameters]
         self._parameters = tuple(parameters)
+
+    @property
+    def isfast(self):
+        if self._isfast is None:
+            raise ValueError("``isfast`` not set")
+        return self._isfast
+
+    @isfast.setter
+    def isfast(self, isfast):
+        if not isinstance(isfast, bool):
+            raise ValueError("``isfast`` must be bool")
+        self._isfast = isfast
 
     @property
     def nsteps(self):

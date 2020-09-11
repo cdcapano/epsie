@@ -45,12 +45,17 @@ class BoundedNormal(Normal):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     """
     name = 'bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, cov=None):
-        super(BoundedNormal, self).__init__(parameters, cov=cov)
+    def __init__(self, parameters, boundaries, cov=None, isfast=False):
+        super(BoundedNormal, self).__init__(parameters, cov=cov, isfast=isfast)
         # check that a diagonal covariance was provided
         if not self.isdiagonal:
             raise ValueError("Only independent variables are supported "
@@ -149,6 +154,11 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -158,10 +168,10 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
-                 **kwargs):
+                 isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedNormal, self).__init__(parameters,
-                                                       boundaries)
+        super(AdaptiveBoundedNormal, self).__init__(parameters, boundaries,
+                                                    isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
 
@@ -189,6 +199,11 @@ class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`Adaptive2Support.setup_adaptation`. See that function for
@@ -197,10 +212,11 @@ class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
     name = 'ss_adaptive_bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, cov=None, **kwargs):
+    def __init__(self, parameters, boundaries, cov=None, isfast=False,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveBoundedNormal, self).__init__(
-              parameters, boundaries, cov=cov)
+              parameters, boundaries, cov=cov, isfast=isfast)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*abs(bounds)
@@ -229,6 +245,11 @@ class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
         adaptation will be done once a chain exceeds this value.
     target_rate: float (optional)
         Target acceptance ratio. By default 0.234
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -238,9 +259,11 @@ class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
     symmetric = False
 
     def __init__(self, parameters, boundaries, start_iteration=1,
-                 adaptation_duration=None, target_rate=0.234, **kwargs):
+                 adaptation_duration=None, target_rate=0.234,
+                 isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveBoundedNormal, self).__init__(parameters, boundaries)
+        super(ATAdaptiveBoundedNormal, self).__init__(parameters, boundaries,
+                                                      isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True,
                               adaptation_duration=adaptation_duration,

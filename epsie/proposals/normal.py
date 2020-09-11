@@ -40,7 +40,11 @@ class Normal(BaseProposal):
         a 1D array is given, will use a diagonal covariance matrix (i.e., all
         parameters are independent of each other). Default (None) is to use
         unit variance for all parameters.
-
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     Attributes
     ----------
     cov : numpy.ndarray
@@ -50,10 +54,11 @@ class Normal(BaseProposal):
     name = 'normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None):
+    def __init__(self, parameters, cov=None, isfast=False):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self._isdiagonal = False
+        self.isfast = isfast
         self._cov = None
         self._std = None
         self.cov = cov
@@ -382,6 +387,11 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -391,9 +401,9 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
-                 **kwargs):
+                 isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormal, self).__init__(parameters)
+        super(AdaptiveNormal, self).__init__(parameters, isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
@@ -526,6 +536,11 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
     ----------
     parameters : (list of) str
         The names of the parameters.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -534,9 +549,10 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
     name = 'ss_adaptive_normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, **kwargs):
+    def __init__(self, parameters, cov=None, isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveNormal, self).__init__(parameters, cov=cov)
+        super(SSAdaptiveNormal, self).__init__(parameters, cov=cov,
+                                               isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -717,6 +733,11 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
         The iteration index when adaptation phase begins.
     target_rate: float (optional)
         Target acceptance ratio. By default 0.234
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs:
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -726,9 +747,10 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     symmetric = False
 
     def __init__(self, parameters, diagonal=False, adaptation_duration=None,
-                 start_iteration=1, target_rate=0.234, **kwargs):
+                 start_iteration=1, target_rate=0.234, isfast=False,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveNormal, self).__init__(parameters)
+        super(ATAdaptiveNormal, self).__init__(parameters, isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal, adaptation_duration, start_iteration,
                               target_rate, **kwargs)

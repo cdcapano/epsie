@@ -78,8 +78,13 @@ class JointProposal(BaseProposal):
     def jump(self, fromx):
         out = {}
         for prop in self.proposals:
+            # here split among fast and slow parameters
+            # slow parameters keep the same
+
+
             # we'll only pass the parameters that the proposal needs
             point = {p: fromx[p] for p in prop.parameters}
+            # if transdimenional pass in the state as well
             if prop.transdimensional:
                 point.update({'_state': fromx['_state']})
             out.update(prop.jump(point))

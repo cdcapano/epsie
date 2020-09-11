@@ -49,12 +49,17 @@ class Angular(Normal):
         ``ndim`` = the number of parameters given. If 2D array is given, the
         off-diagonal terms must be zero. Default is 1 sq. radian for all
         parameters.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     """
     name = 'angular'
     symmetric = True
 
-    def __init__(self, parameters, cov=None):
-        super(Angular, self).__init__(parameters, cov=cov)
+    def __init__(self, parameters, cov=None, isfast=False):
+        super(Angular, self).__init__(parameters, cov=cov, isfast=isfast)
         # _halfwidth is half the width of the interval, in factors of pi
         self._halfwidth = 1.
         self._factor = numpy.pi
@@ -142,6 +147,11 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -151,9 +161,9 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration,
-                 **kwargs):
+                 isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveAngular, self).__init__(parameters)
+        super(AdaptiveAngular, self).__init__(parameters, isfast=isfast)
         # all parameters have the same (cyclic) boundaries
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
@@ -175,6 +185,11 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -183,9 +198,10 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
     name = 'ss_adaptive_angular'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, **kwargs):
+    def __init__(self, parameters, cov=None, isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveAngular, self).__init__(parameters, cov=cov)
+        super(SSAdaptiveAngular, self).__init__(parameters, cov=cov,
+                                                isfast=isfast)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*2*pi)
@@ -210,6 +226,11 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
         The iteration index when adaptation phase begins.
     target_rate: float (optional)
         Target acceptance ratio. By default 0.234
+    isfast : bool, optional
+        Optional parameter that may be used in some user defined models.
+        ``isfast`` determines whether it is fast to calculate the likelihood
+        if only the 'fast' parameters are included and 'slow' parameters
+        are kept constant within a move.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -219,9 +240,9 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration=None, start_iteration=1,
-                 target_rate=0.234, **kwargs):
+                 target_rate=0.234, isfast=False, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveAngular, self).__init__(parameters)
+        super(ATAdaptiveAngular, self).__init__(parameters, isfast=isfast)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True,
                               adaptation_duration=adaptation_duration,
