@@ -723,7 +723,7 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
         details.
     """
     name = 'at_adaptive_normal'
-    symmetric = False
+    symmetric = True
 
     def __init__(self, parameters, diagonal=False, adaptation_duration=None,
                  start_iteration=1, target_rate=0.234, **kwargs):
