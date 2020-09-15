@@ -40,12 +40,12 @@ class Eigenvector(BaseProposal):
         along those.
     shuffle_rate : float (optional)
         Probability of shuffling the eigenvector jump probabilities. By
-        default 0.234.
+        default 0.33.
     """
     name = 'eigenvector'
     symmetric = True
 
-    def __init__(self, parameters, stability_duration, shuffle_rate=0.234):
+    def __init__(self, parameters, stability_duration, shuffle_rate=0.33):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
@@ -58,24 +58,24 @@ class Eigenvector(BaseProposal):
 
         self.initial_prop = ATAdaptiveNormal(
             self.parameters, adaptation_duration=stability_duration)
+        self.initial_prop.bit_generator = self.bit_generator
         self.stability_duration = stability_duration
 
     @property
     def state(self):
-        return {'nsteps': self._nsteps,
-                'random_state': self.random_state,
-                'mu': self._mu,
-                'cov': self._cov,
-                'eigvals': self._eigvals,
-                'eigvects': self._eigvects}
+        state = {'nsteps': self._nsteps,
+                 'random_state': self.random_state,
+                 'mu': self._mu,
+                 'cov': self._cov}
+        return state
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
         self._mu = state['mu']
         self._cov = state['cov']
-        self._eigvals = state['eigvals']
-        self._eigvects = state['eigvects']
+        if self._cov is not None:
+            self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
 
     def jump(self, fromx):
         if self.nsteps <= self.stability_duration:
@@ -101,21 +101,42 @@ class Eigenvector(BaseProposal):
             delta = (sum((givenx[p] - xi[p])**2 for p in self.parameters))**0.5
             return stats.norm.logpdf(delta, loc=0, scale=self._jump_std)
 
-    def _estimate_covariance(self, chain, start_iter):
-        X = numpy.array([chain.positions[p][start_iter:]
-                         for p in self.parameters]).T
-        # calculate mean and cov
-        self._mu = numpy.mean(X, axis=0)
-        self._cov = numpy.cov(X, rowvar=False)
-        # calculate the eigenvalues and eigenvectors
-        self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
+    def _recursive_mean_cov(self, chain):
+        """Recursive updates of the mean and covariance given the new data"""
+        n = self.nsteps - self.stability_duration // 2
+        newpt = numpy.array([chain.current_position[p]
+                             for p in self.parameters])
+        df = newpt - self._mu
+        self._mu += df / n
+        df = df.reshape(-1, 1)
+        self._cov += 1 / n * numpy.matmul(df, df.T) - 1 / (n - 1) * self._cov
+        return newpt
+
+    def _stability_update(self, chain):
+        """Updates the covariance matrix during the stabilisation period"""
+        if self.nsteps <= self.stability_duration // 2 + 4:
+            self.initial_prop.update(chain)
+        elif self.nsteps <= self.stability_duration:
+            self.initial_prop.update(chain)
+            # estimate covariance and mean and start recursively updating
+            if self._mu is None and self._cov is None:
+                X = numpy.array([chain.positions[p][
+                    self.stability_duration//2:] for p in self.parameters]).T
+                # calculate mean and cov
+                self._mu = numpy.mean(X, axis=0)
+                self._cov = numpy.cov(X, rowvar=False)
+                if self.ndim == 1:
+                    self._cov = self._cov.reshape(1, 1)
+            else:
+                __ = self._recursive_mean_cov(chain)
+
+            if self.nsteps == self.stability_duration:
+                self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
+
 
     def update(self, chain):
-        if self.nsteps < self.stability_duration:
-            self.initial_prop.update(chain)
-        elif self.nsteps == self.stability_duration:
-            self._estimate_covariance(chain, self.stability_duration//2)
-
+        if self.nsteps <= self.stability_duration:
+            self._stability_update(chain)
         self.nsteps += 1
 
 
@@ -193,27 +214,15 @@ class AdaptiveEigenvectorSupport(object):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        if self.nsteps < self.stability_duration:
-            self.initial_prop.update(chain)
-        elif self.nsteps == self.stability_duration:
-            self._estimate_covariance(chain, self.stability_duration // 2)
-        elif self.nsteps < self.adaptation_duration:
-            # recursively update the mean and the covariance
-            alpha = 1. / (self.nsteps - self.stability_duration // 2)
-            newpt = numpy.array([chain.current_position[p]
-                                 for p in self.parameters])
-            df = newpt - self._mu
-            self._mu += alpha * df
-            df = df.reshape(-1, 1)
-            self._cov += alpha * (numpy.matmul(df, df.T) - self._cov)
+        if self.nsteps <= self.stability_duration:
+            self._stability_update(chain)
+        elif self.nsteps <  self.adaptation_duration:
+            newpt = self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
-
-            dk = ((self.nsteps - self.stability_duration)**(-0.6)
-                  - self._decay_const)
-            newpt = numpy.array([chain.current_position[p]
-                                 for p in self.parameters])
+            dk = (self.nsteps - self.stability_duration)**(-0.6) \
+                - self._decay_const
             # Update of the global scaling
             self._log_lambda += dk * (chain.acceptance['acceptance_ratio'][-1]
                                       - self.target_rate)
@@ -227,8 +236,6 @@ class AdaptiveEigenvectorSupport(object):
                 'random_state': self.random_state,
                 'mu': self._mu,
                 'cov': self._cov,
-                'eigvals': self._eigvals,
-                'eigvects': self._eigvects,
                 'log_lambda': self._log_lambda}
 
     def set_state(self, state):
@@ -236,9 +243,10 @@ class AdaptiveEigenvectorSupport(object):
         self._nsteps = state['nsteps']
         self._mu = state['mu']
         self._cov = state['cov']
-        self._eigvals = state['eigvals']
-        self._eigvects = state['eigvects']
         self._log_lambda = state['log_lambda']
+        if self._cov is not None:
+            self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
+            self._eigvals *= numpy.exp(self._log_lambda)
 
 
 class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
