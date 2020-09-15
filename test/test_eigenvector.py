@@ -18,7 +18,6 @@
 
 from __future__ import (print_function, absolute_import)
 
-import itertools
 import pytest
 import numpy
 
@@ -119,7 +118,7 @@ def test_chains(nprocs, proposal_name):
     proposal = _setup_proposal(model, proposal_name,
                                params=[list(model.params)[0]])
     _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal],
-                 init_iters=STABILITY_DURATION-8)
+                 init_iters=STABILITY_DURATION-2)
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -131,8 +130,7 @@ def test_checkpointing(nprocs, proposal_name):
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
     _test_checkpointing(Model, nprocs, proposals=[proposal],
-                        init_iters=STABILITY_DURATION-8)
-
+                        init_iters=STABILITY_DURATION-2)
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -144,7 +142,7 @@ def test_seed(nprocs, proposal_name):
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
     _test_seed(Model, nprocs, proposals=[proposal],
-               init_iters=STABILITY_DURATION-8)
+               init_iters=STABILITY_DURATION-2)
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -157,4 +155,4 @@ def test_clear_memory(nprocs, proposal_name):
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
     _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal],
-                       init_iters=STABILITY_DURATION-8)
+                       init_iters=STABILITY_DURATION-2)

@@ -110,7 +110,6 @@ class Eigenvector(BaseProposal):
         self._mu += df / n
         df = df.reshape(-1, 1)
         self._cov += 1 / n * numpy.matmul(df, df.T) - 1 / (n - 1) * self._cov
-        return newpt
 
     def _stability_update(self, chain):
         """Updates the covariance matrix during the stabilisation period"""
@@ -128,11 +127,10 @@ class Eigenvector(BaseProposal):
                 if self.ndim == 1:
                     self._cov = self._cov.reshape(1, 1)
             else:
-                __ = self._recursive_mean_cov(chain)
+                self._recursive_mean_cov(chain)
 
             if self.nsteps == self.stability_duration:
                 self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
-
 
     def update(self, chain):
         if self.nsteps <= self.stability_duration:
@@ -181,7 +179,6 @@ class AdaptiveEigenvectorSupport(object):
         self.target_rate = target_rate
         self.adaptation_duration = adaptation_duration
 
-
         self._mean_ar = None
         self._log_lambda = 0.0
 
@@ -217,7 +214,7 @@ class AdaptiveEigenvectorSupport(object):
         if self.nsteps <= self.stability_duration:
             self._stability_update(chain)
         elif self.nsteps <  self.adaptation_duration:
-            newpt = self._recursive_mean_cov(chain)
+            self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
@@ -275,7 +272,7 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
         Target acceptance ratio. By default 0.234
     shuffle_rate : float (optional)
         Probability of shuffling the eigenvector jump probabilities. By
-        default 0.234.
+        default 0.33.
     \**kwargs:
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -285,7 +282,7 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
     symmetric = True
 
     def __init__(self, parameters, stability_duration, adaptation_duration,
-                 target_rate=0.234, shuffle_rate=0.234, **kwargs):
+                 target_rate=0.234, shuffle_rate=0.33, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveEigenvector, self).__init__(parameters,
                                                   stability_duration,
