@@ -501,7 +501,7 @@ class Chain(BaseChain):
                           current_logp, current_logl, current_pos):
         """Calculates the acceptance ratio and evaluates acceptance"""
         logar = logp + logl * self.beta - \
-                current_logp - current_logl * self.beta
+               current_logp - current_logl * self.beta
         if not self.proposal_dist.symmetric:
             logar += self.proposal_dist.logpdf(current_pos, proposal) - \
                      self.proposal_dist.logpdf(proposal, current_pos)
