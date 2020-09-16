@@ -179,7 +179,6 @@ class AdaptiveEigenvectorSupport(object):
         self.target_rate = target_rate
         self.adaptation_duration = adaptation_duration
 
-        self._mean_ar = None
         self._log_lambda = 0.0
 
     @property
