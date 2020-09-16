@@ -68,7 +68,8 @@ class JointProposal(BaseProposal):
         return self._symmetric
 
     def logpdf(self, xi, givenx):
-        return sum(p.logpdf(xi, givenx) for p in self.proposals)
+        return sum(p.logpdf(xi, givenx) for p in self.proposals
+                   if not p.symmetric)
 
     def update(self, chain):
         # update each of the proposals
