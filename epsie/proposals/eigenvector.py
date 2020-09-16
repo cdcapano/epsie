@@ -199,7 +199,7 @@ class AdaptiveEigenvectorSupport(object):
 
     @adaptation_duration.setter
     def adaptation_duration(self, adaptation_duration):
-        if self.stability_duration > adaptation_duration / 2:
+        if self.stability_duration > 0.5 * adaptation_duration:
             raise ValueError("``stability_duration`` must be at least twice"
                              "as much as ``adaptation_duration")
         # Check for how big adaptation duration is with respect to the burnin
@@ -213,7 +213,7 @@ class AdaptiveEigenvectorSupport(object):
         """
         if self.nsteps <= self.stability_duration:
             self._stability_update(chain)
-        elif self.nsteps <  self.adaptation_duration:
+        elif self.nsteps < self.adaptation_duration:
             self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)

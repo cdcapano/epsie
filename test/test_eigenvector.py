@@ -31,7 +31,7 @@ from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
-ITERINT = 256
+ITERINT = 320
 ADAPTATION_DURATION = ITERINT // 2
 STABILITY_DURATION = ITERINT // 4
 SWAP_INTERVAL = 1
