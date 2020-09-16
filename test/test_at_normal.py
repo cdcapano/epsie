@@ -38,18 +38,20 @@ SWAP_INTERVAL = 1
 
 
 def _setup_proposal(model, name, params=None, diagonal=False,
-                    start_iteration=1, adaptation_duration=None):
+                    componentwise=False, start_iteration=1,
+                    adaptation_duration=None):
     if params is None:
         params = model.params
     if name == 'at_adaptive_normal':
-        return ATAdaptiveNormal(params, diagonal,
+        return ATAdaptiveNormal(params, diagonal, componentwise=componentwise,
                                 adaptation_duration=adaptation_duration)
     elif name == 'at_adaptive_bounded_normal':
         boundaries = {'x0': (-20., 20.), 'x1': (-40., 40.)}
         return ATAdaptiveBoundedNormal(params, boundaries,
+                                       componentwise=componentwise,
                                        adaptation_duration=adaptation_duration)
     elif name == 'at_adaptive_angular':
-        return ATAdaptiveAngular(params,
+        return ATAdaptiveAngular(params, componentwise=componentwise,
                                  adaptation_duration=adaptation_duration)
     else:
         raise ValueError('invalid proposal')
@@ -61,12 +63,18 @@ def _setup_proposal(model, name, params=None, diagonal=False,
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('adaptation_duration', [None, ADAPTATION_DURATION])
 @pytest.mark.parametrize('diagonal', [False, True])
-def test_cov_changes(name, nprocs, adaptation_duration, diagonal, model=None):
+@pytest.mark.parametrize('componentwise', [False, True])
+def test_cov_changes(name, nprocs, adaptation_duration, diagonal,
+                     componentwise, model=None):
     """Tests that the covariance changes after a few jumps."""
     # use the test model
+    if not diagonal and name in ['at_adaptive_bounded_normal',
+                                 'at_adaptive_angular']:
+        return
     if model is None:
         model = Model()
     proposal = _setup_proposal(model, name, diagonal=diagonal,
+                               componentwise=componentwise,
                                adaptation_duration=adaptation_duration)
     if proposal.isdiagonal:
         _test_std_changes(nprocs, proposal, model)
@@ -189,11 +197,12 @@ def test_checkpointing(name, nprocs):
                                   'at_adaptive_bounded_normal',
                                   'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_seed(name, nprocs):
+@pytest.mark.parametrize('componentwise', [False, True])
+def test_seed(name, nprocs, componentwise):
     """Runs the PTSampler ``test_seed`` using the adaptive proposal.
     """
     model = Model()
-    proposal = _setup_proposal(model, name)
+    proposal = _setup_proposal(model, name, componentwise=componentwise)
     _test_seed(Model, nprocs, proposals=[proposal])
 
 

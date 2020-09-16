@@ -222,13 +222,19 @@ class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
+    componentwise : bool (optional)
+        Whether to include a componentwise scaling of the parameters
+        (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).
+        Componentwise scaling `ndim` times more expensive than global
+        scaling.
     start_iteration: int (optional)
         The iteration index when adaptation phase begins.
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
     target_rate: float (optional)
-        Target acceptance ratio. By default 0.234
+        Target acceptance ratio. By default 0.234 and 0.48 for componentwise
+        scaling.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -237,12 +243,13 @@ class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
     name = 'at_adaptive_bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, start_iteration=1,
-                 adaptation_duration=None, target_rate=0.234, **kwargs):
+    def __init__(self, parameters, boundaries, componentwise=False,
+                 start_iteration=1, adaptation_duration=None, target_rate=None,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveBoundedNormal, self).__init__(parameters, boundaries)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal=True,
+        self.setup_adaptation(diagonal=True, componentwise=componentwise,
                               adaptation_duration=adaptation_duration,
                               start_iteration=start_iteration,
                               target_rate=target_rate, **kwargs)

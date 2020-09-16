@@ -554,7 +554,7 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
 class ATAdaptiveSupport(object):
     r"""Utility class for adding ATAdaptiveNormal proposal support.
 
-    The adaptation algorithm is based on Algorithm 4 in [1].
+    The adaptation algorithm is based on Algorithm 4 and 6 in [1].
 
     See [1] for details.
 
@@ -582,23 +582,30 @@ class ATAdaptiveSupport(object):
     _decay_const = None
     _adaptation_duration = None
 
-    def setup_adaptation(self, diagonal=False, adaptation_duration=None,
-                         start_iteration=1, target_rate=0.234):
+    def setup_adaptation(self, diagonal=False, componentwise=False,
+                         adaptation_duration=None, start_iteration=1,
+                         target_rate=None):
         r"""Sets up the adaptation parameters.
         diagonal : bool (optional)
             Whether to train off-diagonal elements of the proposal covariance.
             By default set to False; off-diagonal elements are being trained.
+        componentwise : bool (optional)
+            Whether to include a componentwise scaling of the parameters
+            (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).
+            Componentwise scaling `ndim` times more expensive than global
+            scaling.
         adaptation_duration : int (optional)
             The number of adaptation steps. By default assumes the adaptation
             never ends but decays.
         start_iteration : int (optional)
             The iteration index when adaptation phase begins.
-        target_rate : float (optional)
-            Target acceptance rate. By default 0.234
+        target_rate: float (optional)
+            Target acceptance ratio. By default 0.234 and 0.48 for
+            componentwise scaling.
         """
         self.start_iteration = start_iteration
-        self.target_rate = target_rate
         self.adaptation_duration = adaptation_duration
+        self._iscomponentwise = componentwise
         self._isdiagonal = diagonal
 
         self._mean = numpy.zeros(self.ndim)  # initial mean
@@ -608,7 +615,19 @@ class ATAdaptiveSupport(object):
         else:
             self._unit_cov = numpy.eye(self.ndim)  # inital covariance
             self._cov = self._unit_cov
-        self._log_lambda = 0
+        if not self._iscomponentwise:
+            self._log_lambda = 0
+        else:
+            self._log_lambda = numpy.zeros(self.ndim)
+            self.target_rate = 0.48
+
+        if target_rate is None:
+            if not self._iscomponentwise:
+                self.target_rate = 0.234
+            else:
+                self.target_rate = 0.48
+        else:
+            self.target_rate = target_rate
 
     @property
     def start_iteration(self):
@@ -646,6 +665,36 @@ class ATAdaptiveSupport(object):
         self._decay_const = (adaptation_duration)**(-0.6)
         self._adaptation_duration = adaptation_duration
 
+    def _componentwise_scaling(self, chain, dk):
+        """Componentwise scaling. Does virtual moves along each axis
+        one at a time."""
+        current_logl = chain.current_stats['logl']
+        current_logp = chain.current_stats['logp']
+        current_position = chain.current_position
+        proposed_position = chain.proposed_position
+        dlog_lambda = numpy.zeros_like(self._log_lambda)
+
+        # Make a virtual jump along every componentwise axis
+        for i, p in enumerate(self.parameters):
+            virtual_move = current_position.copy()
+            virtual_move[p] = proposed_position[p]
+            # evaluate this move
+            r = chain.model(**virtual_move)
+            if chain._hasblobs:
+                logl, logp, __ = r
+            else:
+                logl, logp = r
+            # if proposed translation goes out of bounds force eject
+            if logp == -numpy.inf:
+                ar = 0.
+            else:
+                __, ar = chain._acceptance_ratio(logp, logl, virtual_move,
+                                                 current_logp, current_logl,
+                                                 current_position)
+            # update the component
+            dlog_lambda[i] = dk * (ar - self.target_rate)
+        return dlog_lambda
+
     def update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
@@ -656,21 +705,30 @@ class ATAdaptiveSupport(object):
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update of the global scaling
-            ar = min(1, chain.acceptance['acceptance_ratio'][-1])
-            self._log_lambda += dk * (ar - self.target_rate)
+            if not self._iscomponentwise:
+                ar = min(1, chain.acceptance['acceptance_ratio'][-1])
+                self._log_lambda += dk * (ar - self.target_rate)
+            else:
+                self._log_lambda += self._componentwise_scaling(chain, dk)
             # Update the first moment
             df = newpt - self._mean
-            self._mean = self._mean + dk * df
+            self._mean += dk * df
             # Update the second moment
             if self.isdiagonal:
                 self._unit_cov += dk * (df**2 - self._unit_cov)
-                self._std = (numpy.exp(0.5 * self._log_lambda)
-                             * self._unit_cov**0.5)
+                self._std = numpy.sqrt(numpy.exp(self._log_lambda)
+                                       * self._unit_cov)
             else:
                 df = df.reshape(-1, 1)
                 self._unit_cov += dk * (numpy.matmul(df, df.T)
                                         - self._unit_cov)
-                self._cov = numpy.exp(self._log_lambda) * self._unit_cov
+                if not self._iscomponentwise:
+                    self._cov = numpy.exp(self._log_lambda) * self._unit_cov
+                else:
+                    Lambda = numpy.diag(numpy.exp(self._log_lambda))**0.5
+                    self._cov = numpy.matmul(
+                        numpy.matmul(Lambda, self._unit_cov), Lambda)
+
         # dont forget to increment number of steps
         self.nsteps += 1
 
@@ -711,12 +769,18 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     diagonal : bool (optional)
         Whether to train off-diagonal elements of the proposal covariance.
         By default set to False; off-diagonal elements are being trained.
+    componentwise : bool (optional)
+        Whether to include a componentwise scaling of the parameters
+        (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).
+        Componentwise scaling `ndim` times more expensive than global
+        scaling.
     adaptation_duration: int (optional)
         The iteration index when adaptation phase ends. By default never ends.
     start_iteration: int (optional)
         The iteration index when adaptation phase begins.
     target_rate: float (optional)
-        Target acceptance ratio. By default 0.234
+        Target acceptance ratio. By default 0.234 and 0.48 for componentwise
+        scaling.
     \**kwargs:
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -725,10 +789,13 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     name = 'at_adaptive_normal'
     symmetric = True
 
-    def __init__(self, parameters, diagonal=False, adaptation_duration=None,
-                 start_iteration=1, target_rate=0.234, **kwargs):
+    def __init__(self, parameters, diagonal=False, componentwise=False,
+                 adaptation_duration=None, start_iteration=1,
+                 target_rate=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveNormal, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal, adaptation_duration, start_iteration,
-                              target_rate, **kwargs)
+        self.setup_adaptation(diagonal=diagonal, componentwise=componentwise,
+                              adaptation_duration=adaptation_duration,
+                              start_iteration=start_iteration,
+                              target_rate=target_rate)
