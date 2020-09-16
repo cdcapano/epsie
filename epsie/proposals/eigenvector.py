@@ -81,7 +81,7 @@ class Eigenvector(BaseProposal):
         if self.nsteps <= self.stability_duration:
             return self.initial_prop.jump(fromx)
         else:
-            probs = self._eigvals/numpy.sum(self._eigvals)
+            probs = self._eigvals / numpy.sum(self._eigvals)
             if self.random_generator.uniform() < self.shuffle_rate:
                 self.random_generator.shuffle(probs)
             choice = self.random_generator.choice(self.ndim, p=probs)
