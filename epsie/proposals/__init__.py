@@ -20,6 +20,7 @@ from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal,
                      ATAdaptiveNormal)
+from .eigenvector import (Eigenvector, AdaptiveEigenvector)
 # we'll also promote the Boundaries class to the top-level
 from .bounded_normal import (BoundedNormal, SSAdaptiveBoundedNormal,
                              Boundaries, AdaptiveBoundedNormal,
@@ -37,6 +38,7 @@ from .birth import (UniformBirth, NormalBirth, LogNormalBirth)
 proposals = {
     JointProposal.name: JointProposal,
     Normal.name: Normal,
+    Eigenvector.name: Eigenvector,
     SSAdaptiveNormal.name: SSAdaptiveNormal,
     AdaptiveNormal.name: AdaptiveNormal,
     BoundedNormal.name: BoundedNormal,
@@ -55,6 +57,7 @@ proposals = {
     ATAdaptiveNormal.name: ATAdaptiveNormal,
     ATAdaptiveBoundedNormal.name: ATAdaptiveBoundedNormal,
     ATAdaptiveAngular.name: ATAdaptiveAngular,
+    AdaptiveEigenvector.name: AdaptiveEigenvector,
 }
 
 births = {

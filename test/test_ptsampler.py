@@ -65,7 +65,8 @@ def _create_sampler(model, nprocs, nchains=None, betas=None, swap_interval=1,
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('swap_interval', [1, 3])
-def test_chains(model_cls, nprocs, swap_interval, proposals=None):
+def test_chains(model_cls, nprocs, swap_interval, proposals=None,
+                init_iters=None):
     """Sets up and runs a sampler for a few iterations, then performs
     the following checks:
 
@@ -97,13 +98,17 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
             prop_params = frozenset(prop.parameters)
             assert prop_params in pdict
             assert prop.name == pdict[prop_params].name
+    if init_iters is not None:
+        sampler.run(init_iters)
+    else:
+        init_iters = 0
     sampler.run(ITERINT)
     # check that the number of recorded iterations matches how long we
     # actually ran for
-    assert sampler.niterations == ITERINT
+    assert sampler.niterations == ITERINT + init_iters
     # check that we get the positions back in the expected format
     positions = sampler.positions
-    expected_shape = (NTEMPS, NCHAINS, ITERINT)
+    expected_shape = (NTEMPS, NCHAINS, ITERINT + init_iters)
     _check_array(positions, model.params, expected_shape)
     # check that the current positions have the right shape
     for arr in sampler.start_position.values():
@@ -129,21 +134,23 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
     _check_array(acceptance, ['acceptance_ratio', 'accepted'], expected_shape)
     # check that the temperature swaps have the expected shape
     temperature_swaps = sampler.temperature_swaps
-    assert temperature_swaps.shape == (NTEMPS, NCHAINS, ITERINT//swap_interval)
+    assert temperature_swaps.shape == (NTEMPS, NCHAINS,
+                                       (ITERINT + init_iters)//swap_interval)
     # ditto for the temperature acceptance
     temperature_acceptance = sampler.temperature_acceptance
     assert temperature_acceptance.shape == (NTEMPS-1, NCHAINS,
-                                            ITERINT//swap_interval)
+                                            (ITERINT +
+                                             init_iters)//swap_interval)
     # check the individual chains
     for ii, chain in enumerate(sampler.chains):
         # check that the length matches the number of iterations
-        assert len(chain) == ITERINT
+        assert len(chain) == ITERINT + init_iters
         # check that hasblobs is None if the model doesn't return any
         assert chain.hasblobs == bool(model.blob_params)
         # do the same for every temperature
         for kk, subchain in enumerate(chain.chains):
             # check that the length matches the number of iterations
-            assert len(subchain) == ITERINT
+            assert len(subchain) == ITERINT + init_iters
             # check that hasblobs is None if the model doesn't return any
             assert subchain.hasblobs == bool(model.blob_params)
     # check the blobs
@@ -185,7 +192,7 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None):
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_checkpointing(model_cls, nprocs, proposals=None):
+def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     """Tests that resuming from checkpoint yields the same result as if
     no checkpoint happened.
 
@@ -203,6 +210,8 @@ def test_checkpointing(model_cls, nprocs, proposals=None):
     # from a checkpoint
     sampler2 = _create_sampler(model, nprocs, nchains=NCHAINS, seed=None,
                                proposals=proposals, set_start=False)
+    if init_iters is not None:
+        sampler.run(init_iters)
     sampler.run(ITERINT)
     # checkpoint to an h5py file in memory
     fp = h5py.File('test.hdf', 'w', driver='core', backing_store=False)
@@ -226,7 +235,7 @@ def test_checkpointing(model_cls, nprocs, proposals=None):
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
-def test_seed(model_cls, nprocs, proposals=None):
+def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     """Tests that running with the same seed yields the same results,
     while running with a different seed yields different results.
     """
@@ -246,6 +255,11 @@ def test_seed(model_cls, nprocs, proposals=None):
     diff_seed.start_position = sampler.start_position
     # not passing a seed should result in a different seed; check that
     assert sampler.seed != diff_seed.seed
+    if init_iters is not None:
+        sampler.run(init_iters)
+        same_seed.run(init_iters)
+        diff_seed.run(init_iters)
+
     sampler.run(ITERINT)
     same_seed.run(ITERINT)
     diff_seed.run(ITERINT)
@@ -270,7 +284,8 @@ def test_seed(model_cls, nprocs, proposals=None):
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
 @pytest.mark.parametrize('swap_interval', [1, 3])
-def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
+def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None,
+                      init_iters=None):
     """Tests that clearing memory and running yields the same result as if
     the memory had not been cleared.
     """
@@ -282,6 +297,12 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
                                proposals=proposals, set_start=False)
     sampler2.start_position = sampler.start_position
     # run both for a few iterations
+    if init_iters is not None:
+        sampler.run(init_iters)
+        sampler2.run(init_iters)
+    else:
+        init_iters = 0
+
     sampler.run(ITERINT)
     sampler2.run(ITERINT)
     # clear one, but don't clear the other
@@ -291,11 +312,11 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
     sampler2.run(ITERINT)
     # check that the number of recorded iterations matches how long we
     # actually ran for
-    assert sampler.niterations == 2*ITERINT
-    assert sampler2.niterations == 2*ITERINT
+    assert sampler.niterations == 2 * ITERINT + init_iters
+    assert sampler2.niterations == 2 * ITERINT + init_iters
     # but that the lengths of the stored arrays differ
     expected_shape = (NTEMPS, NCHAINS, ITERINT)
-    expected_shape2 = (NTEMPS, NCHAINS, 2*ITERINT)
+    expected_shape2 = (NTEMPS, NCHAINS, 2 * ITERINT + init_iters)
     _check_array(sampler.positions, model.params, expected_shape)
     _check_array(sampler2.positions, model.params, expected_shape2)
     _check_array(sampler.stats, ['logl', 'logp'], expected_shape)
@@ -312,14 +333,16 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None):
     assert temperature_swaps.shape == (NTEMPS, NCHAINS, ITERINT//swap_interval)
     temperature_swaps = sampler2.temperature_swaps
     assert temperature_swaps.shape == (NTEMPS, NCHAINS,
-                                       (2*ITERINT)//swap_interval)
+                                       (2 * ITERINT
+                                        + init_iters)//swap_interval)
     # ditto for the temperature acceptance
     temperature_acceptance = sampler.temperature_acceptance
     assert temperature_acceptance.shape == (NTEMPS-1, NCHAINS,
                                             ITERINT//swap_interval)
     temperature_acceptance = sampler2.temperature_acceptance
     assert temperature_acceptance.shape == (NTEMPS-1, NCHAINS,
-                                            (2*ITERINT)//swap_interval)
+                                            (2 * ITERINT
+                                             + init_iters)//swap_interval)
     # they should be in the same place
     _compare_dict_array(sampler.current_positions, sampler2.current_positions)
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
