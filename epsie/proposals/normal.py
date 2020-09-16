@@ -795,5 +795,7 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveNormal, self).__init__(parameters)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal, componentwise, adaptation_duration,
-                              start_iteration, target_rate, **kwargs)
+        self.setup_adaptation(diagonal=diagonal, componentwise=componentwise,
+                              adaptation_duration=adaptation_duration,
+                              start_iteration=start_iteration,
+                              target_rate=target_rate)
