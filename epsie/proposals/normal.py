@@ -50,9 +50,11 @@ class Normal(BaseProposal):
     name = 'normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None):
+    def __init__(self, parameters, cov=None, jump_interval=1,
+                 fast_jump_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
+        self.set_jump_interval(jump_interval, fast_jump_duration)
         self._isdiagonal = False
         self._cov = None
         self._std = None
@@ -159,7 +161,7 @@ class Normal(BaseProposal):
     def set_state(self, state):
         self.random_state = state['random_state']
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         # the normal RVS is much faster than the multivariate one, so use it
         # if we can
         if self.isdiagonal:

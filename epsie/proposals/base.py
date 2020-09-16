@@ -174,6 +174,9 @@ class BaseProposal(BaseRandom):
     """
     name = None
     _nsteps = None
+    _jump_interval = None
+    _burnin_duration = None
+    _fast_jump_duration = None
 
     @property
     def nsteps(self):
@@ -188,6 +191,37 @@ class BaseProposal(BaseRandom):
     def nsteps(self, nsteps):
         """Sets the new number of steps done with a proposal"""
         self._nsteps = nsteps
+
+    @property
+    def jump_interval(self):
+        """Returns the jump interval for a proposal"""
+        return self._jump_interval
+
+    @property
+    def fast_jump_duration(self):
+        """Returns the number of steps after which no more fast jumps are
+        performed"""
+        return self._fast_jump_duration
+
+    def set_jump_interval(self, jump_interval, duration=None):
+        """Sets the jump interval and the duration"""
+        if not jump_interval >= 1:
+            raise ValueError("``jump_interval`` must be >= 1")
+        self._jump_interval = int(jump_interval)
+
+        if self._jump_interval == 1:
+            self._fast_jump_duration = numpy.infty
+        else:
+            if duration is None:
+                try:
+                    self._fast_jump_duration = self.adaptation_duration
+                except AttributeError:
+                    raise ValueError("For {} must provide "
+                                     "``fast_jump_duration`` if jump interval "
+                                     "is not 1".format(self.name))
+            else:
+                self._fast_jump_duration = int(duration)
+
 
     # Py3XX: uncomment the next two lines
     # @property
@@ -209,8 +243,19 @@ class BaseProposal(BaseRandom):
         """
         pass
 
-    @abstractmethod
     def jump(self, fromx):
+        """
+
+        """
+        if self.nsteps < self.fast_jump_duration:
+            if self.nsteps % self.jump_interval == 0:
+                return self._jump(fromx)
+            else:
+                return fromx
+        return self._jump(fromx)
+
+    @abstractmethod
+    def _jump(self, fromx):
         """This should provide random samples from the proposal distribution.
 
         Samples should be returned as a dictionary mapping parameters to
