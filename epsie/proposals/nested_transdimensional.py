@@ -64,6 +64,7 @@ class NestedTransdimensional(BaseProposal):
         # store the birth distributions
         self.setup_births(birth_distributions)
         self._index = self.model_proposal.parameters[0]
+        self.set_jump_interval(1)
 
     @property
     def proposals(self):
