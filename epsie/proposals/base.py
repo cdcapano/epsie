@@ -238,13 +238,10 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` either calls the ``_jump`` method to provide a
         random sample or returns ``fromx``.
         """
-        if self.jump_interval == 1:
+        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
             return self._jump(fromx)
-        if self.nsteps < self.fast_jump_duration:
-            if self._nsteps % self.jump_interval == 0:
-                return self._jump(fromx)
-            else:
-                return fromx
+        if self._nsteps % self.jump_interval == 0:
+            return fromx
         return self._jump(fromx)
 
     @abstractmethod
@@ -261,13 +258,10 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` either calls the ``_logpdf`` method or returns 0.0
         as the jump from ``givenx`` to ``xi`` was fully determinate.
         """
-        if self.jump_interval == 1:
+        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
             return self._logpdf(xi, givenx)
-        if self.nsteps < self.fast_jump_duration:
-            if self._nsteps % self.jump_interval == 0:
-                return self._logpdf(xi, givenx)
-            else:
-                return 0.0
+        if self._nsteps % self.jump_interval == 0:
+            return 0.0
         return self._logpdf(xi, givenx)
 
     @abstractmethod
@@ -314,12 +308,11 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` calls the ``_update`` method if the proposal
         distribution was used to sample a new position.
         """
-        self._nsteps += 1  # self.nsteps -> self._nsteps // self.jump_interval
-        if self.jump_interval == 1:
-                self._update(chain)
-        elif self.nsteps < self.fast_jump_duration:
-            if self._nsteps % self.jump_interval == 0:
-                self._update(chain)
+        self._nsteps += 1  # self.nsteps is self._nsteps // self.jump_interval
+        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
+            self._update(chain)
+        elif self._nsteps % self.jump_interval == 0:
+            self._update(chain)
         else:
             self._update(chain)
 
