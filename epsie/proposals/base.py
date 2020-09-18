@@ -27,6 +27,9 @@ from scipy import stats
 
 import epsie
 
+import warnings
+warnings.filterwarnings("ignore", "Generator", FutureWarning)
+
 
 @add_metaclass(ABCMeta)
 class BaseRandom(object):
@@ -173,7 +176,7 @@ class BaseProposal(BaseRandom):
     nsteps
     """
     name = None
-    _nsteps = None
+    _nsteps = 1
     _jump_interval = None
     _burnin_duration = None
     _fast_jump_duration = None
@@ -183,14 +186,7 @@ class BaseProposal(BaseRandom):
         """Returns number of update iterations with this proposal. While
         for a standard adaptive MCMC this will match the length of the chain
         for a transdimensional proposal it will differ."""
-        if self._nsteps is None:
-            self._nsteps = 1  # not 0 because this gets updated after the move
-        return self._nsteps
-
-    @nsteps.setter
-    def nsteps(self, nsteps):
-        """Sets the new number of steps done with a proposal"""
-        self._nsteps = nsteps
+        return self._nsteps // self.jump_interval
 
     @property
     def jump_interval(self):
@@ -209,19 +205,16 @@ class BaseProposal(BaseRandom):
             raise ValueError("``jump_interval`` must be >= 1")
         self._jump_interval = int(jump_interval)
 
-        if self._jump_interval == 1:
-            self._fast_jump_duration = numpy.infty
-        else:
-            if duration is None:
+        if self.jump_interval != 1:
+            if duration is not None:
+                self._fast_jump_duration = int(duration)
+            else:
                 try:
                     self._fast_jump_duration = self.adaptation_duration
                 except AttributeError:
                     raise ValueError("For {} must provide "
                                      "``fast_jump_duration`` if jump interval "
                                      "is not 1".format(self.name))
-            else:
-                self._fast_jump_duration = int(duration)
-
 
     # Py3XX: uncomment the next two lines
     # @property
@@ -244,11 +237,14 @@ class BaseProposal(BaseRandom):
         pass
 
     def jump(self, fromx):
+        """Depending on the current number of chain iterations and the
+        ``jump_interval`` either calls the ``_jump`` method to provide a
+        random sample or returns ``fromx``.
         """
-
-        """
+        if self.jump_interval == 1:
+            return self._jump(fromx)
         if self.nsteps < self.fast_jump_duration:
-            if self.nsteps % self.jump_interval == 0:
+            if self._nsteps % self.jump_interval == 0:
                 return self._jump(fromx)
             else:
                 return fromx
@@ -263,8 +259,22 @@ class BaseProposal(BaseRandom):
         """
         pass
 
-    @abstractmethod
     def logpdf(self, xi, givenx):
+        """Depending on the current number of chain iterations and the
+        ``jump_interval`` either calls the ``_logpdf`` method or returns 0.0
+        as the jump from ``givenx`` to ``xi`` was fully determinate.
+        """
+        if self.jump_interval == 1:
+            return self._logpdf(xi, givenx)
+        if self.nsteps < self.fast_jump_duration:
+            if self._nsteps % self.jump_interval == 0:
+                return self._logpdf(xi, givenx)
+            else:
+                return 0.0
+        return self._logpdf(xi, givenx)
+
+    @abstractmethod
+    def _logpdf(self, xi, givenx):
         """The log pdf of the proposal distribution at a point.
 
         Parameters
@@ -303,6 +313,19 @@ class BaseProposal(BaseRandom):
         return numpy.exp(self.logpdf(xi, givenx))
 
     def update(self, chain):
+        """Depending on the current number of chain iterations and the
+        ``jump_interval`` calls the ``_update`` method if the proposal
+        distribution was used to sample a new position.
+        """
+        self._nsteps += 1  # self.nsteps -> self._nsteps // self.jump_interval
+        if self.jump_interval == 1:
+            return self._update(chain)
+        elif self.nsteps < self.fast_jump_duration:
+            if self._nsteps % self.jump_interval == 0:
+                return self._update(chain)
+        self._update(chain)
+
+    def _update(self, chain):
         """Update the state of the proposal distribution after a jump.
 
         This method may optionally be implemented by a proposal. It is called
