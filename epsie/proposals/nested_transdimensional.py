@@ -119,7 +119,7 @@ class NestedTransdimensional(BaseProposal):
     def symmetric(self):
         return self._symmetric
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         lp = 0.0
         # logpdf on the model jump
         lp += self.model_proposal.logpdf({self._index: xi[self._index]},
@@ -141,7 +141,7 @@ class NestedTransdimensional(BaseProposal):
                               {p: givenx[p] for p in prop.parameters})
         return lp
 
-    def update(self, chain):
+    def _update(self, chain):
         # check that proposal has been stepped inside at least twice in a row
         if chain.iteration > 1:
             for prop in self.proposals:
@@ -157,7 +157,7 @@ class NestedTransdimensional(BaseProposal):
                 if condition1 and condition2:
                     prop.update(chain)
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         current_state = fromx['_state']
         out = fromx.copy()
         out.update(self.model_proposal.jump({self._index: fromx[self._index]}))

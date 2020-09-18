@@ -209,12 +209,9 @@ class BaseProposal(BaseRandom):
             if duration is not None:
                 self._fast_jump_duration = int(duration)
             else:
-                try:
-                    self._fast_jump_duration = self.adaptation_duration
-                except AttributeError:
-                    raise ValueError("For {} must provide "
-                                     "``fast_jump_duration`` if jump interval "
-                                     "is not 1".format(self.name))
+                raise ValueError("For '{}' must provide "
+                                 "``fast_jump_duration`` if jump interval "
+                                 "is not 1".format(self.name))
 
     # Py3XX: uncomment the next two lines
     # @property
@@ -319,11 +316,12 @@ class BaseProposal(BaseRandom):
         """
         self._nsteps += 1  # self.nsteps -> self._nsteps // self.jump_interval
         if self.jump_interval == 1:
-            return self._update(chain)
+                self._update(chain)
         elif self.nsteps < self.fast_jump_duration:
             if self._nsteps % self.jump_interval == 0:
-                return self._update(chain)
-        self._update(chain)
+                self._update(chain)
+        else:
+            self._update(chain)
 
     def _update(self, chain):
         """Update the state of the proposal distribution after a jump.

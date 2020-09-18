@@ -41,14 +41,35 @@ class Eigenvector(BaseProposal):
     shuffle_rate : float (optional)
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
+    jump_interval : int, optional
+        The update interval for the proposal. For example setting
+        ``jump_interval`` = 5 means this proposals attempts to jump only every
+        5th iteration of the chain. ``jump_interval`` length is modified in
+        this way only during the burn-in phase set by ``fast_jump_duration``.
+        For adaptive proposals ``fast_jump_duration`` is set to be the
+        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
+        is proposed at each iteration of the chain.
+
+        This ``fast_jump_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
+        and 500 steps with the slowest proposal (for which assumed
+        ``jump_interval`` = 1).
+    fast_jump_duration : int, optional
+        Sets the number of steps during which modified ``jump_interval`` is
+        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        required parameter for non-adaptive proposals. See ``jump_interval``
+        description for more details.
     """
     name = 'eigenvector'
     symmetric = True
 
-    def __init__(self, parameters, stability_duration, shuffle_rate=0.33):
+    def __init__(self, parameters, stability_duration, shuffle_rate=0.33,
+                 jump_interval=1, fast_jump_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
+        self.set_jump_interval(jump_interval, fast_jump_duration)
 
         self._cov = None
         self._mu = None
@@ -57,7 +78,8 @@ class Eigenvector(BaseProposal):
         self._jump_std = None
 
         self.initial_prop = ATAdaptiveNormal(
-            self.parameters, adaptation_duration=stability_duration)
+            self.parameters, adaptation_duration=stability_duration,
+            jump_interval=jump_interval)
         self.initial_prop.bit_generator = self.bit_generator
         self.stability_duration = stability_duration
 
@@ -77,7 +99,7 @@ class Eigenvector(BaseProposal):
         if self._cov is not None:
             self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         if self.nsteps <= self.stability_duration:
             return self.initial_prop.jump(fromx)
         else:
@@ -94,7 +116,7 @@ class Eigenvector(BaseProposal):
                    for i, p in enumerate(self.parameters)}
             return out
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         if self.nsteps <= self.stability_duration:
             return self.initial_prop.logpdf(xi, givenx)
         else:
@@ -132,10 +154,9 @@ class Eigenvector(BaseProposal):
             if self.nsteps == self.stability_duration:
                 self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
 
-    def update(self, chain):
+    def _update(self, chain):
         if self.nsteps <= self.stability_duration:
             self._stability_update(chain)
-        self.nsteps += 1
 
 
 @add_metaclass(ABCMeta)
@@ -206,7 +227,7 @@ class AdaptiveEigenvectorSupport(object):
                              - self.stability_duration)**(-0.6)
         self._adaptation_duration = adaptation_duration
 
-    def update(self, chain):
+    def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
@@ -224,7 +245,6 @@ class AdaptiveEigenvectorSupport(object):
                                       - self.target_rate)
             # Rescale the eigenvalues
             self._eigvals *= numpy.exp(self._log_lambda)
-        self.nsteps += 1
 
     @property
     def state(self):
@@ -272,6 +292,20 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
     shuffle_rate : float (optional)
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
+    jump_interval : int, optional
+        The update interval for the proposal. For example setting
+        ``jump_interval`` = 5 means this proposals attempts to jump only every
+        5th iteration of the chain. ``jump_interval`` length is modified in
+        this way only during the burn-in phase set by ``fast_jump_duration``.
+        For adaptive proposals ``fast_jump_duration`` is set to be the
+        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
+        is proposed at each iteration of the chain.
+
+        This ``fast_jump_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
+        and 500 steps with the slowest proposal (for which assumed
+        ``jump_interval`` = 1).
     \**kwargs:
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -281,10 +315,11 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
     symmetric = True
 
     def __init__(self, parameters, stability_duration, adaptation_duration,
-                 target_rate=0.234, shuffle_rate=0.33, **kwargs):
+                 target_rate=0.234, shuffle_rate=0.33, jump_interval=1,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveEigenvector, self).__init__(parameters,
-                                                  stability_duration,
-                                                  shuffle_rate)
+        super(AdaptiveEigenvector, self).__init__(
+              parameters, stability_duration, shuffle_rate, jump_interval,
+              fast_jump_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, target_rate, **kwargs)

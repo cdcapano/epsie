@@ -49,12 +49,35 @@ class Angular(Normal):
         ``ndim`` = the number of parameters given. If 2D array is given, the
         off-diagonal terms must be zero. Default is 1 sq. radian for all
         parameters.
+    jump_interval : int, optional
+        The update interval for the proposal. For example setting
+        ``jump_interval`` = 5 means this proposals attempts to jump only every
+        5th iteration of the chain. ``jump_interval`` length is modified in
+        this way only during the burn-in phase set by ``fast_jump_duration``.
+        For adaptive proposals ``fast_jump_duration`` is set to be the
+        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
+        is proposed at each iteration of the chain.
+
+        This ``fast_jump_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
+        and 500 steps with the slowest proposal (for which assumed
+        ``jump_interval`` = 1).
+    fast_jump_duration : int, optional
+        Sets the number of steps during which modified ``jump_interval`` is
+        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        required parameter for non-adaptive proposals. See ``jump_interval``
+        description for more details.
+
     """
     name = 'angular'
     symmetric = True
 
-    def __init__(self, parameters, cov=None):
-        super(Angular, self).__init__(parameters, cov=cov)
+    def __init__(self, parameters, cov=None, jump_interval=1,
+                 fast_jump_duration=None):
+        super(Angular, self).__init__(parameters, cov=cov,
+                                      jump_interval=jump_interval,
+                                      fast_jump_duration=fast_jump_duration)
         # _halfwidth is half the width of the interval, in factors of pi
         self._halfwidth = 1.
         self._factor = numpy.pi
@@ -84,7 +107,7 @@ class Angular(Normal):
         """
         return value % (2*self._halfwidth)
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         # we'll do something similar as the bounded normal here: draw points
         # using a bounded normal centered on 0 with bounds at -pi and pi.
         # we'll just use rejection sampling for this
@@ -102,7 +125,7 @@ class Angular(Normal):
             to_x[p] = newpt * self._factor
         return to_x
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         # convert to arrays
         xi = numpy.array([xi[p]*self._invfactor for p in self.parameters])
         givenx = numpy.array([givenx[p]*self._invfactor
@@ -142,6 +165,20 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
     adaptation_duration : int
         The number of iterations over which to apply the adaptation. No more
         adaptation will be done once a chain exceeds this value.
+    jump_interval : int, optional
+        The update interval for the proposal. For example setting
+        ``jump_interval`` = 5 means this proposals attempts to jump only every
+        5th iteration of the chain. ``jump_interval`` length is modified in
+        this way only during the burn-in phase set by ``fast_jump_duration``.
+        For adaptive proposals ``fast_jump_duration`` is set to be the
+        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
+        is proposed at each iteration of the chain.
+
+        This ``fast_jump_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
+        and 500 steps with the slowest proposal (for which assumed
+        ``jump_interval`` = 1).
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -150,10 +187,12 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
     name = 'adaptive_angular'
     symmetric = True
 
-    def __init__(self, parameters, adaptation_duration,
+    def __init__(self, parameters, adaptation_duration, jump_interval=1,
                  **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveAngular, self).__init__(parameters)
+        super(AdaptiveAngular, self).__init__(
+            parameters, jump_interval=jump_interval,
+            fast_jump_duration=adaptation_duration)
         # all parameters have the same (cyclic) boundaries
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
@@ -175,6 +214,25 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
+    jump_interval : int, optional
+        The update interval for the proposal. For example setting
+        ``jump_interval`` = 5 means this proposals attempts to jump only every
+        5th iteration of the chain. ``jump_interval`` length is modified in
+        this way only during the burn-in phase set by ``fast_jump_duration``.
+        For adaptive proposals ``fast_jump_duration`` is set to be the
+        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
+        is proposed at each iteration of the chain.
+
+        This ``fast_jump_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
+        and 500 steps with the slowest proposal (for which assumed
+        ``jump_interval`` = 1).
+    fast_jump_duration : int, optional
+        Sets the number of steps during which modified ``jump_interval`` is
+        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        required parameter for non-adaptive proposals. See ``jump_interval``
+        description for more details.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -183,9 +241,12 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
     name = 'ss_adaptive_angular'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, **kwargs):
+    def __init__(self, parameters, cov=None, jump_interval=1,
+                 fast_jump_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveAngular, self).__init__(parameters, cov=cov)
+        super(SSAdaptiveAngular, self).__init__(
+            parameters, cov=cov, jump_interval=jump_interval,
+            fast_jump_duration=fast_jump_duration)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*2*pi)
@@ -210,6 +271,20 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
         The iteration index when adaptation phase begins.
     target_rate: float (optional)
         Target acceptance ratio. By default 0.234
+    jump_interval : int, optional
+        The update interval for the proposal. For example setting
+        ``jump_interval`` = 5 means this proposals attempts to jump only every
+        5th iteration of the chain. ``jump_interval`` length is modified in
+        this way only during the burn-in phase set by ``fast_jump_duration``.
+        For adaptive proposals ``fast_jump_duration`` is set to be the
+        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
+        is proposed at each iteration of the chain.
+
+        This ``fast_jump_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
+        and 500 steps with the slowest proposal (for which assumed
+        ``jump_interval`` = 1).
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -220,9 +295,11 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
 
     def __init__(self, parameters, componentwise=False,
                  adaptation_duration=None, start_iteration=1,
-                 target_rate=None, **kwargs):
+                 target_rate=None, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveAngular, self).__init__(parameters)
+        super(ATAdaptiveAngular, self).__init__(
+            parameters, jump_interval=jump_interval,
+            fast_jump_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True, componentwise=componentwise,
                               adaptation_duration=adaptation_duration,
