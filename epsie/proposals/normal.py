@@ -511,7 +511,7 @@ class SSAdaptiveSupport(object):
         This prepares the proposal for the next jump.
         """
         self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = self.nsteps
+        n_iter = self.nsteps + 1
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)

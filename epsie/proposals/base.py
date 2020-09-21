@@ -176,7 +176,7 @@ class BaseProposal(BaseRandom):
     nsteps
     """
     name = None
-    _nsteps = 1
+    _nsteps = 0
     _jump_interval = None
     _burnin_duration = None
     _fast_jump_duration = None
@@ -240,7 +240,7 @@ class BaseProposal(BaseRandom):
         """
         if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
             return self._jump(fromx)
-        if self._nsteps % self.jump_interval == 0:
+        if self._nsteps % self.jump_interval != 0:
             return fromx
         return self._jump(fromx)
 
@@ -260,7 +260,7 @@ class BaseProposal(BaseRandom):
         """
         if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
             return self._logpdf(xi, givenx)
-        if self._nsteps % self.jump_interval == 0:
+        if self._nsteps % self.jump_interval != 0:
             return 0.0
         return self._logpdf(xi, givenx)
 
@@ -308,13 +308,14 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` calls the ``_update`` method if the proposal
         distribution was used to sample a new position.
         """
-        self._nsteps += 1  # self.nsteps is self._nsteps // self.jump_interval
         if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
             self._update(chain)
-        elif self._nsteps % self.jump_interval == 0:
+        elif self._nsteps % self.jump_interval != 0:
             self._update(chain)
         else:
             self._update(chain)
+
+        self._nsteps += 1  # self.nsteps is self._nsteps // self.jump_interval
 
     def _update(self, chain):
         """Update the state of the proposal distribution after a jump.
