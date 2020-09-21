@@ -233,14 +233,22 @@ class BaseProposal(BaseRandom):
         """
         pass
 
+    def _do_jump(self):
+        """Decides whether to propose a unique jump with this proposal
+        or whether to copy the last position.
+        """
+        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
+            return True
+        if self._nsteps % self.jump_interval != 0:
+            return False
+        return True
+
     def jump(self, fromx):
         """Depending on the current number of chain iterations and the
         ``jump_interval`` either calls the ``_jump`` method to provide a
         random sample or returns ``fromx``.
         """
-        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
-            return self._jump(fromx)
-        if self._nsteps % self.jump_interval != 0:
+        if not self._do_jump():
             return fromx
         return self._jump(fromx)
 
@@ -258,9 +266,7 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` either calls the ``_logpdf`` method or returns 0.0
         as the jump from ``givenx`` to ``xi`` was fully determinate.
         """
-        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
-            return self._logpdf(xi, givenx)
-        if self._nsteps % self.jump_interval != 0:
+        if not self._do_jump():
             return 0.0
         return self._logpdf(xi, givenx)
 
@@ -308,11 +314,7 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` calls the ``_update`` method if the proposal
         distribution was used to sample a new position.
         """
-        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
-            self._update(chain)
-        elif self._nsteps % self.jump_interval != 0:
-            self._update(chain)
-        else:
+        if self._do_jump():
             self._update(chain)
 
         self._nsteps += 1  # self.nsteps is self._nsteps // self.jump_interval
