@@ -14,25 +14,20 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Performs unit tests on the Normal proposal."""
+"""Performs unit tests on the fast parameters support."""
 
 from __future__ import (absolute_import, division)
 
-import itertools
 import pytest
 import numpy
-from scipy import stats
 
-import sys
-sys.path.append('../')
-
-from epsie.proposals import (Normal, Eigenvector)
+from epsie.proposals import (Normal, Eigenvector, BoundedNormal, Angular)
 
 from test_ptsampler import _create_sampler
 
 from _utils import Model
 
-STABILITY_DURATION = 64
+STABILITY_DURATION = 32
 DURATION = 16
 
 
@@ -45,9 +40,19 @@ def _setup_proposal(proposal_name, jump_interval,
         return Normal(params, jump_interval=jump_interval,
                       fast_jump_duration=fast_jump_duration)
     elif proposal_name == 'eigenvector':
-        return -1
+        return Eigenvector(params, stability_duration=STABILITY_DURATION,
+                           jump_interval=jump_interval,
+                           fast_jump_duration=fast_jump_duration)
+    elif proposal_name == 'bounded_normal':
+        bounds = {'x0': (-20, 20), 'x1': (-40, 40)}
+        return BoundedNormal(params, bounds, jump_interval=jump_interval,
+                             fast_jump_duration=fast_jump_duration)
+    elif proposal_name == 'angular':
+        return Angular(params, jump_interval=jump_interval,
+                       fast_jump_duration=fast_jump_duration)
     else:
         return -1
+
 
 def _extract_positions(chains, kind='current'):
     out = numpy.zeros((len(chains), len(chains[0].chains), 2))
@@ -61,7 +66,8 @@ def _extract_positions(chains, kind='current'):
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('proposal_name', ['normal'])
+@pytest.mark.parametrize('proposal_name', ['normal', 'eigenvector',
+                                           'bounded_normal', 'angular'])
 @pytest.mark.parametrize('jump_interval', [1, 2, 5])
 def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
     model = Model()
@@ -71,16 +77,7 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
     # Run the sampler for some number of initial iterations
     sampler.run(STABILITY_DURATION * jump_interval)
 
-    # Run the sampler for a single iteration at a time and compare proposed
-    # positions to the current position
-#    for chain in sampler.chains[:1]:
-#        for subchain in chain.chains:
-#            for prop in subchain.proposal_dist.proposals:
-#                print(sampler.niterations, prop._nsteps, prop.nsteps, prop.jump_interval,
-#                      prop.fast_jump_duration, sampler.niterations)
-
     for i in range(DURATION * jump_interval):
-#    for i in range(5):
         current_pos = _extract_positions(sampler.chains, 'current')
         sampler.run(1)
         proposed_pos = _extract_positions(sampler.chains, 'proposed')
@@ -89,17 +86,8 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
         if (sampler.niterations - 1) % jump_interval == 0:
             assert numpy.all(current_pos[:, :, 0] != proposed_pos[:, :, 0])
         else:
-#             print(sampler.niterations % jump_interval)
-#             print('Current')
-#             print(current_pos[:, :, 0])
-#             print('Proposed')
-#             print(proposed_pos[:, :, 0])
-#            assert numpy.all(current_pos[:, :, 0] == proposed_pos[:, :, 0])
-#            print(sampler.niterations, jump_interval)
-#            pass
             numpy.testing.assert_equal(current_pos[:, :, 0],
                                        proposed_pos[:, :, 0])
-
         # check that x1 proposed position is always different
         assert numpy.all(current_pos[:, :, 1] != proposed_pos[:, :, 1])
 
@@ -111,7 +99,3 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
         proposed_pos = _extract_positions(sampler.chains, 'proposed')
 
         assert numpy.all(current_pos != proposed_pos)
-
-
-#test_jump_proposal_interval(1, 'eigenvector', 3)
-

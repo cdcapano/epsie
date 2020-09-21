@@ -361,7 +361,7 @@ class AdaptiveSupport(object):
 
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_iteration
+        dk = self.nsteps - self.start_iteration + 1
         if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
@@ -760,7 +760,7 @@ class ATAdaptiveSupport(object):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_iteration
+        dk = self.nsteps - self.start_iteration + 1
         if 1 < dk < self.adaptation_duration:
             dk = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
