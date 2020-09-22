@@ -258,7 +258,7 @@ class AdaptiveSupport(object):
     target_rate = None
 
     def setup_adaptation(self, prior_widths, adaptation_duration,
-                         adaptation_decay=None, start_iteration=1,
+                         adaptation_decay=None, start_step=1,
                          target_rate=0.234,
                          initial_std=None):
         r"""Sets up the adaptation parameters.
@@ -361,7 +361,7 @@ class AdaptiveSupport(object):
 
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_iteration + 1
+        dk = self.nsteps - self.start_step + 1
         if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
