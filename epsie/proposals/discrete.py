@@ -72,19 +72,19 @@ class NormalDiscrete(Normal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     """
@@ -93,10 +93,10 @@ class NormalDiscrete(Normal):
     _successive = None
 
     def __init__(self, parameters, cov=None, successive=None, jump_interval=1,
-                 fast_jump_duration=None):
+                 jump_interval_duration=None):
         super(NormalDiscrete, self).__init__(
             parameters, cov=cov, jump_interval=jump_interval,
-            fast_jump_duration=fast_jump_duration)
+            jump_interval_duration=jump_interval_duration)
         # this only works for diagonal pdfs
         if not self.isdiagonal:
             raise ValueError("Only independent variables are supported "
@@ -224,19 +224,19 @@ class BoundedDiscrete(BoundedNormal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     """
@@ -245,10 +245,10 @@ class BoundedDiscrete(BoundedNormal):
     _successive = None
 
     def __init__(self, parameters, boundaries, cov=None, successive=None,
-                 jump_interval=1, fast_jump_duration=None):
+                 jump_interval=1, jump_interval_duration=None):
         super(BoundedDiscrete, self).__init__(
             parameters, boundaries, cov=cov, jump_interval=jump_interval,
-            fast_jump_duration=fast_jump_duration)
+            jump_interval_duration=jump_interval_duration)
         self.successive = successive
         # ensure boundaries are integers
         self.boundaries = {p: (int(numpy.floor(b.lower)),
@@ -394,19 +394,19 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     \**kwargs :
@@ -418,11 +418,11 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
     symmetric = True
 
     def __init__(self, parameters, cov=None, successive=None, jump_interval=1,
-                 fast_jump_duration=None, **kwargs):
+                 jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveNormalDiscrete, self).__init__(
             parameters, cov=cov, successive=successive,
-            jump_interval=jump_interval, fast_jump_duration=fast_jump_duration)
+            jump_interval=jump_interval, jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -450,19 +450,19 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     \**kwargs :
@@ -474,11 +474,11 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
     symmetric = False
 
     def __init__(self, parameters, boundaries,  cov=None, successive=None,
-                 jump_interval=1, fast_jump_duration=None, **kwargs):
+                 jump_interval=1, jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries, cov=cov, successive=successive,
-            jump_interval=jump_interval, fast_jump_duration=fast_jump_duration)
+            jump_interval=jump_interval, jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*abs(bounds)
@@ -508,13 +508,13 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -531,7 +531,7 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormalDiscrete, self).__init__(
             parameters, successive=successive, jump_interval=jump_interval,
-            fast_jump_duration=adaptation_duration)
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
@@ -556,13 +556,13 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -579,7 +579,7 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries, successive=successive, jump_interval=1,
-            fast_jump_duration=adaptation_duration)
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
 

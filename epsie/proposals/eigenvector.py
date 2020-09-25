@@ -45,19 +45,19 @@ class Eigenvector(BaseProposal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     """
@@ -65,11 +65,11 @@ class Eigenvector(BaseProposal):
     symmetric = True
 
     def __init__(self, parameters, stability_duration, shuffle_rate=0.33,
-                 jump_interval=1, fast_jump_duration=None):
+                 jump_interval=1, jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
-        self.set_jump_interval(jump_interval, fast_jump_duration)
+        self.set_jump_interval(jump_interval, jump_interval_duration)
 
         self._cov = None
         self._mu = None
@@ -296,13 +296,13 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -320,6 +320,6 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveEigenvector, self).__init__(
               parameters, stability_duration, shuffle_rate, jump_interval,
-              fast_jump_duration=adaptation_duration)
+              jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, target_rate, **kwargs)

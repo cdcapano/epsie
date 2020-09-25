@@ -53,19 +53,19 @@ class Angular(Normal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
 
@@ -74,10 +74,10 @@ class Angular(Normal):
     symmetric = True
 
     def __init__(self, parameters, cov=None, jump_interval=1,
-                 fast_jump_duration=None):
+                 jump_interval_duration=None):
         super(Angular, self).__init__(parameters, cov=cov,
                                       jump_interval=jump_interval,
-                                      fast_jump_duration=fast_jump_duration)
+                                      jump_interval_duration=jump_interval_duration)
         # _halfwidth is half the width of the interval, in factors of pi
         self._halfwidth = 1.
         self._factor = numpy.pi
@@ -169,13 +169,13 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -192,7 +192,7 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveAngular, self).__init__(
             parameters, jump_interval=jump_interval,
-            fast_jump_duration=adaptation_duration)
+            jump_interval_duration=adaptation_duration)
         # all parameters have the same (cyclic) boundaries
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
@@ -218,19 +218,19 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     \**kwargs :
@@ -242,11 +242,11 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
     symmetric = True
 
     def __init__(self, parameters, cov=None, jump_interval=1,
-                 fast_jump_duration=None, **kwargs):
+                 jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveAngular, self).__init__(
             parameters, cov=cov, jump_interval=jump_interval,
-            fast_jump_duration=fast_jump_duration)
+            jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*2*pi)
@@ -275,13 +275,13 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -299,7 +299,7 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveAngular, self).__init__(
             parameters, jump_interval=jump_interval,
-            fast_jump_duration=adaptation_duration)
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=True, componentwise=componentwise,
                               adaptation_duration=adaptation_duration,

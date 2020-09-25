@@ -179,7 +179,7 @@ class BaseProposal(BaseRandom):
     _nsteps = 0
     _jump_interval = None
     _burnin_duration = None
-    _fast_jump_duration = None
+    _jump_interval_duration = None
 
     @property
     def nsteps(self):
@@ -194,10 +194,10 @@ class BaseProposal(BaseRandom):
         return self._jump_interval
 
     @property
-    def fast_jump_duration(self):
+    def jump_interval_duration(self):
         """Returns the number of steps after which no more fast jumps are
         performed"""
-        return self._fast_jump_duration
+        return self._jump_interval_duration
 
     def set_jump_interval(self, jump_interval, duration=None):
         """Sets the jump interval and the duration"""
@@ -207,10 +207,10 @@ class BaseProposal(BaseRandom):
 
         if self.jump_interval != 1:
             if duration is not None:
-                self._fast_jump_duration = int(duration)
+                self._jump_interval_duration = int(duration)
             else:
                 raise ValueError("For '{}' must provide "
-                                 "``fast_jump_duration`` if jump interval "
+                                 "``jump_interval_duration`` if jump interval "
                                  "is not 1".format(self.name))
 
     # Py3XX: uncomment the next two lines
@@ -237,7 +237,7 @@ class BaseProposal(BaseRandom):
         """Decides whether to propose a unique jump with this proposal
         or whether to copy the last position.
         """
-        if self.jump_interval == 1 or self.nsteps >= self.fast_jump_duration:
+        if self.jump_interval == 1 or self.nsteps >= self.jump_interval_duration:
             return True
         if self._nsteps % self.jump_interval != 0:
             return False

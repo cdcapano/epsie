@@ -44,19 +44,19 @@ class Normal(BaseProposal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
 
@@ -71,10 +71,10 @@ class Normal(BaseProposal):
     symmetric = True
 
     def __init__(self, parameters, cov=None, jump_interval=1,
-                 fast_jump_duration=None):
+                 jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
-        self.set_jump_interval(jump_interval, fast_jump_duration)
+        self.set_jump_interval(jump_interval, jump_interval_duration)
         self._isdiagonal = False
         self._cov = None
         self._std = None
@@ -254,13 +254,12 @@ class AdaptiveSupport(object):
     _prior_widths = None
     _deltas = None
     _adaptation_duration = None
-    _start_iteration = None
+    _start_step = None
     target_rate = None
 
     def setup_adaptation(self, prior_widths, adaptation_duration,
                          adaptation_decay=None, start_step=1,
-                         target_rate=0.234,
-                         initial_std=None):
+                         target_rate=0.234, initial_std=None):
         r"""Sets up the adaptation parameters.
 
         Parameters
@@ -276,7 +275,7 @@ class AdaptiveSupport(object):
             The decay rate to use for the adaptation size (:math:`beta` in the
             equation in the notes). If not provided, will use
             :math:`1/\log_10(T)`, where :math:`T` is the adaptation duration.
-        start_iteration : int, optional
+        start_step : int, optional
             The iteration to start doing the adaptation (:math:`k_0+1` in the
             equation below). Must be greater than zero. Default is 1.
         target_rate : float, optional
@@ -296,9 +295,9 @@ class AdaptiveSupport(object):
         if adaptation_decay is None:
             adaptation_decay = 1./numpy.log10(self.adaptation_duration)
         self.adaptation_decay = adaptation_decay
-        self.start_iteration = start_iteration
-        if self.fast_jump_duration is not None:
-            self._fast_jump_duration += self.start_iteration
+        self.start_step = start_step
+        if self.jump_interval_duration is not None:
+            self._jump_interval_duration += self.start_step
         self.target_rate = target_rate
         if initial_std is None:
             initial_std = (1 - self.target_rate)*0.09*self.deltas
@@ -331,16 +330,16 @@ class AdaptiveSupport(object):
         return self._deltas
 
     @property
-    def start_iteration(self):
+    def start_step(self):
         """The iteration that the adaption begins."""
-        return self._start_iteration
+        return self._start_step
 
-    @start_iteration.setter
-    def start_iteration(self, start_iteration):
+    @start_step.setter
+    def start_step(self, start_step):
         """Sets the start iteration, making sure it is >= 1."""
-        if start_iteration < 1:
-            raise ValueError("start_iteration must be >= 1")
-        self._start_iteration = start_iteration
+        if start_step < 1:
+            raise ValueError("start_step must be >= 1")
+        self._start_step = start_step
 
     @property
     def adaptation_duration(self):
@@ -408,13 +407,13 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -431,7 +430,7 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveNormal, self).__init__(
             parameters, jump_interval=jump_interval,
-            fast_jump_duration=adaptation_duration)
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
 
@@ -566,19 +565,19 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
-    fast_jump_duration : int, optional
+    jump_interval_duration : int, optional
         Sets the number of steps during which modified ``jump_interval`` is
-        used. ``fast_jump_duration`` is ignored if ``jump_interval`` = 1 and
+        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
         required parameter for non-adaptive proposals. See ``jump_interval``
         description for more details.
     \**kwargs :
@@ -590,11 +589,11 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
     symmetric = True
 
     def __init__(self, parameters, cov=None, jump_interval=1,
-                 fast_jump_duration=None, **kwargs):
+                 jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveNormal, self).__init__(
             parameters, cov=cov, jump_interval=jump_interval,
-            fast_jump_duration=fast_jump_duration)
+            jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -636,12 +635,12 @@ class ATAdaptiveSupport(object):
     18. 10.1007/s11222-008-9110-y.
     """
     _target_rate = None
-    _start_iteration = None
+    _start_step = None
     _decay_const = None
     _adaptation_duration = None
 
     def setup_adaptation(self, diagonal=False, componentwise=False,
-                         adaptation_duration=None, start_iteration=1,
+                         adaptation_duration=None, start_step=1,
                          target_rate=None):
         r"""Sets up the adaptation parameters.
         diagonal : bool (optional)
@@ -655,19 +654,19 @@ class ATAdaptiveSupport(object):
         adaptation_duration : int (optional)
             The number of adaptation steps. By default assumes the adaptation
             never ends but decays.
-        start_iteration : int (optional)
+        start_step : int (optional)
             The iteration index when the adaptation phase begins.
         target_rate: float (optional)
             Target acceptance ratio. By default 0.234 and 0.48 for
             componentwise scaling.
         """
-        self.start_iteration = start_iteration
+        self.start_step = start_step
         self.adaptation_duration = adaptation_duration
         self._iscomponentwise = componentwise
         self._isdiagonal = diagonal
 
-        if self.fast_jump_duration is not None:
-            self._fast_jump_duration += start_iteration
+        if self.jump_interval_duration is not None:
+            self._jump_interval_duration += start_step
 
         self._mean = numpy.zeros(self.ndim)  # initial mean
         if self.isdiagonal:
@@ -680,8 +679,7 @@ class ATAdaptiveSupport(object):
             self._log_lambda = 0
         else:
             self._log_lambda = numpy.zeros(self.ndim)
-            self.target_rate = 0.48
-
+        # set target rate (componentwise target rate scales differently)
         if target_rate is None:
             if not self._iscomponentwise:
                 self.target_rate = 0.234
@@ -691,16 +689,16 @@ class ATAdaptiveSupport(object):
             self.target_rate = target_rate
 
     @property
-    def start_iteration(self):
+    def start_step(self):
         """The iteration that the adaption begins."""
-        return self._start_iteration
+        return self._start_step
 
-    @start_iteration.setter
-    def start_iteration(self, start_iteration):
+    @start_step.setter
+    def start_step(self, start_step):
         """Sets the start iteration, making sure it is >= 1."""
-        if start_iteration < 1:
-            raise ValueError("``start_iteration`` must be >= 1")
-        self._start_iteration = start_iteration
+        if start_step < 1:
+            raise ValueError("``start_step`` must be >= 1")
+        self._start_step = start_step
 
     @property
     def target_rate(self):
@@ -760,14 +758,14 @@ class ATAdaptiveSupport(object):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_iteration + 1
+        dk = self.nsteps - self.start_step + 1
         if 1 < dk < self.adaptation_duration:
             dk = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update of the global scaling
             if not self._iscomponentwise:
-                ar = min(1, chain.acceptance['acceptance_ratio'][-1])
+                ar = chain.acceptance['acceptance_ratio'][-1]
                 self._log_lambda += dk * (ar - self.target_rate)
             else:
                 self._log_lambda += self._componentwise_scaling(chain, dk)
@@ -834,7 +832,7 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
         scaling.
     adaptation_duration: int (optional)
         The iteration index when adaptation phase ends. By default never ends.
-    start_iteration: int (optional)
+    start_step: int (optional)
         The iteration index when adaptation phase begins.
     target_rate: float (optional)
         Target acceptance ratio. By default 0.234 and 0.48 for componentwise
@@ -843,13 +841,13 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
         The update interval for the proposal. For example setting
         ``jump_interval`` = 5 means this proposals attempts to jump only every
         5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``fast_jump_duration``.
-        For adaptive proposals ``fast_jump_duration`` is set to be the
+        this way only during the burn-in phase set by ``jump_interval_duration``.
+        For adaptive proposals ``jump_interval_duration`` is set to be the
         ``adaptation_duration``. By default ``jump_interval`` = 1, new position
         is proposed at each iteration of the chain.
 
-        This ``fast_jump_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``fast_jump_duration`` = 500 would
+        This ``jump_interval_duration`` is by default taken to be with respect
+        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
         correspond to 2500 steps with this proposal if ``jump_interval`` = 5
         and 500 steps with the slowest proposal (for which assumed
         ``jump_interval`` = 1).
@@ -862,14 +860,14 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     symmetric = True
 
     def __init__(self, parameters, diagonal=False, componentwise=False,
-                 adaptation_duration=None, start_iteration=1,
+                 adaptation_duration=None, start_step=1,
                  target_rate=None, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveNormal, self).__init__(
             parameters, jump_interval=jump_interval,
-            fast_jump_duration=adaptation_duration)
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(diagonal=diagonal, componentwise=componentwise,
                               adaptation_duration=adaptation_duration,
-                              start_iteration=start_iteration,
+                              start_step=start_step,
                               target_rate=target_rate)
