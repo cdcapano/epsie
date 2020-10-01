@@ -18,7 +18,7 @@ from __future__ import absolute_import
 from itertools import product
 
 import numpy
-from scipy import stats
+from scipy.stats import truncnorm
 from scipy.spatial import ConvexHull
 
 from .eigenvector import (Eigenvector, AdaptiveEigenvectorSupport)
@@ -26,8 +26,35 @@ from .bounded_normal import Boundaries
 
 
 class BoundedEigenvector(Eigenvector):
-    """
-    Bounded Eigenvector
+    """Uses a  bounded eigenvector jump with a fixed scale.
+
+    This proposal calculates the eigenvectors from the covariance matrix and
+    always proposes a jump along a *single* eigenvector from a univariate
+    normal distribution. Uses a truncated normal distribution whose scale
+    corresponds to the width of the boundaries surface along the specific
+    eigenvector.
+
+    This proposal may handle one or more parameters.
+
+    Parameters
+    ----------
+    parameters : (list of) str
+        The names of the parameters to produce proposals for.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two.
+    stability_duration : int
+        Number of initial steps done with a initial proposal specified by name
+        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        evaluated (and never again) and jumps proposed along those.
+    initial_proposal : str (optional)
+        Name of the initial proposal that is called before the number of
+        proposal seps exceeds ``stability_duration''. By default se to the
+        'epsie.proposals.ATAdaptiveProposal'. Supported options
+        include: 'bounded_normal', 'at_adaptive_bounded_normal'.
+    shuffle_rate : float (optional)
+        Probability of shuffling the eigenvector jump probabilities. By
+        default 0.33.
     """
     name = 'bounded_eigenvector'
     symmetric = False
@@ -39,8 +66,8 @@ class BoundedEigenvector(Eigenvector):
     def __init__(self, parameters, boundaries, stability_duration,
                  initial_proposal='at_adaptive_bounded_normal',
                  shuffle_rate=0.33):
-        super(BoundedEigenvector, self).__init__(parameters, stability_duration,
-                                                 shuffle_rate=shuffle_rate)
+        super(BoundedEigenvector, self).__init__(
+            parameters, stability_duration, shuffle_rate=shuffle_rate)
         # set the boundaries
         self.boundaries = boundaries
         # set the initial phase settings
@@ -48,7 +75,7 @@ class BoundedEigenvector(Eigenvector):
                                   boundaries)
         # cache the boundaries for repeated calls
         self._old_hash = None
-        self._cache= {}
+        self._cache = {}
 
     @property
     def boundaries(self):
@@ -168,7 +195,6 @@ class BoundedEigenvector(Eigenvector):
     def logpdf(self, xi, givenx):
         if self._call_initial_proposal():
             return self.initial_proposal.logpdf(xi, givenx)
-
         # cache the intersects and width for repeated calls with givenx and xi
         new_hash = set((frozenset(xi[p] for p in self.parameters),
                         frozenset(givenx[p] for p in self.parameters)))
@@ -189,5 +215,5 @@ class BoundedEigenvector(Eigenvector):
 
         a = - mu / self.eigvals[self._ind]
         b = (width - mu) / self.eigvals[self._ind]
-        return stats.truncnorm.logpdf(xi, a, b, loc=mu,
-                                      scale=self.eigvals[self._ind])
+        return truncnorm.logpdf(xi, a, b, loc=mu,
+                                scale=self.eigvals[self._ind])

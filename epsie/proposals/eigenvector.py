@@ -19,7 +19,7 @@ from abc import ABCMeta
 from six import add_metaclass
 
 import numpy
-from scipy import stats
+from scipy.stats import norm
 
 from .base import (BaseProposal, BaseAdaptiveSupport)
 from .normal import (Normal, ATAdaptiveNormal)
@@ -36,10 +36,15 @@ class Eigenvector(BaseProposal):
     parameters : (list of) str
         The names of the parameters to produce proposals for.
     stability_duration : int
-        Number of steps done with a normal proposal. After this eigenvalues
-        and eigenvectors are calculated (and never again) and jumps proposed
-        along those.
-    shuffle_rate : float, optional
+        Number of initial steps done with a initial proposal specified by name
+        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        evaluated (and never again) and jumps proposed along those.
+    initial_proposal : str (optional)
+        Name of the initial proposal that is called before the number of
+        proposal seps exceeds ``stability_duration''. By default se to the
+        'epsie.proposals.ATAdaptiveProposal'. Supported options
+        include: 'normal', 'at_adaptive_proposal'
+    shuffle_rate : float (optional)
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
     jump_interval : int, optional
@@ -99,8 +104,10 @@ class Eigenvector(BaseProposal):
         elif proposal_name == 'at_adaptive_normal':
             self._initial_proposal = ATAdaptiveNormal(
                 self.parameters, adaptation_duration=duration)
+        elif proposal_name == 'bounded_normal':
+            self._initial_proposal = BoundedNormal(self.parameters, boundaries)
         elif proposal_name == 'at_adaptive_bounded_normal':
-            self._initial_proposal = ATAdaptiveNormal(
+            self._initial_proposal = ATAdaptiveBoundedNormal(
                 self.parameters, boundaries, adaptation_duration=duration)
         else:
             raise ValueError("Proposal '{}' not implemented for eigenvector"
@@ -184,8 +191,7 @@ class Eigenvector(BaseProposal):
     def _logpdf(self, xi, givenx):
         if self._call_initial_proposal:
             return self.initial_proposal.logpdf(xi, givenx)
-        return stats.norm.logpdf(self._dx, loc=0,
-                                 scale=self.eigvals[self._ind])
+        return norm.logpdf(self._dx, loc=0, scale=self.eigvals[self._ind])
 
     def _recursive_mean_cov(self, chain):
         """Recursive updates of the mean and covariance given the new data"""
@@ -255,7 +261,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
 
     def setup_adaptation(self, adaptation_duration, target_rate=0.234):
         r"""Sets up the adaptation parameters.
-        adaptation_duration : int, optional
+        adaptation_duration : int
             The number of adaptation steps.
         target_rate : float, optional
             Target acceptance rate. By default 0.234
@@ -314,14 +320,23 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
     parameters: (list of) str
         The names of the parameters.
     stability_duration : int
-        Number of steps done with a normal proposal. After this eigenvalues
-        and eigenvectors are calculated for the first time and jumps proposed
-        along those.
+        Number of initial steps done with a initial proposal specified by name
+        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        evaluated and jumps proposed along those.
     adaptation_duration: int
-        The number of proposal steps over which to apply the adaptation. No
-        more adaptation will be done once a proposal has adapted over this
-        duration.
-    target_rate: float, optional
+        The number of steps after which adaptation of the eigenvectors ends.
+        This is defined such that while the number of proposal steps :math:`N`
+        satisfies :math:`N <= \mathrm{stability_duration}` the
+        ``initial_proposal'' is called and while
+        :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
+        the eigenvectors are being adapted. Post-adaptation phase the
+        eigenvectors and eigenvalues are kept constant.
+    initial_proposal : str (optional)
+        Name of the initial proposal that is called before the number of
+        proposal seps exceeds ``stability_duration''. By default se to the
+        'epsie.proposals.ATAdaptiveProposal'. Supported options
+        include: 'normal', 'at_adaptive_normal'.
+    target_rate: float (optional)
         Target acceptance ratio. By default 0.234
     shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
