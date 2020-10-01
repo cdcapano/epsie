@@ -32,24 +32,24 @@ DURATION = 16
 
 
 def _setup_proposal(proposal_name, jump_interval,
-                    fast_jump_duration=STABILITY_DURATION+DURATION,
+                    jump_interval_duration=STABILITY_DURATION+DURATION,
                     params=None):
     if params is None:
         params = model.params
     if proposal_name == 'normal':
         return Normal(params, jump_interval=jump_interval,
-                      fast_jump_duration=fast_jump_duration)
+                      jump_interval_duration=jump_interval_duration)
     elif proposal_name == 'eigenvector':
         return Eigenvector(params, stability_duration=STABILITY_DURATION,
                            jump_interval=jump_interval,
-                           fast_jump_duration=fast_jump_duration)
+                           jump_interval_duration=jump_interval_duration)
     elif proposal_name == 'bounded_normal':
         bounds = {'x0': (-20, 20), 'x1': (-40, 40)}
         return BoundedNormal(params, bounds, jump_interval=jump_interval,
-                             fast_jump_duration=fast_jump_duration)
+                             jump_interval_duration=jump_interval_duration)
     elif proposal_name == 'angular':
         return Angular(params, jump_interval=jump_interval,
-                       fast_jump_duration=fast_jump_duration)
+                       jump_interval_duration=jump_interval_duration)
     else:
         return -1
 
