@@ -27,9 +27,6 @@ from scipy import stats
 
 import epsie
 
-import warnings
-warnings.filterwarnings("ignore", "Generator", FutureWarning)
-
 
 @add_metaclass(ABCMeta)
 class BaseRandom(object):
@@ -233,11 +230,16 @@ class BaseProposal(BaseRandom):
         """
         pass
 
-    def _do_jump(self):
+    def _call_jump(self):
         """Decides whether to propose a unique jump with this proposal
         or whether to copy the last position.
         """
-        if self.jump_interval == 1 or self.nsteps >= self.jump_interval_duration:
+        try:
+            duration = self.jump_interval_duration + self.start_step - 1
+        except AttributeError:
+            duration = self.jump_interval_duration
+
+        if self.jump_interval == 1 or self.nsteps > duration:
             return True
         if self._nsteps % self.jump_interval != 0:
             return False
@@ -248,7 +250,7 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` either calls the ``_jump`` method to provide a
         random sample or returns ``fromx``.
         """
-        if not self._do_jump():
+        if not self._call_jump():
             return fromx
         return self._jump(fromx)
 
@@ -266,7 +268,7 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` either calls the ``_logpdf`` method or returns 0.0
         as the jump from ``givenx`` to ``xi`` was fully determinate.
         """
-        if not self._do_jump():
+        if not self._call_jump():
             return 0.0
         return self._logpdf(xi, givenx)
 
@@ -314,7 +316,7 @@ class BaseProposal(BaseRandom):
         ``jump_interval`` calls the ``_update`` method if the proposal
         distribution was used to sample a new position.
         """
-        if self._do_jump():
+        if self._call_jump():
             self._update(chain)
 
         self._nsteps += 1  # self.nsteps is self._nsteps // self.jump_interval
@@ -398,5 +400,59 @@ class BaseBirth(BaseRandom):
 
         This method may optionally be implemented by a birth. It is called
         after a birth is evaluated.
+        """
+        pass
+
+@add_metaclass(ABCMeta)
+class BaseAdaptiveSupport(object):
+    """Abstract base class for all proposal classes.
+    """
+    _start_step = None
+    _adaptation_duration = None
+    _target_rate = None
+
+    @property
+    def start_step(self):
+        """The iteration that the adaption begins."""
+        return self._start_step
+
+    @start_step.setter
+    def start_step(self, start_step):
+        """Sets the start iteration, making sure it is >= 1."""
+        if start_step < 1:
+            raise ValueError("start_step must be >= 1")
+        self._start_step = start_step
+
+    @property
+    def adaptation_duration(self):
+        """The adaptation duration used."""
+        return self._adaptation_duration
+
+    @adaptation_duration.setter
+    def adaptation_duration(self, adaptation_duration):
+        """Sets the adaptation duration to the given value, making sure it is
+        larger than 1.
+        """
+        if adaptation_duration < 1:
+            raise ValueError("adaptation duration must be >= 1")
+        self._adaptation_duration = adaptation_duration
+
+    @property
+    def target_rate(self):
+        """Target acceptance ratio."""
+        return self._target_rate
+
+    @target_rate.setter
+    def target_rate(self, target_rate):
+        """Sets the target rate, making sure its more than 0 and less than 1.
+        """
+        if not 0.0 < target_rate < 1.0:
+            raise ValueError("Target acceptance rate must be in range (0, 1)")
+        self._target_rate = target_rate
+
+    @abstractmethod
+    def _update(self, chain):
+        """Updates the proposal distribution and prepares the proposal for the
+        next jump.
         """
         pass

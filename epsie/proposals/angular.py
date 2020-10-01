@@ -50,24 +50,14 @@ class Angular(Normal):
         off-diagonal terms must be zero. Default is 1 sq. radian for all
         parameters.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     jump_interval_duration : int, optional
-        Sets the number of steps during which modified ``jump_interval`` is
-        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
-        required parameter for non-adaptive proposals. See ``jump_interval``
-        description for more details.
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
 
     """
     name = 'angular'
@@ -162,23 +152,17 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    start_step : int, optional
+        The proposal step to start doing the adaptation (:math:`k_0+1` in the
+        equation below). Must be greater than zero. Default is 1.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -188,7 +172,7 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration, jump_interval=1,
-                 **kwargs):
+                 start_step=1, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveAngular, self).__init__(
             parameters, jump_interval=jump_interval,
@@ -197,7 +181,8 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
         boundaries = {p: Boundaries((0, 2*self._halfwidth*self._factor))
                       for p in self.parameters}
         # set up the adaptation parameters
-        self.setup_adaptation(boundaries, adaptation_duration, **kwargs)
+        self.setup_adaptation(boundaries, adaptation_duration,
+                              start_step=start_step, **kwargs)
 
 
 class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
@@ -215,24 +200,14 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     jump_interval_duration : int, optional
-        Sets the number of steps during which modified ``jump_interval`` is
-        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
-        required parameter for non-adaptive proposals. See ``jump_interval``
-        description for more details.
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -258,50 +233,37 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
     r"""An angular proposal with adaptive variance, using the algorithm from
     Andrieu & Thoms.
 
-    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.
+    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.
 
     Parameters
     ----------
     parameters : (list of) str
         The names of the parameters.
-    adaptation_duration: int (optional)
-        The number of adaptation steps. By default assumes the adaptation
-        never ends but decays.
-    start_iteration: int (optional)
-        The iteration index when adaptation phase begins.
-    target_rate: float (optional)
-        Target acceptance ratio. By default 0.234
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
+    start_step: int, optional
+        The proposal step index when adaptation phase begins.
+    target_rate: float, optional
+        Target acceptance ratio. By default 0.234 and 0.48 for componentwise
+        scaling.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
-    \**kwargs :
-        All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
-        details.
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     """
     name = 'at_adaptive_angular'
     symmetric = True
 
-    def __init__(self, parameters, componentwise=False,
-                 adaptation_duration=None, start_iteration=1,
-                 target_rate=None, jump_interval=1, **kwargs):
+    def __init__(self, parameters, adaptation_duration, componentwise=False,
+                 start_iter=1, target_rate=None, jump_interval=1):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveAngular, self).__init__(
             parameters, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal=True, componentwise=componentwise,
-                              adaptation_duration=adaptation_duration,
+        self.setup_adaptation(adaptation_duration=adaptation_duration,
+                              diagonal=True, componentwise=componentwise,
                               start_iteration=start_iteration,
-                              target_rate=target_rate, **kwargs)
+                              target_rate=target_rate)

@@ -143,7 +143,7 @@ class NestedTransdimensional(BaseProposal):
         return lp
 
     def _update(self, chain):
-        # check that proposal has been stepped inside at least twice in a row
+        # check that proposal has been stepped in at least twice in a row
         if chain.iteration > 1:
             for prop in self.proposals:
                 current = chain.positions[-1]

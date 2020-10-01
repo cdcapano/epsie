@@ -69,24 +69,14 @@ class NormalDiscrete(Normal):
         then the proposal never produces the same integer on successive jumps.
         Default is False for all parameters
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     jump_interval_duration : int, optional
-        Sets the number of steps during which modified ``jump_interval`` is
-        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
-        required parameter for non-adaptive proposals. See ``jump_interval``
-        description for more details.
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     """
     name = 'discrete'
     symmetric = True
@@ -221,24 +211,14 @@ class BoundedDiscrete(BoundedNormal):
         then the proposal never produces the same integer on successive jumps.
         Default is False for all parameters
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     jump_interval_duration : int, optional
-        Sets the number of steps during which modified ``jump_interval`` is
-        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
-        required parameter for non-adaptive proposals. See ``jump_interval``
-        description for more details.
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     """
     name = 'bounded_discrete'
     symmetric = False
@@ -391,24 +371,14 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     jump_interval_duration : int, optional
-        Sets the number of steps during which modified ``jump_interval`` is
-        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
-        required parameter for non-adaptive proposals. See ``jump_interval``
-        description for more details.
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -447,27 +417,17 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     jump_interval_duration : int, optional
-        Sets the number of steps during which modified ``jump_interval`` is
-        used. ``jump_interval_duration`` is ignored if ``jump_interval`` = 1 and
-        required parameter for non-adaptive proposals. See ``jump_interval``
-        description for more details.
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
     name = 'ss_adaptive_bounded_discrete'
@@ -501,23 +461,14 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
         Dictionary mapping parameter names to values giving the width of each
         parameter's prior. The values may be floats, or any object that has
         an ``__abs__`` method that will return a float.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -549,23 +500,14 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. If floats are provided, the floor
         (ceil) of the lower (upper) bound will be used.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
     jump_interval : int, optional
-        The update interval for the proposal. For example setting
-        ``jump_interval`` = 5 means this proposals attempts to jump only every
-        5th iteration of the chain. ``jump_interval`` length is modified in
-        this way only during the burn-in phase set by ``jump_interval_duration``.
-        For adaptive proposals ``jump_interval_duration`` is set to be the
-        ``adaptation_duration``. By default ``jump_interval`` = 1, new position
-        is proposed at each iteration of the chain.
-
-        This ``jump_interval_duration`` is by default taken to be with respect
-        to the slowest proposal, such that ``jump_interval_duration`` = 500 would
-        correspond to 2500 steps with this proposal if ``jump_interval`` = 5
-        and 500 steps with the slowest proposal (for which assumed
-        ``jump_interval`` = 1).
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
