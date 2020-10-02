@@ -26,7 +26,7 @@ from .bounded_normal import Boundaries
 
 
 class BoundedEigenvector(Eigenvector):
-    """Uses a  bounded eigenvector jump with a fixed scale.
+    r"""Uses a  bounded eigenvector jump with a fixed scale.
 
     This proposal calculates the eigenvectors from the covariance matrix and
     always proposes a jump along a *single* eigenvector from a univariate
@@ -56,6 +56,7 @@ class BoundedEigenvector(Eigenvector):
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
     """
+
     name = 'bounded_eigenvector'
     symmetric = False
     _boundaries = None
@@ -217,3 +218,56 @@ class BoundedEigenvector(Eigenvector):
         b = (width - mu) / self.eigvals[self._ind]
         return truncnorm.logpdf(xi, a, b, loc=mu,
                                 scale=self.eigvals[self._ind])
+
+
+class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
+                                 BoundedEigenvector):
+    r"""Uses a  bounded eigenvector jump with a adaptive scales
+
+    See :py:class:`AdaptiveEigenvectorSupport` for details on the adaptation
+    algorithm.
+
+    Parameters
+    ----------
+    parameters: (list of) str
+        The names of the parameters.
+    boundaries : dict
+        Dictionary mapping parameters to boundaries. Boundaries must be a
+        tuple or iterable of length two.
+    stability_duration : int
+        Number of initial steps done with a initial proposal specified by name
+        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        evaluated and jumps proposed along those.
+    adaptation_duration: int
+        The number of steps after which adaptation of the eigenvectors ends.
+        This is defined such that while the number of proposal steps :math:`N`
+        satisfies :math:`N <= \mathrm{stability_duration}` the
+        ``initial_proposal'' is called and while
+        :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
+        the eigenvectors are being adapted. Post-adaptation phase the
+        eigenvectors and eigenvalues are kept constant.
+    initial_proposal : str (optional)
+        Name of the initial proposal that is called before the number of
+        proposal seps exceeds ``stability_duration''. By default se to the
+        'epsie.proposals.ATAdaptiveProposal'. Supported options
+        include: 'bounded_normal', 'at_adaptive_bounded_normal'.
+    target_rate: float (optional)
+        Target acceptance ratio. By default 0.234
+    shuffle_rate : float (optional)
+        Probability of shuffling the eigenvector jump probabilities. By
+        default 0.33.
+    """
+
+    name = 'adaptive_bounded_eigenvector'
+    symmetric = False
+
+    def __init__(self, parameters, boundaries, stability_duration,
+                 adaptation_duration,
+                 initial_proposal='at_adaptive_bounded_normal',
+                 target_rate=0.234, shuffle_rate=0.33):
+        # set the parameters, initial proposal
+        super(AdaptiveBoundedEigenvector, self).__init__(
+            parameters, boundaries, stability_duration, initial_proposal,
+            shuffle_rate)
+        # set up the adaptation parameters
+        self.setup_adaptation(adaptation_duration, target_rate)
