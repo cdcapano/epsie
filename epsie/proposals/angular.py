@@ -257,7 +257,7 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration, componentwise=False,
-                 start_iter=1, target_rate=None, jump_interval=1):
+                 start_step=1, target_rate=None, jump_interval=1):
         # set the parameters, initialize the covariance matrix
         super(ATAdaptiveAngular, self).__init__(
             parameters, jump_interval=jump_interval,
@@ -265,5 +265,4 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration=adaptation_duration,
                               diagonal=True, componentwise=componentwise,
-                              start_iteration=start_iteration,
-                              target_rate=target_rate)
+                              start_step=start_step, target_rate=target_rate)

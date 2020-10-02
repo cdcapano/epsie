@@ -61,6 +61,8 @@ class Eigenvector(BaseProposal):
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
         self.set_jump_interval(jump_interval, jump_interval_duration)
+        # later add this
+        self.start_step = 1
 
         self._cov = None
         self._mu = None
@@ -189,8 +191,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """
         self.target_rate = target_rate
         self.adaptation_duration = adaptation_duration
-        self._decay_const = (adaptation_duration
-                             - self.stability_duration)**(-0.6)
+        self._decay_const = adaptation_duration**(-0.6)
         self._log_lambda = 0.0
 
 
@@ -198,7 +199,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.stability_duration
+        dk = self.nsteps - self.stability_duration + 1
         if dk <= 0:
             self._stability_update(chain)
         elif dk < self.adaptation_duration:

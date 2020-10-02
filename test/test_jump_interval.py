@@ -27,29 +27,28 @@ from test_ptsampler import _create_sampler
 
 from _utils import Model
 
-STABILITY_DURATION = 32
+STABILITY_DURATION = 48
 DURATION = 16
 
 
-def _setup_proposal(proposal_name, jump_interval,
-                    jump_interval_duration=STABILITY_DURATION+DURATION,
-                    params=None):
+def _setup_proposal(proposal_name, jump_interval, params=None):
+    duration = STABILITY_DURATION + DURATION
     if params is None:
         params = model.params
     if proposal_name == 'normal':
         return Normal(params, jump_interval=jump_interval,
-                      jump_interval_duration=jump_interval_duration)
+                      jump_interval_duration=duration)
     elif proposal_name == 'eigenvector':
         return Eigenvector(params, stability_duration=STABILITY_DURATION,
                            jump_interval=jump_interval,
-                           jump_interval_duration=jump_interval_duration)
+                           jump_interval_duration=duration)
     elif proposal_name == 'bounded_normal':
         bounds = {'x0': (-20, 20), 'x1': (-40, 40)}
         return BoundedNormal(params, bounds, jump_interval=jump_interval,
-                             jump_interval_duration=jump_interval_duration)
+                             jump_interval_duration=duration)
     elif proposal_name == 'angular':
         return Angular(params, jump_interval=jump_interval,
-                       jump_interval_duration=jump_interval_duration)
+                       jump_interval_duration=duration)
     else:
         return -1
 
@@ -75,19 +74,20 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
     proposal = _setup_proposal(proposal_name, jump_interval, params=['x0'])
     sampler = _create_sampler(model, nprocs, proposals=[proposal])
     # Run the sampler for some number of initial iterations
-    sampler.run(STABILITY_DURATION * jump_interval)
+    sampler.run((STABILITY_DURATION + 1)* jump_interval)
 
-    for i in range(DURATION * jump_interval):
+    for i in range((DURATION - 1) * jump_interval):
         current_pos = _extract_positions(sampler.chains, 'current')
         sampler.run(1)
         proposed_pos = _extract_positions(sampler.chains, 'proposed')
 
         # check that x0 are different if proposing a move, else the same
-        if (sampler.niterations - 1) % jump_interval == 0:
-            assert numpy.all(current_pos[:, :, 0] != proposed_pos[:, :, 0])
-        else:
+        if (sampler.niterations - 1) % jump_interval != 0:
             numpy.testing.assert_equal(current_pos[:, :, 0],
                                        proposed_pos[:, :, 0])
+        else:
+            prop = sampler.chains[0].chains[0].proposal_dist.proposals[0]
+            assert numpy.all(current_pos[:, :, 0] != proposed_pos[:, :, 0])
         # check that x1 proposed position is always different
         assert numpy.all(current_pos[:, :, 1] != proposed_pos[:, :, 1])
 

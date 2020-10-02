@@ -278,10 +278,10 @@ class AdaptiveSupport(BaseAdaptiveSupport):
         # figure out initial variance to use
         self.prior_widths = prior_widths
         self.adaptation_duration = adaptation_duration
+        self.start_step = start_step
         if adaptation_decay is None:
             adaptation_decay = 1./numpy.log10(self.adaptation_duration)
         self.adaptation_decay = adaptation_decay
-        self.start_step = start_step
         self.target_rate = target_rate
         if initial_std is None:
             initial_std = (1 - self.target_rate)*0.09*self.deltas
@@ -449,6 +449,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         """
         self.target_rate = target_rate
         self.n_accepted = 0
+        self.start_step = 1
         if max_cov is not None:
             max_std = max_cov**0.5
         else:

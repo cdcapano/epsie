@@ -27,6 +27,9 @@ from scipy import stats
 
 import epsie
 
+import warnings
+warnings.filterwarnings("ignore", "Generator", FutureWarning)
+
 
 @add_metaclass(ABCMeta)
 class BaseRandom(object):
@@ -235,11 +238,11 @@ class BaseProposal(BaseRandom):
         or whether to copy the last position.
         """
         try:
-            duration = self.jump_interval_duration + self.start_step - 1
+            dk = self.nsteps - self.start_step + 1
         except AttributeError:
-            duration = self.jump_interval_duration
+            dk = self.nsteps
 
-        if self.jump_interval == 1 or self.nsteps > duration:
+        if self.jump_interval == 1 or dk >= self.jump_interval_duration:
             return True
         if self._nsteps % self.jump_interval != 0:
             return False
