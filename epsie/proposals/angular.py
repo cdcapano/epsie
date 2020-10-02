@@ -65,9 +65,9 @@ class Angular(Normal):
 
     def __init__(self, parameters, cov=None, jump_interval=1,
                  jump_interval_duration=None):
-        super(Angular, self).__init__(parameters, cov=cov,
-                                      jump_interval=jump_interval,
-                                      jump_interval_duration=jump_interval_duration)
+        super(Angular, self).__init__(
+            parameters, cov=cov, jump_interval=jump_interval,
+            jump_interval_duration=jump_interval_duration)
         # _halfwidth is half the width of the interval, in factors of pi
         self._halfwidth = 1.
         self._factor = numpy.pi
