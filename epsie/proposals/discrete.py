@@ -392,7 +392,8 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveNormalDiscrete, self).__init__(
             parameters, cov=cov, successive=successive,
-            jump_interval=jump_interval, jump_interval_duration=jump_interval_duration)
+            jump_interval=jump_interval,
+            jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -438,7 +439,8 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveBoundedDiscrete, self).__init__(
             parameters, boundaries, cov=cov, successive=successive,
-            jump_interval=jump_interval, jump_interval_duration=jump_interval_duration)
+            jump_interval=jump_interval,
+            jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*abs(bounds)

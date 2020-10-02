@@ -74,7 +74,7 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
     proposal = _setup_proposal(proposal_name, jump_interval, params=['x0'])
     sampler = _create_sampler(model, nprocs, proposals=[proposal])
     # Run the sampler for some number of initial iterations
-    sampler.run((STABILITY_DURATION + 1)* jump_interval)
+    sampler.run((STABILITY_DURATION + 1) * jump_interval)
 
     for i in range((DURATION - 1) * jump_interval):
         current_pos = _extract_positions(sampler.chains, 'current')

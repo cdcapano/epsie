@@ -194,7 +194,6 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self._decay_const = adaptation_duration**(-0.6)
         self._log_lambda = 0.0
 
-
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
