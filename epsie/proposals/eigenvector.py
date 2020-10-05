@@ -21,7 +21,7 @@ from six import add_metaclass
 import numpy
 from scipy import stats
 
-from .base import BaseProposal
+from .base import (BaseProposal, BaseAdaptiveSupport)
 from .normal import ATAdaptiveNormal
 
 
@@ -38,17 +38,31 @@ class Eigenvector(BaseProposal):
         Number of steps done with a normal proposal. After this eigenvalues
         and eigenvectors are calculated (and never again) and jumps proposed
         along those.
-    shuffle_rate : float (optional)
+    shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     """
+
     name = 'eigenvector'
     symmetric = True
 
-    def __init__(self, parameters, stability_duration, shuffle_rate=0.33):
+    def __init__(self, parameters, stability_duration, shuffle_rate=0.33,
+                 jump_interval=1, jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
+        self.set_jump_interval(jump_interval, jump_interval_duration)
+        # later add this
+        self.start_step = 1
 
         self._cov = None
         self._mu = None
@@ -57,7 +71,8 @@ class Eigenvector(BaseProposal):
         self._jump_std = None
 
         self.initial_prop = ATAdaptiveNormal(
-            self.parameters, adaptation_duration=stability_duration)
+            self.parameters, adaptation_duration=stability_duration,
+            jump_interval=jump_interval)
         self.initial_prop.bit_generator = self.bit_generator
         self.stability_duration = stability_duration
 
@@ -77,7 +92,7 @@ class Eigenvector(BaseProposal):
         if self._cov is not None:
             self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         if self.nsteps <= self.stability_duration:
             return self.initial_prop.jump(fromx)
         else:
@@ -94,7 +109,7 @@ class Eigenvector(BaseProposal):
                    for i, p in enumerate(self.parameters)}
             return out
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         if self.nsteps <= self.stability_duration:
             return self.initial_prop.logpdf(xi, givenx)
         else:
@@ -132,14 +147,13 @@ class Eigenvector(BaseProposal):
             if self.nsteps == self.stability_duration:
                 self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
 
-    def update(self, chain):
+    def _update(self, chain):
         if self.nsteps <= self.stability_duration:
             self._stability_update(chain)
-        self.nsteps += 1
 
 
 @add_metaclass(ABCMeta)
-class AdaptiveEigenvectorSupport(object):
+class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     r"""Utility class for adding AdaptiveEigenvector proposal support.
 
     The adaptation algorithm is based on Algorithm 8 in [1].
@@ -165,66 +179,39 @@ class AdaptiveEigenvectorSupport(object):
     A tutorial on adaptive MCMC. Statistics and Computing.
     18. 10.1007/s11222-008-9110-y.
     """
-    _target_rate = None
+
     _decay_const = None
-    _adaptation_duration = None
 
     def setup_adaptation(self, adaptation_duration, target_rate=0.234):
         r"""Sets up the adaptation parameters.
-        adaptation_duration : int (optional)
+        adaptation_duration : int, optional
             The number of adaptation steps.
-        target_rate : float (optional)
+        target_rate : float, optional
             Target acceptance rate. By default 0.234
         """
         self.target_rate = target_rate
         self.adaptation_duration = adaptation_duration
-
+        self._decay_const = adaptation_duration**(-0.6)
         self._log_lambda = 0.0
 
-    @property
-    def target_rate(self):
-        """Target acceptance ratio."""
-        return self._target_rate
-
-    @target_rate.setter
-    def target_rate(self, target_rate):
-        if not 0.0 < target_rate < 1.0:
-            raise ValueError("Target acceptance rate  must be in range (0, 1)")
-        self._target_rate = target_rate
-
-    @property
-    def adaptation_duration(self):
-        return self._adaptation_duration
-
-    @adaptation_duration.setter
-    def adaptation_duration(self, adaptation_duration):
-        if self.stability_duration > 0.5 * adaptation_duration:
-            raise ValueError("``stability_duration`` must be at least twice"
-                             "as much as ``adaptation_duration")
-        # Check for how big adaptation duration is with respect to the burnin
-        self._decay_const = (adaptation_duration
-                             - self.stability_duration)**(-0.6)
-        self._adaptation_duration = adaptation_duration
-
-    def update(self, chain):
+    def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        if self.nsteps <= self.stability_duration:
+        dk = self.nsteps - self.stability_duration + 1
+        if dk <= 0:
             self._stability_update(chain)
-        elif self.nsteps < self.adaptation_duration:
+        elif dk < self.adaptation_duration:
             self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
-            dk = (self.nsteps - self.stability_duration)**(-0.6) \
-                - self._decay_const
+            dk = dk**(-0.6) - self._decay_const
             # Update of the global scaling
-            self._log_lambda += dk * (chain.acceptance['acceptance_ratio'][-1]
-                                      - self.target_rate)
+            ar = chain.acceptance['acceptance_ratio'][-1]
+            self._log_lambda += dk * (ar - self.target_rate)
             # Rescale the eigenvalues
             self._eigvals *= numpy.exp(self._log_lambda)
-        self.nsteps += 1
 
     @property
     def state(self):
@@ -260,31 +247,33 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
         and eigenvectors are calculated for the first time and jumps proposed
         along those.
     adaptation_duration: int
-        The iteration index when adaptation phase ends.
-        Example :
-            stability_duration = 1000
-            adaptation_duration = 2500
-        This means the first 1000 sampler iterations are done with a normal
-        proposal, over the next 1500 iterations eigenvectors are adapted and
-        then kept constant.
-    target_rate: float (optional)
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal has adapted over this
+        duration.
+    target_rate: float, optional
         Target acceptance ratio. By default 0.234
-    shuffle_rate : float (optional)
+    shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
-    \**kwargs:
-        All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
-        details.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     """
     name = 'adaptive_eigenvector'
     symmetric = True
 
     def __init__(self, parameters, stability_duration, adaptation_duration,
-                 target_rate=0.234, shuffle_rate=0.33, **kwargs):
+                 target_rate=0.234, shuffle_rate=0.33, jump_interval=1,
+                 **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveEigenvector, self).__init__(parameters,
-                                                  stability_duration,
-                                                  shuffle_rate)
+        super(AdaptiveEigenvector, self).__init__(
+              parameters, stability_duration, shuffle_rate, jump_interval,
+              jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, target_rate, **kwargs)

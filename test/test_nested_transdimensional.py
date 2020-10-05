@@ -67,8 +67,9 @@ def _setup_proposal(model, td_proposal, birth_dist, cov=None):
         td_proposals = [SSAdaptiveNormal(['a{}'.format(i)])
                         for i in range(1, 5+1)]
     elif td_proposal == 'adaptive_proposal':
-        td_proposals = [ATAdaptiveNormal(['a{}'.format(i)])
-                        for i in range(1, 5+1)]
+        td_proposals = [ATAdaptiveNormal(
+            ['a{}'.format(i)], adaptation_duration=ADAPTATION_DURATION)
+            for i in range(1, 5+1)]
 
     # Model hopping proposal
     model_proposal = BoundedDiscrete(['k'],

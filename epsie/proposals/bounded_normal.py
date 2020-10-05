@@ -45,12 +45,24 @@ class BoundedNormal(Normal):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     """
     name = 'bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, cov=None):
-        super(BoundedNormal, self).__init__(parameters, cov=cov)
+    def __init__(self, parameters, boundaries, cov=None, jump_interval=1,
+                 jump_interval_duration=None):
+        super(BoundedNormal, self).__init__(
+            parameters, cov=cov, jump_interval=jump_interval,
+            jump_interval_duration=jump_interval_duration)
         # check that a diagonal covariance was provided
         if not self.isdiagonal:
             raise ValueError("Only independent variables are supported "
@@ -107,7 +119,7 @@ class BoundedNormal(Normal):
                              .format(', '.join(testpt.keys())))
         return isin
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         # make sure we're in bounds
         if fromx not in self:
             raise ValueError("Given point is not in bounds; I don't know how "
@@ -124,7 +136,7 @@ class BoundedNormal(Normal):
             to_x.update(newpt)
         return to_x
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         mu = numpy.array([givenx[p] for p in self.parameters])
         xi = numpy.array([xi[p] for p in self.parameters])
         a = (self._lowerbnd - mu)/self._std
@@ -146,9 +158,17 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
+    start_step : int, optional
+        The proposal step to start doing the adaptation (:math:`k_0+1` in the
+        equation below). Must be greater than zero. Default is 1.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -158,12 +178,14 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     symmetric = False
 
     def __init__(self, parameters, boundaries, adaptation_duration,
-                 **kwargs):
+                 start_step=1, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedNormal, self).__init__(parameters,
-                                                       boundaries)
+        super(AdaptiveBoundedNormal, self).__init__(
+            parameters, boundaries, jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
-        self.setup_adaptation(self.boundaries, adaptation_duration, **kwargs)
+        self.setup_adaptation(self.boundaries, adaptation_duration,
+                              start_step=start_step, **kwargs)
 
 
 class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
@@ -189,18 +211,29 @@ class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
         float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
         where ``ndim`` = the number of parameters given. If 2D array is given,
         the off-diagonal terms must be zero. Default is 1 for all parameters.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     \**kwargs :
         All other keyword arguments are passed to
-        :py:func:`Adaptive2Support.setup_adaptation`. See that function for
+        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
         details.
     """
     name = 'ss_adaptive_bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, cov=None, **kwargs):
+    def __init__(self, parameters, boundaries, cov=None, jump_interval=1,
+                 jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
         super(SSAdaptiveBoundedNormal, self).__init__(
-              parameters, boundaries, cov=cov)
+              parameters, boundaries, cov=cov, jump_interval=jump_interval,
+              jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         if 'max_cov' not in kwargs:
             # set the max std to be (1.49*abs(bounds)
@@ -222,37 +255,39 @@ class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two. The boundaries will be used for the
         prior widths in the adaptation algorithm.
-    componentwise : bool (optional)
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
+    componentwise : bool, optional
         Whether to include a componentwise scaling of the parameters
         (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).
         Componentwise scaling `ndim` times more expensive than global
         scaling.
-    start_iteration: int (optional)
-        The iteration index when adaptation phase begins.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
-    target_rate: float (optional)
+    start_step: int, optional
+        The proposal step index when adaptation phase begins.
+    target_rate: float, optional
         Target acceptance ratio. By default 0.234 and 0.48 for componentwise
         scaling.
-    \**kwargs :
-        All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
-        details.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     """
     name = 'at_adaptive_bounded_normal'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, componentwise=False,
-                 start_iteration=1, adaptation_duration=None, target_rate=None,
-                 **kwargs):
+    def __init__(self, parameters, boundaries, adaptation_duration,
+                 componentwise=False, start_step=1, target_rate=None,
+                 jump_interval=1):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveBoundedNormal, self).__init__(parameters, boundaries)
+        super(ATAdaptiveBoundedNormal, self).__init__(
+            parameters, boundaries, jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal=True, componentwise=componentwise,
-                              adaptation_duration=adaptation_duration,
-                              start_iteration=start_iteration,
-                              target_rate=target_rate, **kwargs)
+        self.setup_adaptation(adaptation_duration=adaptation_duration,
+                              diagonal=True, componentwise=componentwise,
+                              start_step=start_step, target_rate=target_rate)
 
 
 class Boundaries(tuple):
@@ -269,8 +304,7 @@ class Boundaries(tuple):
     >>> b.lower, b.upper
     (-1, 1)
     >>> abs(b)
-    2
-    """
+    2 """
     def __new__(cls, args):
         self = tuple.__new__(cls, args)
         if len(args) != 2:

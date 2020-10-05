@@ -62,20 +62,23 @@ class JointProposal(BaseProposal):
             prop.bit_generator = self.bit_generator
         # store the proposals
         self.proposals = proposals
+        # the jump interval for a joint proposal must be 1
+        self.set_jump_interval(1)
 
     @property
     def symmetric(self):
         return self._symmetric
 
-    def logpdf(self, xi, givenx):
-        return sum(p.logpdf(xi, givenx) for p in self.proposals)
+    def _logpdf(self, xi, givenx):
+        return sum(p.logpdf(xi, givenx) for p in self.proposals
+                   if not p.symmetric)
 
-    def update(self, chain):
+    def _update(self, chain):
         # update each of the proposals
         for prop in self.proposals:
             prop.update(chain)
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         out = {}
         for prop in self.proposals:
             # we'll only pass the parameters that the proposal needs

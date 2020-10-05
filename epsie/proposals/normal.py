@@ -21,7 +21,7 @@ from six import add_metaclass
 import numpy
 from scipy import stats
 
-from .base import BaseProposal
+from .base import (BaseProposal, BaseAdaptiveSupport)
 
 
 class Normal(BaseProposal):
@@ -40,6 +40,15 @@ class Normal(BaseProposal):
         a 1D array is given, will use a diagonal covariance matrix (i.e., all
         parameters are independent of each other). Default (None) is to use
         unit variance for all parameters.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
 
     Attributes
     ----------
@@ -50,9 +59,11 @@ class Normal(BaseProposal):
     name = 'normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None):
+    def __init__(self, parameters, cov=None, jump_interval=1,
+                 jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
+        self.set_jump_interval(jump_interval, jump_interval_duration)
         self._isdiagonal = False
         self._cov = None
         self._std = None
@@ -159,7 +170,7 @@ class Normal(BaseProposal):
     def set_state(self, state):
         self.random_state = state['random_state']
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         # the normal RVS is much faster than the multivariate one, so use it
         # if we can
         if self.isdiagonal:
@@ -170,7 +181,7 @@ class Normal(BaseProposal):
                 [fromx[p] for p in self.parameters], self.cov)
         return dict(zip(self.parameters, newpt))
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         mu = [givenx[p] for p in self.parameters]
         xi = [xi[p] for p in self.parameters]
         if self.isdiagonal:
@@ -191,7 +202,7 @@ class Normal(BaseProposal):
 
 
 @add_metaclass(ABCMeta)
-class AdaptiveSupport(object):
+class AdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding adaptive variance support to a proposal.
 
     The adaptation algorithm is based on Eqs. 35 and 36 of Veitch et al. [1]_.
@@ -231,14 +242,10 @@ class AdaptiveSupport(object):
     """
     _prior_widths = None
     _deltas = None
-    _adaptation_duration = None
-    _start_iteration = None
-    target_rate = None
 
     def setup_adaptation(self, prior_widths, adaptation_duration,
-                         adaptation_decay=None, start_iteration=1,
-                         target_rate=0.234,
-                         initial_std=None):
+                         adaptation_decay=None, start_step=1,
+                         target_rate=0.234, initial_std=None):
         r"""Sets up the adaptation parameters.
 
         Parameters
@@ -248,15 +255,15 @@ class AdaptiveSupport(object):
             each parameter's prior. The values may be floats, or any object
             that has an ``__abs__`` method that will return a float.
         adaptation_duration : int
-            The number of iterations over which to apply the adaptation. No
+            The number of proposal steps over which to apply the adaptation. No
             more adaptation will be done once a chain exceeds this value.
         adaptation_decay : int, optional
             The decay rate to use for the adaptation size (:math:`beta` in the
             equation in the notes). If not provided, will use
             :math:`1/\log_10(T)`, where :math:`T` is the adaptation duration.
-        start_iteration : int, optional
-            The iteration to start doing the adaptation (:math:`k_0+1` in the
-            equation below). Must be greater than zero. Default is 1.
+        start_step : int, optional
+            The proposal step to start doing the adaptation (:math:`k_0+1` in
+            the equation below). Must be greater than zero. Default is 1.
         target_rate : float, optional
             The target acceptance rate. Default is 0.234.
         initial_std : array, optional
@@ -271,10 +278,10 @@ class AdaptiveSupport(object):
         # figure out initial variance to use
         self.prior_widths = prior_widths
         self.adaptation_duration = adaptation_duration
+        self.start_step = start_step
         if adaptation_decay is None:
             adaptation_decay = 1./numpy.log10(self.adaptation_duration)
         self.adaptation_decay = adaptation_decay
-        self.start_iteration = start_iteration
         self.target_rate = target_rate
         if initial_std is None:
             initial_std = (1 - self.target_rate)*0.09*self.deltas
@@ -306,38 +313,12 @@ class AdaptiveSupport(object):
         """The prior widths, as a numpy array."""
         return self._deltas
 
-    @property
-    def start_iteration(self):
-        """The iteration that the adaption begins."""
-        return self._start_iteration
-
-    @start_iteration.setter
-    def start_iteration(self, start_iteration):
-        """Sets the start iteration, making sure it is >= 1."""
-        if start_iteration < 1:
-            raise ValueError("start_iteration must be >= 1")
-        self._start_iteration = start_iteration
-
-    @property
-    def adaptation_duration(self):
-        """The adaptation duration used."""
-        return self._adaptation_duration
-
-    @adaptation_duration.setter
-    def adaptation_duration(self, adaptation_duration):
-        """Sets the adaptation duration to the given value, making sure it is
-        larger than 1.
-        """
-        if adaptation_duration < 1:
-            raise ValueError("adaptation duration must be >= 1")
-        self._adaptation_duration = adaptation_duration
-
-    def update(self, chain):
+    def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_iteration
+        dk = self.nsteps - self.start_step + 1
         if 1 <= dk < self.adaptation_duration:
             dk = dk**(-self.adaptation_decay) - 0.1
             if chain.acceptance[-1]['accepted']:
@@ -351,8 +332,6 @@ class AdaptiveSupport(object):
             lzidx = newsigmas < 0
             newsigmas[lzidx] = sigmas[lzidx]
             self._std = newsigmas
-        # don't forget to increment this
-        self.nsteps += 1
 
     @property
     def state(self):
@@ -379,9 +358,16 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
         Dictionary mapping parameter names to values giving the width of each
         parameter's prior. The values may be floats, or any object that has
         an ``__abs__`` method that will return a float.
-    adaptation_duration : int
-        The number of iterations over which to apply the adaptation. No more
-        adaptation will be done once a chain exceeds this value.
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
+    start_step: int, optional
+        The proposal step index when adaptation phase begins.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
@@ -391,11 +377,14 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
     symmetric = True
 
     def __init__(self, parameters, prior_widths, adaptation_duration,
-                 **kwargs):
+                 start_step=1, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormal, self).__init__(parameters)
+        super(AdaptiveNormal, self).__init__(
+            parameters, jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
-        self.setup_adaptation(prior_widths, adaptation_duration, **kwargs)
+        self.setup_adaptation(prior_widths, adaptation_duration,
+                              start_step=start_step, **kwargs)
 
 
 #
@@ -408,7 +397,7 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
 
 
 @add_metaclass(ABCMeta)
-class SSAdaptiveSupport(object):
+class SSAdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding adaptive variance support to a proposal.
 
     The adaptation algorithm is based on a method in Sivia and Skilling [1]_.
@@ -442,7 +431,6 @@ class SSAdaptiveSupport(object):
     .. [1] Sivia D., Skilling J., "Data Analysis: A Bayesian Tutorial,"
         Oxford Univ. Press, Oxford (2006)
     """
-    target_rate = None
     n_accepted = None
     max_std = None
 
@@ -461,19 +449,20 @@ class SSAdaptiveSupport(object):
         """
         self.target_rate = target_rate
         self.n_accepted = 0
+        self.start_step = 1
         if max_cov is not None:
             max_std = max_cov**0.5
         else:
             max_std = numpy.inf
         self.max_std = max_std
 
-    def update(self, chain):
+    def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
         This prepares the proposal for the next jump.
         """
         self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = self.nsteps
+        n_iter = self.nsteps + 1
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)
@@ -493,8 +482,6 @@ class SSAdaptiveSupport(object):
             max_cov = alpha * self._cov.max()
             if max_cov <= self.max_std**2:
                 self._cov *= alpha
-        # don't forget to increment
-        self.nsteps += 1
 
     @property
     def state(self):
@@ -526,6 +513,15 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
     ----------
     parameters : (list of) str
         The names of the parameters.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     \**kwargs :
         All other keyword arguments are passed to
         :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for
@@ -534,9 +530,12 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
     name = 'ss_adaptive_normal'
     symmetric = True
 
-    def __init__(self, parameters, cov=None, **kwargs):
+    def __init__(self, parameters, cov=None, jump_interval=1,
+                 jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveNormal, self).__init__(parameters, cov=cov)
+        super(SSAdaptiveNormal, self).__init__(
+            parameters, cov=cov, jump_interval=jump_interval,
+            jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
         self.setup_adaptation(**kwargs)
 
@@ -551,7 +550,7 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
 
 
 @add_metaclass(ABCMeta)
-class ATAdaptiveSupport(object):
+class ATAdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding ATAdaptiveNormal proposal support.
 
     The adaptation algorithm is based on Algorithm 4 and 6 in [1].
@@ -568,8 +567,7 @@ class ATAdaptiveSupport(object):
     where :math: `g_{0}` is the iteration at which adaptation starts,
     by default :math: `g_{0}=1` and :math: `C` is a positive constant
     ensuring that when the adaptation phase ends the vanishing decay tends to
-    zero. By default assumes that the adaptation phase never ends (only
-    decays with time)
+    zero.
 
     References
     ----------
@@ -578,35 +576,35 @@ class ATAdaptiveSupport(object):
     18. 10.1007/s11222-008-9110-y.
     """
     _target_rate = None
-    _start_iteration = None
+    _start_step = None
     _decay_const = None
     _adaptation_duration = None
 
-    def setup_adaptation(self, diagonal=False, componentwise=False,
-                         adaptation_duration=None, start_iteration=1,
-                         target_rate=None):
+    def setup_adaptation(self, adaptation_duration, diagonal=False,
+                         componentwise=False, start_step=1, target_rate=None):
         r"""Sets up the adaptation parameters.
-        diagonal : bool (optional)
+        adaptation_duration: int
+            The number of proposal steps over which to apply the adaptation. No
+            more adaptation will be done once a proposal exceeds this value.
+        diagonal : bool, optional
             Whether to train off-diagonal elements of the proposal covariance.
             By default set to False; off-diagonal elements are being trained.
-        componentwise : bool (optional)
+        componentwise : bool, optional
             Whether to include a componentwise scaling of the parameters
             (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).
             Componentwise scaling `ndim` times more expensive than global
             scaling.
-        adaptation_duration : int (optional)
-            The number of adaptation steps. By default assumes the adaptation
-            never ends but decays.
-        start_iteration : int (optional)
-            The iteration index when adaptation phase begins.
-        target_rate: float (optional)
+        start_step : int, optional
+            The proposal step when the adaptation phase begins.
+        target_rate: float, optional
             Target acceptance ratio. By default 0.234 and 0.48 for
             componentwise scaling.
         """
-        self.start_iteration = start_iteration
+        self.start_step = start_step
         self.adaptation_duration = adaptation_duration
         self._iscomponentwise = componentwise
         self._isdiagonal = diagonal
+        self._decay_const = (adaptation_duration)**(-0.6)
 
         self._mean = numpy.zeros(self.ndim)  # initial mean
         if self.isdiagonal:
@@ -619,8 +617,7 @@ class ATAdaptiveSupport(object):
             self._log_lambda = 0
         else:
             self._log_lambda = numpy.zeros(self.ndim)
-            self.target_rate = 0.48
-
+        # set target rate (componentwise target rate scales differently)
         if target_rate is None:
             if not self._iscomponentwise:
                 self.target_rate = 0.234
@@ -628,42 +625,6 @@ class ATAdaptiveSupport(object):
                 self.target_rate = 0.48
         else:
             self.target_rate = target_rate
-
-    @property
-    def start_iteration(self):
-        """The iteration that the adaption begins."""
-        return self._start_iteration
-
-    @start_iteration.setter
-    def start_iteration(self, start_iteration):
-        """Sets the start iteration, making sure it is >= 1."""
-        if start_iteration < 1:
-            raise ValueError("``start_iteration`` must be >= 1")
-        self._start_iteration = start_iteration
-
-    @property
-    def target_rate(self):
-        """Target acceptance ratio."""
-        return self._target_rate
-
-    @target_rate.setter
-    def target_rate(self, target_rate):
-        if not 0.0 < target_rate < 1.0:
-            raise ValueError("Target acceptance rate  must be in range (0, 1)")
-        self._target_rate = target_rate
-
-    @property
-    def adaptation_duration(self):
-        return self._adaptation_duration
-
-    @adaptation_duration.setter
-    def adaptation_duration(self, adaptation_duration):
-        if adaptation_duration is None:
-            self._decay_const = 0.
-            self._adaptation_duration = numpy.infty
-            return
-        self._decay_const = (adaptation_duration)**(-0.6)
-        self._adaptation_duration = adaptation_duration
 
     def _componentwise_scaling(self, chain, dk):
         """Componentwise scaling. Does virtual moves along each axis
@@ -695,18 +656,18 @@ class ATAdaptiveSupport(object):
             dlog_lambda[i] = dk * (ar - self.target_rate)
         return dlog_lambda
 
-    def update(self, chain):
+    def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_iteration
+        dk = self.nsteps - self.start_step + 1
         if 1 < dk < self.adaptation_duration:
             dk = dk**(-0.6) - self._decay_const
             newpt = numpy.array([chain.current_position[p]
                                  for p in self.parameters])
             # Update of the global scaling
             if not self._iscomponentwise:
-                ar = min(1, chain.acceptance['acceptance_ratio'][-1])
+                ar = chain.acceptance['acceptance_ratio'][-1]
                 self._log_lambda += dk * (ar - self.target_rate)
             else:
                 self._log_lambda += self._componentwise_scaling(chain, dk)
@@ -728,9 +689,6 @@ class ATAdaptiveSupport(object):
                     Lambda = numpy.diag(numpy.exp(self._log_lambda))**0.5
                     self._cov = numpy.matmul(
                         numpy.matmul(Lambda, self._unit_cov), Lambda)
-
-        # dont forget to increment number of steps
-        self.nsteps += 1
 
     @property
     def state(self):
@@ -766,36 +724,39 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     ----------
     parameters: (list of) str
         The names of the parameters.
-    diagonal : bool (optional)
+    adaptation_duration: int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
+    diagonal : bool, optional
         Whether to train off-diagonal elements of the proposal covariance.
         By default set to False; off-diagonal elements are being trained.
-    componentwise : bool (optional)
+    componentwise : bool, optional
         Whether to include a componentwise scaling of the parameters
         (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).
         Componentwise scaling `ndim` times more expensive than global
         scaling.
-    adaptation_duration: int (optional)
-        The iteration index when adaptation phase ends. By default never ends.
-    start_iteration: int (optional)
-        The iteration index when adaptation phase begins.
-    target_rate: float (optional)
+    start_step: int, optional
+        The proposal step index when adaptation phase begins.
+    target_rate: float, optional
         Target acceptance ratio. By default 0.234 and 0.48 for componentwise
         scaling.
-    \**kwargs:
-        All other keyword arguments are passed to
-        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
-        details.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``adaptation_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     """
     name = 'at_adaptive_normal'
     symmetric = True
 
-    def __init__(self, parameters, diagonal=False, componentwise=False,
-                 adaptation_duration=None, start_iteration=1,
-                 target_rate=None, **kwargs):
+    def __init__(self, parameters, adaptation_duration, diagonal=False,
+                 componentwise=False, start_step=1, target_rate=None,
+                 jump_interval=1):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveNormal, self).__init__(parameters)
+        super(ATAdaptiveNormal, self).__init__(
+            parameters, jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
-        self.setup_adaptation(diagonal=diagonal, componentwise=componentwise,
-                              adaptation_duration=adaptation_duration,
-                              start_iteration=start_iteration,
-                              target_rate=target_rate)
+        self.setup_adaptation(adaptation_duration=adaptation_duration,
+                              diagonal=diagonal, componentwise=componentwise,
+                              start_step=start_step, target_rate=target_rate)

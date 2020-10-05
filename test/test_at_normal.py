@@ -39,15 +39,16 @@ SWAP_INTERVAL = 1
 
 def _setup_proposal(model, name, params=None, diagonal=False,
                     componentwise=False, start_iteration=1,
-                    adaptation_duration=None):
+                    adaptation_duration=ADAPTATION_DURATION):
     if params is None:
         params = model.params
     if name == 'at_adaptive_normal':
-        return ATAdaptiveNormal(params, diagonal, componentwise=componentwise,
-                                adaptation_duration=adaptation_duration)
+        return ATAdaptiveNormal(params,
+                                adaptation_duration=adaptation_duration,
+                                diagonal=diagonal, componentwise=componentwise)
     elif name == 'at_adaptive_bounded_normal':
         boundaries = {'x0': (-20., 20.), 'x1': (-40., 40.)}
-        return ATAdaptiveBoundedNormal(params, boundaries,
+        return ATAdaptiveBoundedNormal(params, boundaries=boundaries,
                                        componentwise=componentwise,
                                        adaptation_duration=adaptation_duration)
     elif name == 'at_adaptive_angular':
@@ -61,11 +62,9 @@ def _setup_proposal(model, name, params=None, diagonal=False,
                                   'at_adaptive_bounded_normal',
                                   'at_adaptive_angular'])
 @pytest.mark.parametrize('nprocs', [1, 4])
-@pytest.mark.parametrize('adaptation_duration', [None, ADAPTATION_DURATION])
 @pytest.mark.parametrize('diagonal', [False, True])
 @pytest.mark.parametrize('componentwise', [False, True])
-def test_cov_changes(name, nprocs, adaptation_duration, diagonal,
-                     componentwise, model=None):
+def test_cov_changes(name, nprocs, diagonal, componentwise, model=None):
     """Tests that the covariance changes after a few jumps."""
     # use the test model
     if not diagonal and name in ['at_adaptive_bounded_normal',
@@ -74,8 +73,7 @@ def test_cov_changes(name, nprocs, adaptation_duration, diagonal,
     if model is None:
         model = Model()
     proposal = _setup_proposal(model, name, diagonal=diagonal,
-                               componentwise=componentwise,
-                               adaptation_duration=adaptation_duration)
+                               componentwise=componentwise)
     if proposal.isdiagonal:
         _test_std_changes(nprocs, proposal, model)
     else:
@@ -115,10 +113,7 @@ def _test_cov_changes(nprocs, proposal, model):
             thisprop = subchain.proposal_dist.proposals[0]
             current_cov[ii, jj, :, :] = thisprop.cov
 
-    if numpy.isfinite(proposal.adaptation_duration):
-        assert (previous_cov == current_cov).all()
-    else:
-        assert (previous_cov != current_cov).all()
+    assert (previous_cov == current_cov).all()
     # close the multiprocessing pool
     if sampler.pool is not None:
         sampler.pool.close()
@@ -157,10 +152,7 @@ def _test_std_changes(nprocs, proposal, model):
             thisprop = subchain.proposal_dist.proposals[0]
             current_std[ii, jj, ] = thisprop.std
 
-    if numpy.isfinite(proposal.adaptation_duration):
-        assert (previous_std == current_std).all()
-    else:
-        assert (previous_std != current_std).all()
+    assert (previous_std == current_std).all()
     # close the multiprocessing pool
     if sampler.pool is not None:
         sampler.pool.close()

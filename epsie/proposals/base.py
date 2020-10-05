@@ -173,21 +173,45 @@ class BaseProposal(BaseRandom):
     nsteps
     """
     name = None
-    _nsteps = None
+    _nsteps = 0
+    _jump_interval = None
+    _burnin_duration = None
+    _jump_interval_duration = None
 
     @property
     def nsteps(self):
-        """Returns number of update iterations with this proposal. While
-        for a standard adaptive MCMC this will match the length of the chain
-        for a transdimensional proposal it will differ."""
-        if self._nsteps is None:
-            self._nsteps = 1  # not 0 because this gets updated after the move
-        return self._nsteps
+        """Returns number of update iterations with this proposal.
 
-    @nsteps.setter
-    def nsteps(self, nsteps):
-        """Sets the new number of steps done with a proposal"""
-        self._nsteps = nsteps
+        While for a standard adaptive MCMC this will match the length of the
+        chain for a transdimensional proposal it will differ.
+        """
+        return self._nsteps // self.jump_interval
+
+    @property
+    def jump_interval(self):
+        """Returns the jump interval for a proposal."""
+        return self._jump_interval
+
+    @property
+    def jump_interval_duration(self):
+        """Returns the number of steps after which no more fast jumps are
+        performed.
+        """
+        return self._jump_interval_duration
+
+    def set_jump_interval(self, jump_interval, duration=None):
+        """Sets the jump interval and the duration."""
+        if not jump_interval >= 1:
+            raise ValueError("``jump_interval`` must be >= 1")
+        self._jump_interval = int(jump_interval)
+
+        if self.jump_interval != 1:
+            if duration is not None:
+                self._jump_interval_duration = int(duration)
+            else:
+                raise ValueError("For '{}' must provide "
+                                 "``jump_interval_duration`` if jump interval "
+                                 "is not 1".format(self.name))
 
     # Py3XX: uncomment the next two lines
     # @property
@@ -209,8 +233,32 @@ class BaseProposal(BaseRandom):
         """
         pass
 
-    @abstractmethod
+    def _call_jump(self):
+        """Decides whether to propose a unique jump with this proposal
+        or whether to copy the last position.
+        """
+        try:
+            dk = self.nsteps - self.start_step + 1
+        except AttributeError:
+            dk = self.nsteps
+
+        if self.jump_interval == 1 or dk >= self.jump_interval_duration:
+            return True
+        if self._nsteps % self.jump_interval != 0:
+            return False
+        return True
+
     def jump(self, fromx):
+        """Depending on the current number of chain iterations and the
+        ``jump_interval`` either calls the ``_jump`` method to provide a
+        random sample or returns ``fromx``.
+        """
+        if not self._call_jump():
+            return fromx
+        return self._jump(fromx)
+
+    @abstractmethod
+    def _jump(self, fromx):
         """This should provide random samples from the proposal distribution.
 
         Samples should be returned as a dictionary mapping parameters to
@@ -218,8 +266,17 @@ class BaseProposal(BaseRandom):
         """
         pass
 
-    @abstractmethod
     def logpdf(self, xi, givenx):
+        """Depending on the current number of chain iterations and the
+        ``jump_interval`` either calls the ``_logpdf`` method or returns 0.0
+        as the jump from ``givenx`` to ``xi`` was fully determinate.
+        """
+        if not self._call_jump():
+            return 0.0
+        return self._logpdf(xi, givenx)
+
+    @abstractmethod
+    def _logpdf(self, xi, givenx):
         """The log pdf of the proposal distribution at a point.
 
         Parameters
@@ -258,6 +315,16 @@ class BaseProposal(BaseRandom):
         return numpy.exp(self.logpdf(xi, givenx))
 
     def update(self, chain):
+        """Depending on the current number of chain iterations and the
+        ``jump_interval`` calls the ``_update`` method if the proposal
+        distribution was used to sample a new position.
+        """
+        if self._call_jump():
+            self._update(chain)
+
+        self._nsteps += 1  # self.nsteps is self._nsteps // self.jump_interval
+
+    def _update(self, chain):
         """Update the state of the proposal distribution after a jump.
 
         This method may optionally be implemented by a proposal. It is called
@@ -336,5 +403,60 @@ class BaseBirth(BaseRandom):
 
         This method may optionally be implemented by a birth. It is called
         after a birth is evaluated.
+        """
+        pass
+
+
+@add_metaclass(ABCMeta)
+class BaseAdaptiveSupport(object):
+    """Abstract base class for all proposal classes.
+    """
+    _start_step = None
+    _adaptation_duration = None
+    _target_rate = None
+
+    @property
+    def start_step(self):
+        """The iteration that the adaption begins."""
+        return self._start_step
+
+    @start_step.setter
+    def start_step(self, start_step):
+        """Sets the start iteration, making sure it is >= 1."""
+        if start_step < 1:
+            raise ValueError("start_step must be >= 1")
+        self._start_step = start_step
+
+    @property
+    def adaptation_duration(self):
+        """The adaptation duration used."""
+        return self._adaptation_duration
+
+    @adaptation_duration.setter
+    def adaptation_duration(self, adaptation_duration):
+        """Sets the adaptation duration to the given value, making sure it is
+        larger than 1.
+        """
+        if adaptation_duration < 1:
+            raise ValueError("adaptation duration must be >= 1")
+        self._adaptation_duration = adaptation_duration
+
+    @property
+    def target_rate(self):
+        """Target acceptance ratio."""
+        return self._target_rate
+
+    @target_rate.setter
+    def target_rate(self, target_rate):
+        """Sets the target rate, making sure its more than 0 and less than 1.
+        """
+        if not 0.0 < target_rate < 1.0:
+            raise ValueError("Target acceptance rate must be in range (0, 1)")
+        self._target_rate = target_rate
+
+    @abstractmethod
+    def _update(self, chain):
+        """Updates the proposal distribution and prepares the proposal for the
+        next jump.
         """
         pass

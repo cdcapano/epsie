@@ -31,22 +31,19 @@ from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
-ITERINT = 320
-ADAPTATION_DURATION = ITERINT // 2
-STABILITY_DURATION = ITERINT // 4
+STABILITY_DURATION = 64
+ADAPTATION_DURATION = 32
 SWAP_INTERVAL = 1
 
 
-def _setup_proposal(model, proposal_name, params=None,
-                    stability_duration=STABILITY_DURATION,
-                    adaptation_duration=ADAPTATION_DURATION):
+def _setup_proposal(model, proposal_name, params=None):
     if params is None:
         params = model.params
     if proposal_name == 'eigenvector':
-        return Eigenvector(params, stability_duration)
+        return Eigenvector(params, STABILITY_DURATION)
     elif proposal_name == 'adaptive_eigenvector':
-        return AdaptiveEigenvector(params, stability_duration,
-                                   adaptation_duration)
+        return AdaptiveEigenvector(params, STABILITY_DURATION,
+                                   ADAPTATION_DURATION)
     else:
         return -1
 
@@ -81,7 +78,7 @@ def _test_scale_changes(nprocs, proposal, model):
             initial_eigvals[ii, jj, :] = thisprop._eigvals
     # run the sampler for the adaptation duration, and check that the standard
     # deviation of all chains and temperatures has changed
-    sampler.run(ADAPTATION_DURATION - STABILITY_DURATION + 4)
+    sampler.run(ADAPTATION_DURATION)
     current_eigvals = numpy.zeros(initial_eigvals.shape)
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
@@ -92,7 +89,7 @@ def _test_scale_changes(nprocs, proposal, model):
     if proposal.name.startswith('adaptive'):
         # now run past the adaptation duration; since we have gone past it, the
         # standard deviations should no longer change
-        sampler.run(ITERINT//4)
+        sampler.run(ADAPTATION_DURATION)
         previous_eigvals = current_eigvals
         current_eigvals = numpy.zeros(previous_eigvals.shape)
         for ii, chain in enumerate(sampler.chains):
