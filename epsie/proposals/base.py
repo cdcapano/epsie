@@ -180,24 +180,27 @@ class BaseProposal(BaseRandom):
 
     @property
     def nsteps(self):
-        """Returns number of update iterations with this proposal. While
-        for a standard adaptive MCMC this will match the length of the chain
-        for a transdimensional proposal it will differ."""
+        """Returns number of update iterations with this proposal.
+
+        While for a standard adaptive MCMC this will match the length of the
+        chain for a transdimensional proposal it will differ.
+        """
         return self._nsteps // self.jump_interval
 
     @property
     def jump_interval(self):
-        """Returns the jump interval for a proposal"""
+        """Returns the jump interval for a proposal."""
         return self._jump_interval
 
     @property
     def jump_interval_duration(self):
         """Returns the number of steps after which no more fast jumps are
-        performed"""
+        performed.
+        """
         return self._jump_interval_duration
 
     def set_jump_interval(self, jump_interval, duration=None):
-        """Sets the jump interval and the duration"""
+        """Sets the jump interval and the duration."""
         if not jump_interval >= 1:
             raise ValueError("``jump_interval`` must be >= 1")
         self._jump_interval = int(jump_interval)
