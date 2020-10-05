@@ -76,7 +76,7 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
     # Run the sampler for some number of initial iterations
     sampler.run((STABILITY_DURATION + 1) * jump_interval)
 
-    for i in range((DURATION - 1) * jump_interval):
+    for _ in range((DURATION - 1) * jump_interval):
         current_pos = _extract_positions(sampler.chains, 'current')
         sampler.run(1)
         proposed_pos = _extract_positions(sampler.chains, 'proposed')
@@ -86,7 +86,6 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
             numpy.testing.assert_equal(current_pos[:, :, 0],
                                        proposed_pos[:, :, 0])
         else:
-            prop = sampler.chains[0].chains[0].proposal_dist.proposals[0]
             assert numpy.all(current_pos[:, :, 0] != proposed_pos[:, :, 0])
         # check that x1 proposed position is always different
         assert numpy.all(current_pos[:, :, 1] != proposed_pos[:, :, 1])
