@@ -745,6 +745,10 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
         jump interval-th time. After ``adaptation_duration`` number of
         proposal steps elapses the proposal will again be called on every
         chain iteration. By default ``jump_interval`` = 1.
+    \**kwargs:
+        All other keyword arguments are passed to
+        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for
+        details.
     """
     name = 'at_adaptive_normal'
     symmetric = True
