@@ -81,6 +81,9 @@ class BoundedEigenvector(Eigenvector):
             parameters, stability_duration, shuffle_rate=shuffle_rate,
             jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
+        if not self.ndim > 1:
+            raise ValueError("Dimensionality of {} proposal must be at "
+                             "least 2".format(self.name))
         # set the boundaries
         self.boundaries = boundaries
         # set the initial phase settings
