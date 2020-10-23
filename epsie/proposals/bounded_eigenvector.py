@@ -52,6 +52,15 @@ class BoundedEigenvector(Eigenvector):
         proposal seps exceeds ``stability_duration''. By default se to the
         'epsie.proposals.ATAdaptiveProposal'. Supported options
         include: 'bounded_normal', 'at_adaptive_bounded_normal'.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     shuffle_rate : float (optional)
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
@@ -65,18 +74,20 @@ class BoundedEigenvector(Eigenvector):
     _hyperplanes = None
 
     def __init__(self, parameters, boundaries, stability_duration,
-                 initial_proposal='at_adaptive_bounded_normal',
-                 shuffle_rate=0.33):
+                 jump_interval=1, jump_interval_duration=None,
+                 shuffle_rate=0.33,
+                 initial_proposal='at_adaptive_bounded_normal'):
         super(BoundedEigenvector, self).__init__(
-            parameters, stability_duration, shuffle_rate=shuffle_rate)
+            parameters, stability_duration, shuffle_rate=shuffle_rate,
+            jump_interval=jump_interval,
+            jump_interval_duration=jump_interval_duration)
         # set the boundaries
         self.boundaries = boundaries
         # set the initial phase settings
         self.set_initial_proposal(initial_proposal, stability_duration,
                                   boundaries)
         # cache the boundaries for repeated calls
-        self._old_hash = None
-        self._cache = {}
+        self._cache = {'hash': None}
 
     @property
     def boundaries(self):
@@ -172,7 +183,8 @@ class BoundedEigenvector(Eigenvector):
         # if even after removing duplicates do not have len 2 raise error
         if len(intersections) != 2:
             raise ValueError("Unexpected behaviour. Expected to have always "
-                             "two unique intersections.")
+                             "two unique intersections. Found intersections "
+                             "are {}".format(intersection))
         return intersections
 
     def jump(self, fromx):
@@ -180,10 +192,10 @@ class BoundedEigenvector(Eigenvector):
         if fromx not in self:
             raise ValueError("Given point is not in bounds; I don't know how "
                              "to jump from there.")
-        if self._call_initial_proposal():
+        if self._call_initial_proposal:
             return self.initial_proposal.jump(fromx)
 
-        self._ind = self._pick_jump_eigenvector()
+        self._ind = self._jump_eigenvector
         # rejection sampling to find a point within bounds
         while True:
             self._dx = self.random_generator.normal(
@@ -194,12 +206,13 @@ class BoundedEigenvector(Eigenvector):
                 return out
 
     def logpdf(self, xi, givenx):
-        if self._call_initial_proposal():
+        if self._call_initial_proposal:
             return self.initial_proposal.logpdf(xi, givenx)
         # cache the intersects and width for repeated calls with givenx and xi
-        new_hash = set((frozenset(xi[p] for p in self.parameters),
-                        frozenset(givenx[p] for p in self.parameters)))
-        if new_hash == self._old_hash:
+        x0 = [xi[p] for p in self.parameters]
+        x1 = [givenx[p] for p in self.parameters]
+
+        if x0 + x1 == self._cache['hash']:
             in1, in2 = self._cache['intersects']
             width = self._cache['width']
         else:
@@ -208,9 +221,8 @@ class BoundedEigenvector(Eigenvector):
             width = numpy.linalg.norm([in2[p] - in1[p]
                                        for p in self.parameters])
             # update the cached data
-            self._old_hash = new_hash
-            self._cache.update({'intersects': (in1, in2), 'width': width})
-
+            self._cache.update({'hash': x1 + x0, 'intersects': (in1, in2),
+                                'width': width})
         mu = numpy.linalg.norm([givenx[p] - in1[p] for p in self.parameters])
         xi = numpy.linalg.norm([xi[p] - in1[p] for p in self.parameters])
 
@@ -246,6 +258,11 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
         :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
         the eigenvectors are being adapted. Post-adaptation phase the
         eigenvectors and eigenvalues are kept constant.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     initial_proposal : str (optional)
         Name of the initial proposal that is called before the number of
         proposal seps exceeds ``stability_duration''. By default se to the
@@ -262,12 +279,14 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
     symmetric = False
 
     def __init__(self, parameters, boundaries, stability_duration,
-                 adaptation_duration,
+                 adaptation_duration, jump_interval=1,
                  initial_proposal='at_adaptive_bounded_normal',
                  target_rate=0.234, shuffle_rate=0.33):
         # set the parameters, initial proposal
         super(AdaptiveBoundedEigenvector, self).__init__(
-            parameters, boundaries, stability_duration, initial_proposal,
-            shuffle_rate)
+            parameters=parameters, boundaries=boundaries,
+            stability_duration=stability_duration, jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration + stability_duration,
+            shuffle_rate=shuffle_rate, initial_proposal=initial_proposal)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, target_rate)

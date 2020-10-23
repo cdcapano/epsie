@@ -74,10 +74,9 @@ class Eigenvector(BaseProposal):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
+        self.start_step = 1 # Add support for this
         # store the jump interval information
         self.set_jump_interval(jump_interval, jump_interval_duration)
-        # later add this ! ! !
-        self.start_step = 1 # ! ! ! !
         self.set_initial_proposal(initial_proposal, stability_duration)
         # cache the eigenvector index used to produce a jump
         self._ind = None
@@ -182,7 +181,7 @@ class Eigenvector(BaseProposal):
     def _jump(self, fromx):
         if self._call_initial_proposal:
             return self.initial_proposal.jump(fromx)
-        self._ind = self._pick_jump_eigenvector
+        self._ind = self._jump_eigenvector
         # scale of the 1D jump
         self._dx = self.random_generator.normal(scale=self.eigvals[self._ind])
         return {p: fromx[p] + self._dx * self.eigvects[i, self._ind]
@@ -271,14 +270,14 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self._decay_const = adaptation_duration**(-0.6)
         self._log_lambda = 0.0
 
-    def update(self, chain):
+    def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
         This prepares the proposal for the next jump.
         """
         dk = self.nsteps - self.stability_duration + 1
         if self._call_initial_proposal:
             self._stability_update(chain)
-        elif dk < adaptation_duration:
+        elif dk < self.adaptation_duration:
             self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
@@ -355,9 +354,9 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
                  initial_proposal='at_adaptive_normal'):
         # set the parameters, initialize the covariance matrix
         super(AdaptiveEigenvector, self).__init__(
-              parameters=parameters, stability_duration=stability_duration,
-              shuffle_rate=shuffle_rate, jump_interval=jump_interval,
-              jump_interval_duration=adaptation_duration,
-              initial_proposal=initial_proposal)
+            parameters=parameters, stability_duration=stability_duration,
+            shuffle_rate=shuffle_rate, jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration+stability_duration,
+            initial_proposal=initial_proposal)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, target_rate)
