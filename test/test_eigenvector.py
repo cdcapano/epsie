@@ -31,7 +31,7 @@ from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
-STABILITY_DURATION = 64
+STABILITY_DURATION = 70
 ADAPTATION_DURATION = 32
 SWAP_INTERVAL = 1
 

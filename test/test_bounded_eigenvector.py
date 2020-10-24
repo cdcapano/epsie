@@ -20,7 +20,6 @@ from __future__ import (absolute_import, division)
 
 import pytest
 
-import numpy
 from scipy import stats
 
 from epsie.proposals import (BoundedEigenvector, AdaptiveBoundedEigenvector)
@@ -28,7 +27,6 @@ from epsie.proposals.bounded_normal import Boundaries
 from _utils import Model
 
 from test_ptsampler import _create_sampler
-from test_ptsampler import test_chains as _test_chains
 from test_ptsampler import test_checkpointing as _test_checkpointing
 from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
@@ -37,6 +35,7 @@ from test_ptsampler import test_clear_memory as _test_clear_memory
 STABILITY_DURATION = 64
 ADAPTATION_DURATION = 16
 SWAP_INTERVAL = 1
+
 
 def _setup_proposal(model, proposal_name, boundaries, params=None):
     if params is None:
@@ -48,7 +47,6 @@ def _setup_proposal(model, proposal_name, boundaries, params=None):
             params, boundaries, STABILITY_DURATION, ADAPTATION_DURATION)
     else:
         raise KeyError("unrecognized proposal name {}".format(proposal_name))
-
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_eigenvector',

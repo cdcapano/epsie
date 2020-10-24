@@ -187,7 +187,7 @@ class BoundedEigenvector(Eigenvector):
         if len(intersections) != 2:
             raise ValueError("Unexpected behaviour. Expected to have always "
                              "two unique intersections. Found intersections "
-                             "are {}".format(intersection))
+                             "are {}".format(intersections))
         return intersections
 
     def jump(self, fromx):
