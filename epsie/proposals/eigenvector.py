@@ -74,7 +74,7 @@ class Eigenvector(BaseProposal):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
-        self.start_step = 1 # Add support for this
+        self.start_step = 1  # Add support for this
         # store the jump interval information
         self.set_jump_interval(jump_interval, jump_interval_duration)
         self.set_initial_proposal(initial_proposal, stability_duration)
