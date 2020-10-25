@@ -23,8 +23,9 @@ import numpy
 # from .base import (BaseProposal, BaseAdaptiveSupport)
 from .base import (BaseProposal)
 
-#TO DO:
+# TO DO:
 #    - Add jump interval support
+#    - Add math overview
 #    - Add adaptive version that is tuning the kappa parameter
 
 
@@ -58,7 +59,6 @@ class IsotropicSkyProposal(BaseProposal):
     degs : bool, optional
         Whether the input parameters are in degrees.
         By default False (radians).
-
     """
 
     name = 'isotropic_sky'
@@ -121,7 +121,8 @@ class IsotropicSkyProposal(BaseProposal):
     @property
     def norm(self):
         """Returns the normalisation constant for the von Mises-Fisher
-        distribution."""
+        distribution.
+        """
         return self._norm
 
     @norm.setter
@@ -130,7 +131,8 @@ class IsotropicSkyProposal(BaseProposal):
             raise ValueError("``normalisation must be > 0.")
         self._norm = norm
 
-    def _normalisation(self, kappa):
+    @staticmethod
+    def _normalisation(kappa):
         """Calculates the normalisation constant for the von Mises-Fisher
         distribution on a 2-sphere.
         """

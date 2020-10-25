@@ -26,6 +26,8 @@ except ImportError:
 from scipy import stats
 
 import epsie
+import warnings
+warnings.filterwarnings("ignore", "Generator", FutureWarning)
 
 
 @add_metaclass(ABCMeta)
