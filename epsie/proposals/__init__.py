@@ -32,6 +32,7 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
 from .nested_transdimensional import NestedTransdimensional
+from .sky import IsotropicSkyProposal
 from .birth import (UniformBirth, NormalBirth, LogNormalBirth)
 
 
@@ -58,6 +59,7 @@ proposals = {
     ATAdaptiveBoundedNormal.name: ATAdaptiveBoundedNormal,
     ATAdaptiveAngular.name: ATAdaptiveAngular,
     AdaptiveEigenvector.name: AdaptiveEigenvector,
+    IsotropicSkyProposal.name: IsotropicSkyProposal,
 }
 
 births = {
