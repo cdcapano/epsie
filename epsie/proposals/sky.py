@@ -23,37 +23,118 @@ import numpy
 # from .base import (BaseProposal, BaseAdaptiveSupport)
 from .base import (BaseProposal)
 
+#TO DO:
+#    - Add jump interval support
+#    - Add adaptive version that is tuning the kappa parameter
+
 
 class IsotropicSkyProposal(BaseProposal):
-    """
-    TO DO:
-        - store the precomputed normalisation constant
-        - add property and setter for kappa
-        - Ensure that the first parameter is always the azimuthal angle
-        and the second is the polar angle
-        - Add support for different convetion. Internally it assumes now
-        that the polar angle ranges from 0 to pi, add a convention wherein
-        the user input could be from -pi/2 to pi/2.
+    """Uses a von Mises-Fisher distribution with a fixed concentration
+    parameter.
+
+    The von Mises-Fisher distribution is an isotropic distribution
+    on the surface of a 2-sphere and is analogoues to the isotropic normal
+    distribution on a plane (where the covariance matrix is proportional to
+    unity).
+
+    Parameters
+    ----------
+    azimuthal_parameter : str
+        The name of the azimuthal parameter.
+    polar_parameter : str
+        The name of the polar parameter.
+    kappa : float, optional
+        The distribution concentration parameter. The mean angular distance
+        of a jump in degrees for several values of ``kappa`` is:
+
+            ``kappa`` = 1   : 69 degrees
+            ``kappa`` = 10  : 23 degrees
+            ``kappa`` = 100 : 7 degrees
+
+    radec : bool, optional
+        Defines the polar angle convention. By default False, i.e. the polar
+        angle range is [0, np.pi]. If ``radec`` = True, then the polar angle
+        range is [-np.pi/2, np.pi/2].
+    degs : bool, optional
+        Whether the input parameters are in degrees.
+        By default False (radians).
+
     """
 
     name = 'isotropic_sky'
     symmetric = True
+    _kappa = None
+    _norm = None
+    _radec = None
+    _degs = None
 
-    def __init__(self, parameters, kappa=100):
-        self.parameters = parameters
-        self.ndim = len(self.parameters)
-        # check dimensions
-        if self.ndim != 2:
-            raise ValueError("{} proposal is defined only on a 2-sphere.")
-
+    def __init__(self, azimuthal_parameter, polar_parameter, kappa=10,
+                 radec=False, degs=False):
+        self.parameters = [azimuthal_parameter, polar_parameter]
+        self.isdegs = degs
+        self.isradec = radec
+        # store the concentration parameter
         self.kappa = kappa
+        # calculate the normalisation constant
+        self.norm = self._normalisation(kappa)
 
     @property
-    def _norm(self):
+    def kappa(self):
+        """Returns the concentration parameter of the von Mises-Fisher
+        distribution.
+        """
+        return self._kappa
+
+    @kappa.setter
+    def kappa(self, kappa):
+        """Sets the concentration parameter."""
+        if not kappa > 0:
+            raise ValueError("``kappa`` must be > 0.")
+        self._kappa = kappa
+
+    @property
+    def isradec(self):
+        """Whether the polar angle assumes the right-ascension declination
+        convention and runs in range [-np.pi/2, np.pi/2].
+        """
+        return self._radec
+
+    @isradec.setter
+    def isradec(self, radec):
+        """Sets ``isradec``."""
+        if not isinstance(radec, bool):
+            raise ValueError("``radec`` must be a boolean.")
+        self._radec = radec
+
+    @property
+    def isdegs(self):
+        """Whether input and ouput values are in degrees."""
+        return self._degs
+
+    @isdegs.setter
+    def isdegs(self, degs):
+        """Sets ``isdegs``."""
+        if not isinstance(degs, bool):
+            raise ValueError("``degs`` must be a boolean.")
+        self._degs = degs
+
+    @property
+    def norm(self):
+        """Returns the normalisation constant for the von Mises-Fisher
+        distribution."""
+        return self._norm
+
+    @norm.setter
+    def norm(self, norm):
+        if not norm > 0:
+            raise ValueError("``normalisation must be > 0.")
+        self._norm = norm
+
+    def _normalisation(self, kappa):
         """Calculates the normalisation constant for the von Mises-Fisher
         distribution on a 2-sphere.
         """
-        return self.kappa / (4 * numpy.pi * numpy.sinh(self.kappa))
+        return kappa / (4 * numpy.pi * numpy.sinh(kappa))
 
     @property
     def _new_point(self):
@@ -64,23 +145,30 @@ class IsotropicSkyProposal(BaseProposal):
         phi *= 2 * numpy.pi
         # feed the randomly generated point into the cdf inverse
         theta = numpy.log(numpy.exp(self.kappa)
-                          - self.kappa * cdf / (2 * numpy.pi * self._norm))
+                          - self.kappa * cdf / (2 * numpy.pi * self.norm))
         theta = numpy.arccos(theta / self.kappa)
         return phi, theta
 
-    @staticmethod
-    def _spherical2cartesian(phi, theta):
+    def _spherical2cartesian(self, phi, theta, convert=False):
         """Transform from spherical to Cartesian coordinates. Theta is defined
         on [0, pi] and phi on [0, 2*pi].
         """
+        # convert from radec/degrees
+        if self.isradec and convert:
+            if self.isdegs:
+                theta += 90.
+            else:
+                theta += numpy.pi / 2
+        if self.isdegs and convert:
+            phi *= numpy.pi / 180.
+            theta *= numpy.pi / 180.
         stheta = numpy.sin(theta)
         x = stheta * numpy.cos(phi)
         y = stheta * numpy.sin(phi)
         z = numpy.cos(theta)
         return numpy.array([x, y, z])
 
-    @staticmethod
-    def _cartesian2spherical(x, y, z):
+    def _cartesian2spherical(self, x, y, z, convert=False):
         """Returns the azimuthal and polar angle for normalised unit vector
         with components ``x``, ``y``, and ``z``.
         """
@@ -88,6 +176,15 @@ class IsotropicSkyProposal(BaseProposal):
         if phi < 0:
             phi += 2 * numpy.pi
         theta = numpy.arccos(z)
+        # convert back to radec/degrees
+        if self.isdegs and convert:
+            theta *= 180. / numpy.pi
+            phi *= 180. / numpy.pi
+        if self.isradec and convert:
+            if self.isdegs:
+                theta -= 90.
+            else:
+                theta -= numpy.pi / 2
         return (phi, theta)
 
     @staticmethod
@@ -109,20 +206,23 @@ class IsotropicSkyProposal(BaseProposal):
 
     def _jump(self, fromx):
         # unpack the fromx point and convert to cartesian
-        mu = self._spherical2cartesian(*[fromx[p] for p in self.parameters])
+        mu = self._spherical2cartesian(*[fromx[p] for p in self.parameters],
+                                       convert=True)
         # Draw a point that is centered at the north pole
         xi = self._spherical2cartesian(*self._new_point)
         # find a rotation matrix from the north pole to mu
         R = self._rotmat(mu)
         # rotate xi to the new reference frame and convert to sphericals
-        xi = self._cartesian2spherical(*numpy.matmul(R, xi))
+        xi = self._cartesian2spherical(*numpy.matmul(R, xi), convert=True)
         out = {p: xi[i] for i, p in enumerate(self.parameters)}
         return out
 
     def _logpdf(self, xi, givenx):
-        mu = self._spherical2cartesian(*[givenx[p] for p in self.parameters])
-        x = self._spherical2cartesian(*[xi[p] for p in self.parameters])
-        return numpy.log(self._norm) + self.kappa * numpy.dot(mu, x)
+        mu = self._spherical2cartesian(*[givenx[p] for p in self.parameters],
+                                       convert=True)
+        x = self._spherical2cartesian(*[xi[p] for p in self.parameters],
+                                      convert=True)
+        return numpy.log(self.norm) + self.kappa * numpy.dot(mu, x)
 
     @property
     def state(self):
