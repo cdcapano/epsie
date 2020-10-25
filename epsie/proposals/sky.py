@@ -20,7 +20,7 @@ from __future__ import (absolute_import, division)
 
 import numpy
 
-#from .base import (BaseProposal, BaseAdaptiveSupport)
+# from .base import (BaseProposal, BaseAdaptiveSupport)
 from .base import (BaseProposal)
 
 
@@ -29,6 +29,11 @@ class IsotropicSkyProposal(BaseProposal):
     TO DO:
         - store the precomputed normalisation constant
         - add property and setter for kappa
+        - Ensure that the first parameter is always the azimuthal angle
+        and the second is the polar angle
+        - Add support for different convetion. Internally it assumes now
+        that the polar angle ranges from 0 to pi, add a convention wherein
+        the user input could be from -pi/2 to pi/2.
     """
 
     name = 'isotropic_sky'
