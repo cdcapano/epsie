@@ -15,18 +15,20 @@
 """Sky-dedicated proposals sampling on the surface of a 2-sphere."""
 from __future__ import (absolute_import, division)
 
-from abc import ABCMeta
-from six import add_metaclass
+# from abc import ABCMeta
+# from six import add_metaclass
 
 import numpy
-from scipy import stats
 
-from .base import (BaseProposal, BaseAdaptiveSupport)
+#from .base import (BaseProposal, BaseAdaptiveSupport)
+from .base import (BaseProposal)
 
 
 class IsotropicSkyProposal(BaseProposal):
     """
-    L.
+    TO DO:
+        - store the precomputed normalisation constant
+        - add property and setter for kappa
     """
 
     name = 'isotropic_sky'
@@ -74,7 +76,7 @@ class IsotropicSkyProposal(BaseProposal):
 
     @staticmethod
     def _cartesian2spherical(x, y, z):
-        """Returns the azimuthat and polar angle for normalised unit vector
+        """Returns the azimuthal and polar angle for normalised unit vector
         with components ``x``, ``y``, and ``z``.
         """
         phi = numpy.arctan2(y, x)
@@ -113,11 +115,9 @@ class IsotropicSkyProposal(BaseProposal):
         return out
 
     def _logpdf(self, xi, givenx):
-        # symmetric in theta so just need to write down the angular distance
-        # between the two points and feed it to the logpdf
-
-        # ADD THIS
-        pass
+        mu = self._spherical2cartesian(*[givenx[p] for p in self.parameters])
+        x = self._spherical2cartesian(*[xi[p] for p in self.parameters])
+        return numpy.log(self._norm) + self.kappa * numpy.dot(mu, x)
 
     @property
     def state(self):
