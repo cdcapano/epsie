@@ -149,7 +149,11 @@ class IsotropicSolidAngle(BaseProposal):
         """Draws a random point from the von Mises-Fisher distribution
         centered at the north pole.
         """
-        phi, cdf = self.random_generator.random(size=2)
+        # once python2 dropped keep just .random
+        try:
+            phi, cdf = self.random_generator.random(size=2)
+        except AttributeError:
+            phi, cdf = self.random_generator.random_sample(size=2)
         phi *= 2 * numpy.pi
         # feed the randomly generated point into the cdf inverse
         theta = numpy.log(numpy.exp(self.kappa)

@@ -19,12 +19,10 @@
 from __future__ import (print_function, absolute_import)
 
 import pytest
-import numpy
 
 from epsie.proposals import (IsotropicSolidAngle, AdaptiveIsotropicSolidAngle)
 from _utils import SolidAngleModel
 
-from test_ptsampler import _create_sampler
 from test_ptsampler import test_checkpointing as _test_checkpointing
 from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
