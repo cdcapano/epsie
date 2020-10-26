@@ -281,6 +281,7 @@ class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
         self.adaptation_duration = adaptation_duration
         self.start_step = start_step
         self.target_rate = target_rate
+        self._decay_const = (adaptation_duration)**(-0.6)
         # this one will be getting updated
         self._log_kappa = numpy.log(self.kappa)
 
@@ -291,9 +292,9 @@ class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
             dk = dk**(-0.6) - self._decay_const
             ar = chain.acceptance['acceptance_ratio'][-1]
             # update log of the concetration parameter
-            self._log_kappa += dk * (ar - self.target_rate)
+            self._log_kappa += dk * (self.target_rate - ar)
             # update the concentration parameter and the norm constant
-            self.kappa = numpy.exp(self._log_lambda)
+            self.kappa = numpy.exp(self._log_kappa)
             self.norm = self._normalisation(self.kappa)
 
     @property
