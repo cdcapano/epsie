@@ -288,7 +288,7 @@ class PolynomialRegressionModel(object):
 class SolidAngleModel(object):
     r"""A solid angle isotropic model centered at some point on a 2-sphere.
     """
-    blob_parameters = None
+    blob_params = None
 
     def __init__(self, radec=False, degs=False):
         self.params = ['phi', 'theta']
@@ -301,7 +301,8 @@ class SolidAngleModel(object):
             *self.mu, convert=True)
         self.mu_spherical = {'phi': phi, 'theta': theta}
 
-    def prior_rvs(self, size=None, shape=None):
+    @staticmethod
+    def prior_rvs(size=None, shape=None):
         phi = numpy.random.uniform(0, 2*numpy.pi, size).reshape(shape)
         theta = numpy.arccos(1 - 2 * numpy.random.uniform(0, 1, size))
         theta = theta.reshape(shape)
