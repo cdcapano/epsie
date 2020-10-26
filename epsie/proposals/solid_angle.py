@@ -29,8 +29,8 @@ from .base import (BaseProposal)
 #    - Add adaptive version that is tuning the kappa parameter
 
 
-class IsotropicSkyProposal(BaseProposal):
-    """Uses a von Mises-Fisher distribution with a fixed concentration
+class IsotropicSolidAngle(BaseProposal):
+    """Uses the von Mises-Fisher distribution with a fixed concentration
     parameter.
 
     The von Mises-Fisher distribution is an isotropic distribution
@@ -61,7 +61,7 @@ class IsotropicSkyProposal(BaseProposal):
         By default False (radians).
     """
 
-    name = 'isotropic_sky'
+    name = 'isotropic_solid_angle'
     symmetric = True
     _kappa = None
     _norm = None
