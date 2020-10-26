@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-from itertools import product
+from itertools import (product, combinations)
 
 import numpy
 from scipy.stats import truncnorm
@@ -180,17 +180,28 @@ class BoundedEigenvector(Eigenvector):
         if len(intersections) == 2:
             return intersections
         else:
-            hashes = [hash(frozenset(p.values())) for p in intersections]
-            intersections = [intersections[hashes.index(h)]
-                             for h in list(set(hashes))]
-        # if even after removing duplicates do not have len 2 raise error
-        if len(intersections) != 2:
-            raise ValueError("Unexpected behaviour. Expected to have always "
-                             "two unique intersections. Found intersections "
-                             "are {}".format(intersections))
+            counter = 0
+            # check with duplicates with some tolerance
+            while len(intersections) != 2:
+                counter += 1
+                for i, j in combinations(range(len(intersections)), 2):
+                    x0 = [intersections[i][p] for p in parameters]
+                    x1 = [intersections[j][p] for p in parameters]
+                    # the tolerance here might have to be tuned further
+                    if np.allclose(x0, x1, rtol=1e-3):
+                        intersections.pop(i)
+                        break
+                # after some number of iterations raise this value Error
+                # if even after removing duplicates do not have len 2
+                if counter > 100:
+                    if len(intersections) != 2:
+                        raise ValueError("Unexpected behaviour. Expected to "
+                                         "find two unique intersections. "
+                                         "Found intersections are {}"
+                                         .format(intersections))
         return intersections
 
-    def jump(self, fromx):
+    def _jump(self, fromx):
         # make sure we're in bounds
         if fromx not in self:
             raise ValueError("Given point is not in bounds; I don't know how "
@@ -208,7 +219,7 @@ class BoundedEigenvector(Eigenvector):
             if out in self:
                 return out
 
-    def logpdf(self, xi, givenx):
+    def _logpdf(self, xi, givenx):
         if self._call_initial_proposal:
             return self.initial_proposal.logpdf(xi, givenx)
         # cache the intersects and width for repeated calls with givenx and xi
