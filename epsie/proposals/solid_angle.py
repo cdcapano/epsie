@@ -12,25 +12,19 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Sky-dedicated proposals sampling on the surface of a 2-sphere."""
+"""Proposals for sampling on the surface of a 2-sphere."""
 from __future__ import (absolute_import, division)
 
-# from abc import ABCMeta
-# from six import add_metaclass
+from abc import ABCMeta
+from six import add_metaclass
 
 import numpy
 
-# from .base import (BaseProposal, BaseAdaptiveSupport)
-from .base import (BaseProposal)
-
-# TO DO:
-#    - Add jump interval support
-#    - Add math overview
-#    - Add adaptive version that is tuning the kappa parameter
+from .base import (BaseProposal, BaseAdaptiveSupport)
 
 
 class IsotropicSolidAngle(BaseProposal):
-    """Uses the von Mises-Fisher distribution with a fixed concentration
+    r"""Uses the von Mises-Fisher distribution with a fixed concentration
     parameter.
 
     The von Mises-Fisher distribution is an isotropic distribution
@@ -59,6 +53,15 @@ class IsotropicSolidAngle(BaseProposal):
     degs : bool, optional
         Whether the input parameters are in degrees.
         By default False (radians).
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    jump_interval_duration : int, optional
+        The number of proposals steps during which values of ``jump_interval``
+        other than 1 are used. After this elapses the proposal is called on
+        each iteration.
     """
 
     name = 'isotropic_solid_angle'
@@ -69,7 +72,8 @@ class IsotropicSolidAngle(BaseProposal):
     _degs = None
 
     def __init__(self, azimuthal_parameter, polar_parameter, kappa=10,
-                 radec=False, degs=False):
+                 radec=False, degs=False, jump_interval=1,
+                 jump_interval_duration=None):
         self.parameters = [azimuthal_parameter, polar_parameter]
         self.isdegs = degs
         self.isradec = radec
@@ -77,6 +81,7 @@ class IsotropicSolidAngle(BaseProposal):
         self.kappa = kappa
         # calculate the normalisation constant
         self.norm = self._normalisation(kappa)
+        self.set_jump_interval(jump_interval, jump_interval_duration)
 
     @property
     def kappa(self):
@@ -127,6 +132,7 @@ class IsotropicSolidAngle(BaseProposal):
 
     @norm.setter
     def norm(self, norm):
+        """Sets the normalisation constants and checks it's positive."""
         if not norm > 0:
             raise ValueError("``normalisation must be > 0.")
         self._norm = norm
@@ -235,3 +241,124 @@ class IsotropicSolidAngle(BaseProposal):
     def set_state(self, state):
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
+
+
+@add_metaclass(ABCMeta)
+class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
+    r"""A utility class for adding adaptation support for the
+    ``IsotropicSolidAngle`` proposal.
+
+    The adaptation adapts the concentration parameter to achieve a specific
+    acceptance ration.
+
+    Notes
+    ----------
+    For the vanishing decay we use
+
+    .. math::
+        \gamma_{g+1} = \left(g - g_{0}\right)^{-0.6} - C,
+
+    where :math: `g_{0}` is the iteration at which adaptation starts,
+    by default :math: `g_{0}=1` and :math: `C` is a positive constant
+    ensuring that when the adaptation phase ends the vanishing decay tends to
+    zero.
+    """
+
+    def setup_adaptation(self, adaptation_duration, start_step, target_rate):
+        """Sets up the adaptation parameters.
+
+        Parameters
+        ----------
+        adaptation_duration: int
+            The number of proposal steps over which to apply the adaptation. No
+            more adaptation will be done once a proposal exceeds this value.
+        start_step : int, optional
+            The proposal step when the adaptation phase begins.
+        target_rate: float, optional
+            Target acceptance ratio. By default 0.234 and 0.48 for
+            componentwise scaling.
+        """
+        self.adaptation_duration = adaptation_duration
+        self.start_step = start_step
+        self.target_rate = target_rate
+        # this one will be getting updated
+        self._log_kappa = numpy.log(self.kappa)
+
+    def _update(self, chain):
+        dk = self.nsteps - self.start_step + 1
+        if 1 < dk < self.adaptation_duration:
+            # our decay is 1/dk**(0.6)
+            dk = dk**(-0.6) - self._decay_const
+            ar = chain.acceptance['acceptance_ratio'][-1]
+            # update log of the concetration parameter
+            self._log_kappa += dk * (ar - self.target_rate)
+            # update the concentration parameter and the norm constant
+            self.kappa = numpy.exp(self._log_lambda)
+            self.norm = self._normalisation(self.kappa)
+
+    @property
+    def state(self):
+        state = {'nsteps': self._nsteps,
+                 'random_state': self.random_state,
+                 'kappa': self.kappa}
+        return state
+
+    def set_state(self, state):
+        self.random_state = state['random_state']
+        self._nsteps = state['nsteps']
+        self.kappa = state['kappa']
+        # store the log and the normalisation constant
+        self._log_kappa = numpy.log(self.kappa)
+        self.norm = self._normalisation(self.kappa)
+
+
+class AdaptiveIsotropicSolidAngle(AdaptiveIsotropicSolidAngleSupport,
+                                  IsotropicSolidAngle):
+    r"""An adaptive isotropic solid angle proposal based on the
+    von Mises-Fisher distribution.
+
+    See :py:class:`AdaptiveIsotropicSolidAngleSupport` and
+    :py:class:`IsotropicSolidAngle` for more details on the adaptation
+    algorithm and the proposal distribution.
+
+    Parameters
+    ----------
+    azimuthal_parameter : str
+        The name of the azimuthal parameter.
+    polar_parameter : str
+        The name of the polar parameter.
+    adaptation_duration : int
+        The number of proposal steps over which to apply the adaptation. No
+        more adaptation will be done once a proposal exceeds this value.
+    start_step: int, optional
+        The proposal step index when adaptation phase begins.
+    target_rate: float, optional
+        Target acceptance ratio. By default 0.234 and 0.48 for componentwise
+        scaling.
+    radec : bool, optional
+        Defines the polar angle convention. By default False, i.e. the polar
+        angle range is [0, np.pi]. If ``radec`` = True, then the polar angle
+        range is [-np.pi/2, np.pi/2].
+    degs : bool, optional
+        Whether the input parameters are in degrees.
+        By default False (radians).
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
+    """
+    name = 'adaptive_isotropic_solid_angle'
+    symmetric = True
+
+    def __init__(self, azimuthal_parameter, polar_parameter,
+                 adaptation_duration, start_step=1, target_rate=0.234,
+                 radec=False, degs=False, jump_interval=1):
+        # setup the main isotropic solid angle proposal
+        super(AdaptiveIsotropicSolidAngle, self).__init__(
+            azimuthal_parameter=azimuthal_parameter,
+            polar_parameter=polar_parameter, kappa=5., radec=radec, degs=degs,
+            jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration)
+        # setup the adaptation
+        self.setup_adaptation(adaptation_duration, start_step, target_rate)

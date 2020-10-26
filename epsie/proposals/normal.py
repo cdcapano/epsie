@@ -583,6 +583,9 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
     def setup_adaptation(self, adaptation_duration, diagonal=False,
                          componentwise=False, start_step=1, target_rate=None):
         r"""Sets up the adaptation parameters.
+
+        Parameters
+        ----------
         adaptation_duration: int
             The number of proposal steps over which to apply the adaptation. No
             more adaptation will be done once a proposal exceeds this value.
@@ -724,7 +727,7 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
     ----------
     parameters: (list of) str
         The names of the parameters.
-    adaptation_duration: int
+    adaptation_duration : int
         The number of proposal steps over which to apply the adaptation. No
         more adaptation will be done once a proposal exceeds this value.
     diagonal : bool, optional
