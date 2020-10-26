@@ -295,8 +295,8 @@ class SolidAngleModel(object):
         x = 1. / numpy.sqrt(3)
         self.mu = numpy.array([x, x, x])
         self.kappa = 23.
-        self.solid_angle_prop = IsotropicSolidAngle(*self.params, self.kappa,
-                                                    radec, degs)
+        self.solid_angle_prop = IsotropicSolidAngle(
+            self.params[0], self.params[1] self.kappa, radec, degs)
         phi, theta = self.solid_angle_prop._cartesian2spherical(
             *self.mu, convert=True)
         self.mu_spherical = {'phi': phi, 'theta': theta}

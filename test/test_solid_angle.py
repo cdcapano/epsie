@@ -38,9 +38,10 @@ def _setup_proposal(model, proposal_name, params=None):
     if params is None:
         params = model.params
     if proposal_name == 'isotropic_solid_angle':
-        return IsotropicSolidAngle(*params)
+        return IsotropicSolidAngle(params[0], params[1])
     elif proposal_name == 'adaptive_isotropic_solid_angle':
-        return AdaptiveIsotropicSolidAngle(*params, ADAPTATION_DURATION)
+        return AdaptiveIsotropicSolidAngle(params[0], params[1],
+                                           ADAPTATION_DURATION)
     else:
         return -1
 
