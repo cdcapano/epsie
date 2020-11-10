@@ -32,6 +32,7 @@ from .discrete import (NormalDiscrete, SSAdaptiveNormalDiscrete,
                        BoundedDiscrete, SSAdaptiveBoundedDiscrete,
                        AdaptiveBoundedDiscrete)
 from .nested_transdimensional import NestedTransdimensional
+from .solid_angle import (IsotropicSolidAngle, AdaptiveIsotropicSolidAngle)
 from .birth import (UniformBirth, NormalBirth, LogNormalBirth)
 
 
@@ -58,6 +59,8 @@ proposals = {
     ATAdaptiveBoundedNormal.name: ATAdaptiveBoundedNormal,
     ATAdaptiveAngular.name: ATAdaptiveAngular,
     AdaptiveEigenvector.name: AdaptiveEigenvector,
+    IsotropicSolidAngle.name: IsotropicSolidAngle,
+    AdaptiveIsotropicSolidAngle.name: AdaptiveIsotropicSolidAngle,
 }
 
 births = {

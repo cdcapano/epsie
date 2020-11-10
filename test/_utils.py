@@ -17,7 +17,7 @@
 import numpy
 from scipy import stats
 import epsie
-from epsie.proposals import Boundaries
+from epsie.proposals import (Boundaries, IsotropicSolidAngle)
 
 
 #
@@ -284,6 +284,35 @@ class PolynomialRegressionModel(object):
             logl = self.loglikelihood(**kwargs)
         return logl, logp
 
+
+class SolidAngleModel(object):
+    r"""A solid angle isotropic model centered at some point on a 2-sphere.
+    """
+    blob_params = None
+
+    def __init__(self, radec=False, degs=False):
+        self.params = ['phi', 'theta']
+        x = 1. / numpy.sqrt(3)
+        self.mu = numpy.array([x, x, x])
+        self.kappa = 23.
+        self.solid_angle_prop = IsotropicSolidAngle(
+            self.params[0], self.params[1], self.kappa, radec, degs)
+        phi, theta = self.solid_angle_prop._cartesian2spherical(
+            *self.mu, convert=True)
+        self.mu_spherical = {'phi': phi, 'theta': theta}
+
+    @staticmethod
+    def prior_rvs(size=None, shape=None):
+        phi = numpy.random.uniform(0, 2*numpy.pi, size).reshape(shape)
+        theta = numpy.arccos(1 - 2 * numpy.random.uniform(0, 1, size))
+        theta = theta.reshape(shape)
+        return {'phi': phi, 'theta': theta}
+
+    def loglikelihood(self, **kwargs):
+        return self.solid_angle_prop.logpdf(kwargs, self.mu_spherical)
+
+    def __call__(self, **kwargs):
+        return self.loglikelihood(**kwargs), -numpy.log(4 * numpy.pi)
 
 #
 # =============================================================================
