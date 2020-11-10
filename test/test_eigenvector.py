@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Performs unit tests on the AdaptiveNormal proposals."""
+"""Performs unit tests on the eigenvector proposals."""
 
 from __future__ import (print_function, absolute_import)
 
@@ -31,7 +31,7 @@ from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
-STABILITY_DURATION = 64
+STABILITY_DURATION = 70
 ADAPTATION_DURATION = 32
 SWAP_INTERVAL = 1
 
