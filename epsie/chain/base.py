@@ -16,6 +16,7 @@
 """Base class for Markov chains."""
 
 from abc import (ABC, abstractmethod)
+import six
 
 
 class BaseChain(ABC):

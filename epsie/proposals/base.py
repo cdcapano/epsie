@@ -17,6 +17,7 @@ from abc import (ABC, abstractmethod)
 
 import numpy
 from numpy.random import Generator
+import six
 
 import epsie
 

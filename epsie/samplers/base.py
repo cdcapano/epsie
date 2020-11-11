@@ -16,6 +16,7 @@
 """Base class and functions for samplers."""
 
 from abc import (ABC, abstractmethod)
+import six
 
 from epsie import (create_seed, dump_state, load_state)
 from epsie.proposals import Normal
