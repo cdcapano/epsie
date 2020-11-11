@@ -39,9 +39,7 @@ class JointProposal(BaseProposal):
     """
     name = 'joint'
 
-    # Py3XX: change kwargs to explicit random_state=None
-    def __init__(self, *proposals, **kwargs):
-        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
+    def __init__(self, *proposals, bit_generator=None):
         all_params = list(itertools.chain(*[prop.parameters
                                             for prop in proposals]))
         # check that we don't have multiple proposals for the same parameter

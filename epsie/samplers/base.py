@@ -17,16 +17,13 @@
 
 from __future__ import absolute_import
 
-from abc import (ABCMeta, abstractmethod)
-import six
-from six import add_metaclass
+from abc import (ABC, abstractmethod)
 
 from epsie import (create_seed, dump_state, load_state)
 from epsie.proposals import Normal
 
 
-@add_metaclass(ABCMeta)
-class BaseSampler(object):
+class BaseSampler(ABC):
     """Base class for samplers.
     """
     _parameters = None
@@ -76,10 +73,7 @@ class BaseSampler(object):
         if proposals is None:
             proposals = []
         else:
-            # make a copy of the so we don't modify what was given
-            # Py3XX: uncomment this and drop the next line when drop 2.7
-            #proposals = proposals.copy()
-            proposals = [p for p in proposals]
+            proposals = proposals.copy()
         # create default proposal instances for the other parameters
         if default_proposal is None:
             default_proposal = Normal

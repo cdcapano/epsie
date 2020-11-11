@@ -17,13 +17,10 @@
 
 from __future__ import absolute_import
 
-from abc import (ABCMeta, abstractmethod, abstractproperty)
-import six
-from six import add_metaclass
+from abc import (ABC, abstractmethod)
 
 
-@add_metaclass(ABCMeta)
-class BaseChain(object):
+class BaseChain(ABC):
     """Abstract base class for Markov chains.
 
     Provides standard functions for Chain and ParallelTemperedChain.
@@ -69,95 +66,73 @@ class BaseChain(object):
     def __len__(self):
         return self.iteration - self.lastclear
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def hasblobs(self):
         """Whether the model returns blobs."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def iteration(self):
         """The number of times the chain has been stepped."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def lastclear(self):
         """Returns the iteration of the last time the chain memory was cleared.
         """
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def scratchlen(self):
         """The length of the scratch space used."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def start_position(self):
         """Dictionary mapping parameters to their start position."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def stats0(self):
         """Dictionary of the log likelihood and prior at the start position."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def blob0(self):
         """Dictionary of the blob data at the start position."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def positions(self):
         """The history of all of the positions, as a structred array."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def stats(self):
         """The log likelihoods and log priors of the positions, as a structred
         array.
         """
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def acceptance(self):
         """The history of all of acceptance ratios and accepted booleans, as
         a structred array.
         """
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def blobs(self):
         """The history of all of the blob data, as a structred array.
 
@@ -165,28 +140,22 @@ class BaseChain(object):
         """
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def current_position(self):
         """Dictionary of the current position of the chain."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def current_stats(self):
         """Dictionary giving the log likelihood and log prior of the current
         position.
         """
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def current_blob(self):
         """Dictionary of the blob data of the current position.
 
@@ -206,34 +175,26 @@ class BaseChain(object):
         """Returns all of the chain data at the requested index."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def bit_generator(self):
         """The random bit generator being used."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def random_generator(self):
         """Returns the random number generator."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def random_state(self):
         """The current state of the random bit generator."""
         pass
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def state(self):
         """Returns the current state of the chain.
 
