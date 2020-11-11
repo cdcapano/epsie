@@ -13,11 +13,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from __future__ import (absolute_import, division)
-
-from abc import ABCMeta
-from six import add_metaclass
-
 import numpy
 from scipy.stats import norm
 
@@ -241,7 +236,6 @@ class Eigenvector(BaseProposal):
             self._stability_update(chain)
 
 
-@add_metaclass(ABCMeta)
 class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     r"""Utility class for adding AdaptiveEigenvector proposal support.
 

@@ -13,10 +13,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Proposals for sampling on the surface of a 2-sphere."""
-from __future__ import (absolute_import, division)
-
-from abc import ABCMeta
-from six import add_metaclass
 
 import numpy
 
@@ -247,7 +243,6 @@ class IsotropicSolidAngle(BaseProposal):
         self._nsteps = state['nsteps']
 
 
-@add_metaclass(ABCMeta)
 class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
     r"""A utility class for adding adaptation support for the
     ``IsotropicSolidAngle`` proposal.
