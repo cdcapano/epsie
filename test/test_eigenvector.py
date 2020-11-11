@@ -16,8 +16,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the eigenvector proposals."""
 
-from __future__ import (print_function, absolute_import)
-
 import pytest
 import numpy
 

@@ -15,8 +15,6 @@
 
 """Base class for Markov chains."""
 
-from __future__ import absolute_import
-
 from abc import (ABC, abstractmethod)
 
 

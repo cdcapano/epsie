@@ -17,8 +17,6 @@
 
 """Classes for parallel tempered Markov chains."""
 
-from __future__ import absolute_import
-
 import numpy
 import copy
 

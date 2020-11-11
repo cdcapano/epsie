@@ -16,8 +16,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the solid angle proposals."""
 
-from __future__ import (print_function, absolute_import)
-
 import pytest
 
 from epsie.proposals import (IsotropicSolidAngle, AdaptiveIsotropicSolidAngle)

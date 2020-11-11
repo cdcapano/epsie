@@ -15,8 +15,6 @@
 
 """Base class and functions for samplers."""
 
-from __future__ import absolute_import
-
 from abc import (ABC, abstractmethod)
 
 from epsie import (create_seed, dump_state, load_state)

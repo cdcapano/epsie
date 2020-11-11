@@ -17,8 +17,6 @@
 chains.
 """
 
-from __future__ import absolute_import
-
 # get the version number
 from ._version import __version__
 

@@ -15,7 +15,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the NestedTransdimensional proposal."""
-from __future__ import (print_function, absolute_import)
 
 import numpy
 import pytest
