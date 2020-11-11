@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import numpy
 import copy
 
-from epsie import create_bit_generator
+from epsie import create_bit_generators
 from epsie.chain import Chain
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
@@ -72,12 +72,13 @@ class MetropolisHastingsSampler(BaseSampler):
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
+        # create the generators for each chain
+        bitgens = create_bit_generators(nchains, seed=self.seed) 
         self._chains = [Chain(
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals],
-            bit_generator=create_bit_generator(self.seed, stream=cid),
-            chain_id=cid)
-            for cid in range(nchains)]
+            bit_generator=bg, chain_id=cid)
+            for cid, bg in enumerate(bitgens)]
 
     def _concatenate_dicts(self, attr):
         """Concatenates dictionary attributes over all of the chains.

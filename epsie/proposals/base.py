@@ -19,10 +19,7 @@ import six
 from six import add_metaclass
 
 import numpy
-try:
-    from randomgen import RandomGenerator
-except ImportError:
-    from randomgen import Generator as RandomGenerator
+from numpy.random import Generator
 
 import epsie
 
@@ -86,11 +83,11 @@ class BaseRandom(object):
     def random_generator(self):
         """The random number generator.
 
-        This is an instance of :py:class:`randgen.RandomGenerator` that is
+        This is an instance of :py:class:`numpy.random.Generator` that is
         derived from the bit generator. It provides methods to create random
         draws from various distributions.
         """
-        return RandomGenerator(self.bit_generator)
+        return Generator(self.bit_generator)
 
     @property
     def random_state(self):
