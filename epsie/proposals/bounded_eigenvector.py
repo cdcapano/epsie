@@ -185,8 +185,8 @@ class BoundedEigenvector(Eigenvector):
             while len(intersections) != 2:
                 counter += 1
                 for i, j in combinations(range(len(intersections)), 2):
-                    x0 = [intersections[i][p] for p in parameters]
-                    x1 = [intersections[j][p] for p in parameters]
+                    x0 = [intersections[i][p] for p in self.parameters]
+                    x1 = [intersections[j][p] for p in self.parameters]
                     # the tolerance here might have to be tuned further
                     if np.allclose(x0, x1, rtol=1e-3):
                         intersections.pop(i)
