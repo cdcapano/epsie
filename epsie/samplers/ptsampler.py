@@ -100,7 +100,7 @@ class ParallelTemperedSampler(BaseSampler):
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
         # create the generators for each chain
-        bitgens = create_bit_generators(nchains, seed=self.seed) 
+        bitgens = create_bit_generators(nchains, seed=self.seed)
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals],
