@@ -17,8 +17,6 @@ from __future__ import absolute_import
 
 import itertools
 
-import numpy
-
 from .base import BaseProposal
 
 

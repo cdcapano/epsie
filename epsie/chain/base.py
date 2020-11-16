@@ -20,7 +20,6 @@ from __future__ import absolute_import
 from abc import (ABCMeta, abstractmethod, abstractproperty)
 import six
 from six import add_metaclass
-import numpy
 
 
 @add_metaclass(ABCMeta)

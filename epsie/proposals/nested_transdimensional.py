@@ -16,9 +16,7 @@ from __future__ import (absolute_import, division)
 
 
 import numpy
-from scipy import stats
 
-import epsie
 from .base import BaseProposal
 
 

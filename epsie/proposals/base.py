@@ -23,7 +23,6 @@ try:
     from randomgen import RandomGenerator
 except ImportError:
     from randomgen import Generator as RandomGenerator
-from scipy import stats
 
 import epsie
 
