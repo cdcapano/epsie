@@ -123,6 +123,19 @@ class Eigenvector(BaseProposal):
     def eigvals(self, eigvals):
         if eigvals.shape != (self.ndim,):
             raise ValueError("Invalid eigenvalue shape")
+        # check that we have no negatives; if we do, and the value is
+        # sufficiently close to 0, set it to 0
+        negvals = eigvals < 0
+        if negvals.any():
+            vals = eigvals[negvals]
+            relsize = vals / eigvals.max()
+            if (abs(relsize) < 1e-12).all():
+                # replace with 0
+                eigvals[negvals] = 0.
+            else:
+                # one or more values are < 0 beyond the tolerance; raise error
+                raise ValueError("one or more of the given eigenvalues ({}) "
+                                 "are negative".format(eigvals))
         self._eigvals = eigvals
 
     @property
