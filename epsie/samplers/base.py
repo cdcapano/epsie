@@ -17,11 +17,9 @@
 
 from __future__ import absolute_import
 
-import itertools
 from abc import (ABCMeta, abstractmethod)
 import six
 from six import add_metaclass
-import numpy
 
 from epsie import (create_seed, dump_state, load_state)
 from epsie.proposals import Normal
