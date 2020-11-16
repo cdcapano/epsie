@@ -22,10 +22,8 @@ setup.py file for PyCBC package
 import setuptools
 
 
-install_requires = ["numpy",
+install_requires = ["numpy>=1.17.0",
                     "scipy>=0.16.0",
-                    'randomgen<1.17; python_version < "3.0"',
-                    'randomgen>=1.18; python_version >= "3.0"',
                     'six>1.10.0',
                    ]
 
@@ -54,11 +52,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/cdcapano/epsie",
-    install_requires = install_requires,
+    install_requires=install_requires,
+    python_requires=">=3.6",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
         'Intended Audience :: Science/Research',

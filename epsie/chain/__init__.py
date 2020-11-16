@@ -14,8 +14,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
-from __future__ import absolute_import
-
 # promote chain classes to module namespace
 from .chaindata import ChainData
 from .chain import Chain

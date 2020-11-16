@@ -17,12 +17,10 @@
 
 """Classes for parallel tempered Markov chains."""
 
-from __future__ import absolute_import
-
 import numpy
 import copy
 
-from epsie import (create_bit_generator, array2dict)
+from epsie import (create_bit_generators, array2dict)
 from epsie.chain import ParallelTemperedChain
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
@@ -101,14 +99,15 @@ class ParallelTemperedSampler(BaseSampler):
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
+        # create the generators for each chain
+        bitgens = create_bit_generators(nchains, seed=self.seed)
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
             [copy.deepcopy(p) for p in self.proposals],
             betas=betas, swap_interval=swap_interval,
             adaptive_annealer=adaptive_annealer,
-            bit_generator=create_bit_generator(self.seed, stream=cid),
-            chain_id=cid)
-            for cid in range(nchains)]
+            bit_generator=bg, chain_id=cid)
+            for cid, bg in enumerate(bitgens)]
 
     @property
     def betas(self):

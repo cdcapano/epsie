@@ -12,9 +12,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from __future__ import (absolute_import, division)
-
-
 import numpy
 
 from .base import BaseProposal
@@ -50,12 +47,10 @@ class NestedTransdimensional(BaseProposal):
     name = 'nested_transdimensional'
     transdimensional = True
 
-    # Py3XX: change kwargs to explicit random_state=None
     def __init__(self, parameters, model_proposal, proposals,
-                 birth_distributions, **kwargs):
+                 birth_distributions, bit_generator=None):
         self._model_proposal = None
         self.parameters = parameters
-        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         self.bit_generator = bit_generator
         # store the proposals
         self.setup_proposals(model_proposal, proposals)

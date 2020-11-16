@@ -17,8 +17,6 @@
 chains.
 """
 
-from __future__ import absolute_import
-
 # get the version number
 from ._version import __version__
 
@@ -27,7 +25,7 @@ import sys
 import pickle
 from io import BytesIO
 import numpy
-from randomgen import PCG64
+from numpy.random import (PCG64, SeedSequence)
 
 #
 # =============================================================================
@@ -38,14 +36,12 @@ from randomgen import PCG64
 #
 
 # The bit generator used for all random number generation.
-# Users may change this, but it has to be something recognized by randomgen
-# and have the ability to accept streams; i.e., it must have calling structure
-# class(seed, stream, mode), with default stream set to None.
+# Users may change this, but it has to be something recognized by numpy.random
 BIT_GENERATOR = PCG64
 
 
 def create_seed(seed=None):
-    """Creates a seed for a random number generator.
+    """Creates a seed for a :py:class:`numpy.random.SeedSequence`.
 
     Parameters
     ----------
@@ -59,20 +55,12 @@ def create_seed(seed=None):
         A seed to use.
     """
     if seed is None:
-        # use os.urandom to get a string of random 4 bytes
-        bseed = os.urandom(4)
-        # convert to int
-        if sys.version_info < (3,):
-            # py27
-            seed = sum([ord(c) << (i * 8) for i, c in enumerate(bseed[::-1])])
-        else:
-            # Py3XX
-            seed = int.from_bytes(bseed, byteorder='big')
+        seed = SeedSequence().entropy
     return seed
 
 
 def create_bit_generator(seed=None, stream=0):
-    """Creates a an instance of :py:class:`epsie.BIT_GENERATOR`.
+    """Creates an instance of :py:class:`epsie.BIT_GENERATOR`.
 
     Parameters
     ----------
@@ -83,29 +71,42 @@ def create_bit_generator(seed=None, stream=0):
         The stream to create the bit generator for. This allows multiple
         generators to exist with the same seed, but that produce different sets
         of random numbers. Default is 0.
+
+    Returns
+    -------
+    BIT_GENERATOR :
+        The bit generator initialized with the given seed and stream.
     """
-    if seed is None:
-        seed = create_seed(seed)
-    try:
-        return BIT_GENERATOR(seed, stream, mode="sequence")
-    except TypeError as e:
-        # eaerlier versions of randomgen (used for py27) did not support a
-        # mode argument
-        import randomgen
-        if float('.'.join(randomgen.__version__.split('.')[:2])) < 1.17:
-            return BIT_GENERATOR(seed, stream)
-        else:
-            raise e
+    # create the seed sequence
+    seedseq = SeedSequence(create_seed(seed))
+    if stream > 0:
+        seedseq = seedseq.spawn(stream+1)[stream]
+    return BIT_GENERATOR(seedseq)
 
 
-def create_bit_generators(seed, ngenerators):
+def create_bit_generators(ngenerators, seed=None):
     """Creates a collection of random bit generators.
 
     The bit generators are different streams with the same seed. They are all
     statistically independent of each other, while still being reproducable.
+
+    Parameters
+    ----------
+    ngenerators : int
+        The number of generators to create. Must be >= 1.
+    seed : int, optional
+        The seed to use. If none provided, will generate one using the system
+        entropy.
+
+    Returns
+    -------
+    list :
+        List of :py:class:`BIT_GENERATOR`s.
     """
-    return [BIT_GENERATOR(seed, ii, mode="sequence")
-            for ii in range(ngenerators)]
+    if ngenerators < 1:
+        raise ValueError("ngenerators must be >= 1")
+    seeds = SeedSequence(create_seed(seed)).spawn(ngenerators)
+    return list(map(BIT_GENERATOR, seeds))
 
 
 #

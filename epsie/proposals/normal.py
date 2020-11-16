@@ -13,11 +13,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from __future__ import (absolute_import, division)
-
-from abc import ABCMeta
-from six import add_metaclass
-
 import numpy
 from scipy import stats
 
@@ -201,7 +196,6 @@ class Normal(BaseProposal):
 #
 
 
-@add_metaclass(ABCMeta)
 class AdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding adaptive variance support to a proposal.
 
@@ -396,7 +390,6 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
 #
 
 
-@add_metaclass(ABCMeta)
 class SSAdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding adaptive variance support to a proposal.
 
@@ -549,7 +542,6 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
 #
 
 
-@add_metaclass(ABCMeta)
 class ATAdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding ATAdaptiveNormal proposal support.
 

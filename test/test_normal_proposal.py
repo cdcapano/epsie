@@ -16,8 +16,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the Normal proposal."""
 
-from __future__ import (absolute_import, division)
-
 import itertools
 import pytest
 import numpy
@@ -26,7 +24,7 @@ from scipy import stats
 from epsie.proposals import Normal
 
 
-SEED = 8341
+SEED = 456789
 NUMPY_SEED = 2340
 
 # set the scipy seed for comparison

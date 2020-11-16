@@ -13,22 +13,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# Py3XX: delete abstractproperty
-from abc import ABCMeta, abstractmethod, abstractproperty
-import six
-from six import add_metaclass
+from abc import (ABC, abstractmethod)
 
 import numpy
-try:
-    from randomgen import RandomGenerator
-except ImportError:
-    from randomgen import Generator as RandomGenerator
+from numpy.random import Generator
+import six
 
 import epsie
 
 
-@add_metaclass(ABCMeta)
-class BaseRandom(object):
+class BaseRandom(ABC):
     """Abstract base class for handling random number generation for proposals
     ans birth distributions.
 
@@ -86,11 +80,11 @@ class BaseRandom(object):
     def random_generator(self):
         """The random number generator.
 
-        This is an instance of :py:class:`randgen.RandomGenerator` that is
+        This is an instance of :py:class:`numpy.random.Generator` that is
         derived from the bit generator. It provides methods to create random
         draws from various distributions.
         """
-        return RandomGenerator(self.bit_generator)
+        return Generator(self.bit_generator)
 
     @property
     def random_state(self):
@@ -108,10 +102,8 @@ class BaseRandom(object):
         """
         self.bit_generator.state = state
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def state(self):
         """Returns all information needed to produce a deterministic jump.
         The information returned by this property should be everything needed
@@ -154,7 +146,6 @@ class BaseRandom(object):
         self._parameters = tuple(parameters)
 
 
-@add_metaclass(ABCMeta)
 class BaseProposal(BaseRandom):
     """Abstract base class for all proposal classes.
 
@@ -212,10 +203,8 @@ class BaseProposal(BaseRandom):
                                  "``jump_interval_duration`` if jump interval "
                                  "is not 1".format(self.name))
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def symmetric(self):
         """Boolean indicating whether the proposal distribution is symmetric.
 
@@ -334,7 +323,6 @@ class BaseProposal(BaseRandom):
         pass
 
 
-@add_metaclass(ABCMeta)
 class BaseBirth(BaseRandom):
     """Abstract base class for all birth classes.
 
@@ -352,10 +340,8 @@ class BaseBirth(BaseRandom):
     """
     name = None
 
-    # Py3XX: uncomment the next two lines
-    # @property
-    # @abstractmethod
-    @abstractproperty  # Py3XX: delete line
+    @property
+    @abstractmethod
     def birth(self):
         """This should provide random samples from the birth distribution.
 
@@ -406,8 +392,7 @@ class BaseBirth(BaseRandom):
         pass
 
 
-@add_metaclass(ABCMeta)
-class BaseAdaptiveSupport(object):
+class BaseAdaptiveSupport(ABC):
     """Abstract base class for all proposal classes.
     """
     _start_step = None

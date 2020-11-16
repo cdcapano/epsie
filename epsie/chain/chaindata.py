@@ -15,8 +15,6 @@
 
 """Utilities for handling chain data."""
 
-from __future__ import absolute_import
-
 import numpy
 
 from epsie import array2dict

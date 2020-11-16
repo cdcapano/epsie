@@ -15,8 +15,6 @@
 
 """Classes for individual Markov chains."""
 
-from __future__ import absolute_import
-
 import numpy
 
 from epsie.proposals import JointProposal
@@ -113,10 +111,9 @@ class Chain(BaseChain):
         self._logl0 = None
         self._blob0 = None
 
-    def _store_proposals(self, *proposals, **kwargs):
+    def _store_proposals(self, *proposals, bit_generator=None):
         """Store either a ``JointProposal`` or the transdimensional proposal
         """
-        bit_generator = kwargs.pop('bit_generator', None)  # Py3XX: delete line
         count = 0
         for prop in proposals:
             try:

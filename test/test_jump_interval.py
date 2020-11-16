@@ -16,8 +16,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the fast parameters support."""
 
-from __future__ import (absolute_import, division)
-
 import pytest
 import numpy
 
