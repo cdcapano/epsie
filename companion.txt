@@ -1,0 +1,9 @@
+# other useful packages
+
+# for testing:
+pytest
+h5py
+
+# for docs:
+sphinx
+sphinx-rtd-theme
