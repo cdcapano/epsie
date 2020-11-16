@@ -188,7 +188,7 @@ class BoundedEigenvector(Eigenvector):
                     x0 = [intersections[i][p] for p in self.parameters]
                     x1 = [intersections[j][p] for p in self.parameters]
                     # the tolerance here might have to be tuned further
-                    if np.allclose(x0, x1, rtol=1e-3):
+                    if numpy.allclose(x0, x1, rtol=1e-3):
                         intersections.pop(i)
                         break
                 # after some number of iterations raise this value Error
