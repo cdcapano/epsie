@@ -24,7 +24,7 @@ from scipy import stats
 from epsie.proposals import Normal
 
 
-SEED = 8341
+SEED = 456789
 NUMPY_SEED = 2340
 
 # set the scipy seed for comparison
