@@ -159,7 +159,8 @@ class Eigenvector(BaseProposal):
         state = {'nsteps': self._nsteps,
                  'random_state': self.random_state,
                  'mu': self._mu,
-                 'cov': self._cov}
+                 'cov': self._cov,
+                 'ind': self._ind}
         return state
 
     def set_state(self, state):
@@ -168,7 +169,8 @@ class Eigenvector(BaseProposal):
         self._mu = state['mu']
         self._cov = state['cov']
         if self._cov is not None:
-            self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
+            self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
+        self._ind = state['ind']
 
     @property
     def _call_initial_proposal(self):
