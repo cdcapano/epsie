@@ -19,6 +19,7 @@ from scipy import stats
 import epsie
 from epsie.proposals import (Boundaries, IsotropicSolidAngle)
 
+MODEL_SEED = 1983
 
 #
 # =============================================================================
@@ -38,7 +39,7 @@ class Model(object):
     """
     blob_params = None
 
-    def __init__(self):
+    def __init__(self, seed=None):
         # we'll use a 2D Gaussian for the likelihood distribution
         self.params = ['x0', 'x1']
         self.mean = numpy.array([2., 5.])
@@ -51,9 +52,14 @@ class Model(object):
                              'x1': ybnds}
         self.prior_dist = {'x0': stats.uniform(xbnds.lower, abs(xbnds)),
                            'x1': stats.uniform(ybnds.lower, abs(ybnds))}
+        # create an rng for drawing prior samples
+        if seed is None:
+            seed = MODEL_SEED
+        self.rng = numpy.random.default_rng(seed)
 
     def prior_rvs(self, size=None, shape=None):
-        return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
+        return {p: self.prior_dist[p].rvs(size=size,
+                                          random_state=self.rng).reshape(shape)
                 for p in self.params}
 
     def logprior(self, **kwargs):
@@ -102,7 +108,7 @@ class AngularModel(object):
     """
     blob_params = None
 
-    def __init__(self, phi0=0., std=1.):
+    def __init__(self, phi0=0., std=1., seed=None):
         self.phi0 = phi0
         self.params = ['phi']
         self.std = numpy.array([std])
@@ -111,9 +117,14 @@ class AngularModel(object):
         pmin = self.prior_bounds['phi'].lower
         dp = abs(self.prior_bounds['phi'])
         self.prior_dist = {'phi': stats.uniform(pmin, dp)}
+        # create an rng for drawing prior samples
+        if seed is None:
+            seed = MODEL_SEED
+        self.rng = numpy.random.default_rng(seed)
 
     def prior_rvs(self, size=None, shape=None):
-        return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
+        return {p: self.prior_dist[p].rvs(size=size,
+                                          random_state=self.rng).reshape(shape)
                 for p in self.params}
 
     def logprior(self, **kwargs):
@@ -150,7 +161,7 @@ class PoissonModel(object):
     """
     blob_params = None
 
-    def __init__(self, lmbda=3):
+    def __init__(self, lmbda=3, seed=None):
         # we'll use a Poission distribution for the likelihood
         self.params = ['k']
         self.likelihood_dist = stats.poisson(lmbda)
@@ -159,9 +170,14 @@ class PoissonModel(object):
         kmax = 10
         self.prior_bounds = {'k': Boundaries((kmin, kmax))}
         self.prior_dist = {'k': stats.randint(kmin, kmax)}
+        # create an rng for drawing prior samples
+        if seed is None:
+            seed = MODEL_SEED
+        self.rng = numpy.random.default_rng(seed)
 
     def prior_rvs(self, size=None, shape=None):
-        return {p: self.prior_dist[p].rvs(size=size).reshape(shape)
+        return {p: self.prior_dist[p].rvs(size=size,
+                                          random_state=self.rng).reshape(shape)
                 for p in self.params}
 
     def logprior(self, **kwargs):
@@ -216,18 +232,23 @@ class PolynomialRegressionModel(object):
         self.npoints = 51
         self.t = numpy.linspace(0.0, 5, self.npoints)
         self.ysignal = self.reconstruct(**self.true_signal)
+        # create an rng for drawing prior samples
+        if seed is None:
+            seed = MODEL_SEED
+        self.rng = numpy.random.default_rng(seed)
 
     def prior_rvs(self, size=None, shape=None):
         ntemps, nchains = shape
         out = {}
         if ntemps is None:
             coeffs = self.prior_dist['a'].rvs(
-                size=nchains * (self.kmax + 1)).reshape(nchains, self.kmax + 1)
+                size=nchains * (self.kmax + 1),
+                random_state=self.rng).reshape(nchains, self.kmax + 1)
             ks = numpy.full(nchains, numpy.nan, dtype=int)
             for i in range(nchains):
-                rands = numpy.random.choice(range(self.kmax),
-                                            numpy.random.randint(self.kmax),
-                                            replace=False)
+                rands = self.rng.choice(range(self.kmax),
+                                        self.rng.integers(self.kmax),
+                                        replace=False)
                 coeffs[i, 1:][rands] = numpy.nan
                 ks[i] = int(self.kmax - len(rands))
 
@@ -235,16 +256,14 @@ class PolynomialRegressionModel(object):
                 out.update({'a{}'.format(i): coeffs[:, i].reshape(nchains, )})
         else:
             coeffs = self.prior_dist['a'].rvs(
-                size=nchains * ntemps * (self.kmax + 1)).reshape(ntemps,
-                                                                 nchains,
-                                                                 self.kmax + 1)
+                size=nchains * ntemps * (self.kmax + 1),
+                random_state=self.rng).reshape(ntemps, nchains, self.kmax + 1)
             ks = numpy.full((ntemps, nchains), numpy.nan, dtype=int)
             for i in range(nchains):
                 for j in range(ntemps):
-                    rands = numpy.random.choice(range(self.kmax),
-                                                numpy.random.randint(
-                                                    self.kmax),
-                                                replace=False)
+                    rands = self.rng.choice(range(self.kmax),
+                                            self.rng.integers(self.kmax),
+                                            replace=False)
                     coeffs[j, i, 1:][rands] = numpy.nan
                     ks[j, i] = int(self.kmax - len(rands))
 
@@ -290,7 +309,7 @@ class SolidAngleModel(object):
     """
     blob_params = None
 
-    def __init__(self, radec=False, degs=False):
+    def __init__(self, radec=False, degs=False, seed=None):
         self.params = ['phi', 'theta']
         x = 1. / numpy.sqrt(3)
         self.mu = numpy.array([x, x, x])
@@ -300,11 +319,14 @@ class SolidAngleModel(object):
         phi, theta = self.solid_angle_prop._cartesian2spherical(
             *self.mu, convert=True)
         self.mu_spherical = {'phi': phi, 'theta': theta}
+        # create an rng for drawing prior samples
+        if seed is None:
+            seed = MODEL_SEED
+        self.rng = numpy.random.default_rng(seed)
 
-    @staticmethod
-    def prior_rvs(size=None, shape=None):
-        phi = numpy.random.uniform(0, 2*numpy.pi, size).reshape(shape)
-        theta = numpy.arccos(1 - 2 * numpy.random.uniform(0, 1, size))
+    def prior_rvs(self, size=None, shape=None):
+        phi = self.rng.uniform(0, 2*numpy.pi, size).reshape(shape)
+        theta = numpy.arccos(1 - 2 * self.rng.uniform(0, 1, size))
         theta = theta.reshape(shape)
         return {'phi': phi, 'theta': theta}
 
