@@ -29,6 +29,7 @@ MODEL_SEED = 1983
 # =============================================================================
 #
 
+
 class Model:
     """A simple model for testing the samplers.
 
