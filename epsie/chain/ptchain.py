@@ -579,9 +579,10 @@ class ParallelTemperedChain(BaseChain):
             self.adaptive_annealer(self)
 
 
-class DynamicalAnnealer(object):
-    """
-    Class for dynamical parallel tempering based on algorithm described in [1].
+class DynamicalAnnealer:
+    """Class for dynamical parallel tempering.
+
+    This is based on the algorithm described in [1].
 
     Parameters
     ----------
