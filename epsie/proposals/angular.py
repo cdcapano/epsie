@@ -63,7 +63,7 @@ class Angular(Normal):
 
     def __init__(self, parameters, cov=None, jump_interval=1,
                  jump_interval_duration=None):
-        super(Angular, self).__init__(
+        super().__init__(
             parameters, cov=cov, jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         # _halfwidth is half the width of the interval, in factors of pi
@@ -172,7 +172,7 @@ class AdaptiveAngular(AdaptiveSupport, Angular):
     def __init__(self, parameters, adaptation_duration, jump_interval=1,
                  start_step=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveAngular, self).__init__(
+        super().__init__(
             parameters, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # all parameters have the same (cyclic) boundaries
@@ -217,7 +217,7 @@ class SSAdaptiveAngular(SSAdaptiveSupport, Angular):
     def __init__(self, parameters, cov=None, jump_interval=1,
                  jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveAngular, self).__init__(
+        super().__init__(
             parameters, cov=cov, jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
@@ -257,7 +257,7 @@ class ATAdaptiveAngular(ATAdaptiveSupport, Angular):
     def __init__(self, parameters, adaptation_duration, componentwise=False,
                  start_step=1, target_rate=None, jump_interval=1):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveAngular, self).__init__(
+        super().__init__(
             parameters, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters

@@ -373,7 +373,7 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  start_step=1, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormal, self).__init__(
+        super().__init__(
             parameters, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
@@ -526,7 +526,7 @@ class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
     def __init__(self, parameters, cov=None, jump_interval=1,
                  jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveNormal, self).__init__(
+        super().__init__(
             parameters, cov=cov, jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
@@ -752,7 +752,7 @@ class ATAdaptiveNormal(ATAdaptiveSupport, Normal):
                  componentwise=False, start_step=1, target_rate=None,
                  jump_interval=1):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveNormal, self).__init__(
+        super().__init__(
             parameters, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
