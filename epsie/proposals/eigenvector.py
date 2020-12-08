@@ -18,7 +18,6 @@ from scipy.stats import norm
 
 from .base import (BaseProposal, BaseAdaptiveSupport)
 from .normal import (Normal, ATAdaptiveNormal)
-from .bounded_normal import (BoundedNormal, ATAdaptiveBoundedNormal)
 
 
 class Eigenvector(BaseProposal):
@@ -33,13 +32,14 @@ class Eigenvector(BaseProposal):
     stability_duration : int
         Number of initial steps done with a initial proposal specified by name
         in ``initial_proposal''. After this eigenvalues and eigenvectors are
-        evaluated (and never again) and jumps proposed along those.
-    initial_proposal : str (optional)
+        evaluated (and never again) and jumps proposed along those. This is
+        also used for the adaptation duration if the ``initial_proposal`` is
+        set to ``at_adaptive_normal``.
+    initial_proposal : {'at_adaptive_normal', 'normal'}
         Name of the initial proposal that is called before the number of
-        proposal seps exceeds ``stability_duration''. By default se to the
-        'epsie.proposals.ATAdaptiveProposal'. Supported options
-        include: 'normal', 'at_adaptive_proposal'
-    shuffle_rate : float (optional)
+        proposal steps exceeds ``stability_duration''. Default is
+        ``'at_adaptive_normal'``.
+    shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
     jump_interval : int, optional
@@ -68,19 +68,44 @@ class Eigenvector(BaseProposal):
                  initial_proposal='at_adaptive_normal'):
         self.parameters = parameters
         self.ndim = len(self.parameters)
+        # used for picking which direction to hop along
+        self._dims = numpy.arange(self.ndim)
         self.shuffle_rate = shuffle_rate
         self.start_step = 1  # Add support for this
         # store the jump interval information
         self.set_jump_interval(jump_interval, jump_interval_duration)
-        self.set_initial_proposal(initial_proposal, stability_duration)
+        # store the stability duration
+        self._stability_duration = int(stability_duration)
+        # set the initial proposal
+        if initial_proposal == 'normal':
+            self._initial_proposal = Normal(self.parameters)
+        elif initial_proposal == 'at_adaptive_normal':
+            self._initial_proposal = ATAdaptiveNormal(
+                self.parameters, adaptation_duration=self._stability_duration)
+        else:
+            raise ValueError("Proposal '{}' not implemented for eigenvector"
+                             .format(initial_proposal))
         # cache the eigenvector index used to produce a jump
         self._ind = None
         # cache the last jump scale
         self._dx = None
 
+    @BaseProposal.bit_generator.setter
+    def bit_generator(self, bit_generator):
+        """Sets the random bit generator.
+
+        Also sets the bit generator of the ``initial_proposal``.
+
+        See :py:class:`epsie.proposals.base.BaseProposal` for more details.
+        """
+        # this borrowed from: https://stackoverflow.com/a/31909212
+        BaseProposal.bit_generator.fset(self, bit_generator)
+        # set the initial too
+        self._initial_proposal.bit_generator = bit_generator
+
     @property
     def initial_proposal(self):
-        """Initial proposal used during the stabilit phase, before estimated
+        """Initial proposal used during the stability phase, before estimated
         eigenvectors become reliable."""
         return self._initial_proposal
 
@@ -89,25 +114,6 @@ class Eigenvector(BaseProposal):
         """Number of proposal steps during which ``self.initial_proposal'' is
         used instead of eigenvector jumps"""
         return self._stability_duration
-
-    def set_initial_proposal(self, proposal_name, duration, boundaries=None):
-        """Sets up the initial proposal used before able to get stable
-        eigenvector estimates."""
-        if proposal_name == 'normal':
-            self._initial_proposal = Normal(self.parameters)
-        elif proposal_name == 'at_adaptive_normal':
-            self._initial_proposal = ATAdaptiveNormal(
-                self.parameters, adaptation_duration=duration)
-        elif proposal_name == 'bounded_normal':
-            self._initial_proposal = BoundedNormal(self.parameters, boundaries)
-        elif proposal_name == 'at_adaptive_bounded_normal':
-            self._initial_proposal = ATAdaptiveBoundedNormal(
-                self.parameters, boundaries, adaptation_duration=duration)
-        else:
-            raise ValueError("Proposal '{}' not implemented for eigenvector"
-                             .format(proposal_name))
-        self._initial_proposal.bit_generator = self.bit_generator
-        self._stability_duration = int(duration)
 
     @property
     def eigvals(self):
@@ -156,35 +162,43 @@ class Eigenvector(BaseProposal):
 
     @property
     def state(self):
-        state = {'nsteps': self._nsteps,
-                 'random_state': self.random_state,
-                 'mu': self._mu,
-                 'cov': self._cov}
-        return state
+        return {'nsteps': self._nsteps,
+                'random_state': self.random_state,
+                'initial_proposal': self._initial_proposal.state,
+                'mu': self._mu,
+                'cov': self._cov,
+                'ind': self._ind}
 
     def set_state(self, state):
+        self._initial_proposal.set_state(state['initial_proposal'])
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
         self._mu = state['mu']
         self._cov = state['cov']
         if self._cov is not None:
-            self._eigvals, self._eigvects = numpy.linalg.eigh(self._cov)
+            self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
+        self._ind = state['ind']
 
     @property
     def _call_initial_proposal(self):
         """Decides whether to call the initial proposal."""
-        if self.nsteps <= self.stability_duration:
-            return True
-        return False
+        return self.nsteps <= self.stability_duration
 
     @property
     def _jump_eigenvector(self):
         """Picks along which eigenvector to jump."""
         probs = self.eigvals / numpy.sum(self.eigvals)
+        dims = self._dims
         # with shuffle_rate probability randomly shuffle the probabilities
         if self.random_generator.uniform() < self.shuffle_rate:
+            # make sure we don't shuffle any 0 probabilities
+            isz = probs == 0.
+            if isz.any():
+                mask = ~isz
+                probs = probs[mask]
+                dims = dims[mask]
             self.random_generator.shuffle(probs)
-        return self.random_generator.choice(self.ndim, p=probs)
+        return self.random_generator.choice(dims, p=probs)
 
     def _jump(self, fromx):
         if self._call_initial_proposal:
@@ -227,7 +241,6 @@ class Eigenvector(BaseProposal):
                     self._cov = self._cov.reshape(1, 1)
             else:
                 self._recursive_mean_cov(chain)
-
         if self.nsteps == self.stability_duration:
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
 
@@ -299,20 +312,24 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     @property
     def state(self):
         return {'nsteps': self._nsteps,
+                'initial_proposal': self._initial_proposal.state,
                 'random_state': self.random_state,
                 'mu': self._mu,
                 'cov': self._cov,
+                'ind': self._ind,
                 'log_lambda': self._log_lambda}
 
     def set_state(self, state):
-        self.random_state = state['random_state']
+        self._initial_proposal.set_state(state['initial_proposal'])
         self._nsteps = state['nsteps']
+        self.random_state = state['random_state']
         self._mu = state['mu']
         self._cov = state['cov']
         self._log_lambda = state['log_lambda']
         if self._cov is not None:
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             self.eigvals *= numpy.exp(self._log_lambda)
+        self._ind = state['ind']
 
 
 class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):

@@ -24,6 +24,7 @@ import os
 import sys
 import pickle
 from io import BytesIO
+import logging
 import numpy
 from numpy.random import (PCG64, SeedSequence)
 
@@ -56,6 +57,7 @@ def create_seed(seed=None):
     """
     if seed is None:
         seed = SeedSequence().entropy
+        logging.debug("Using seed: %i", seed)
     return seed
 
 

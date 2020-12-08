@@ -55,7 +55,6 @@ def test_jumps_in_bounds(proposal_name, xmin, xmax):
     eigenvector jumps are in bounds.
     """
     model = Model()
-    print(xmin)
     bnd = Boundaries((xmin, xmax))
     model.prior_bounds.update({'x0': bnd})
     model.prior_dist.update({'x0': stats.uniform(bnd.lower, abs(bnd))})

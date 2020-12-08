@@ -507,6 +507,15 @@ class Chain(BaseChain):
             accept = True
         else:
             ar = numpy.exp(logar)
+            if numpy.isnan(ar):
+                raise ValueError('NaN acceptance!'
+                                 '\nchain: {};\nbeta: {};'
+                                 '\ncurrent position: {};'
+                                 '\nproposed position: {};'
+                                 '\nproposal state: {}'
+                                 .format(self.chain_id, self.beta,
+                                         current_pos, proposal,
+                                         self.proposal_dist.state))
             u = self.random_generator.uniform()
             accept = u <= ar
         return accept, ar

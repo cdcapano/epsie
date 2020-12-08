@@ -20,7 +20,8 @@ from scipy.stats import truncnorm
 from scipy.spatial import ConvexHull
 
 from .eigenvector import (Eigenvector, AdaptiveEigenvectorSupport)
-from .bounded_normal import Boundaries
+from .bounded_normal import (Boundaries, BoundedNormal,
+                             ATAdaptiveBoundedNormal)
 
 
 class BoundedEigenvector(Eigenvector):
@@ -45,11 +46,10 @@ class BoundedEigenvector(Eigenvector):
         Number of initial steps done with a initial proposal specified by name
         in ``initial_proposal''. After this eigenvalues and eigenvectors are
         evaluated (and never again) and jumps proposed along those.
-    initial_proposal : str (optional)
+    initial_proposal : {'at_adaptive_bounded_normal', 'bounded_normal'}
         Name of the initial proposal that is called before the number of
-        proposal seps exceeds ``stability_duration''. By default se to the
-        'epsie.proposals.ATAdaptiveProposal'. Supported options
-        include: 'bounded_normal', 'at_adaptive_bounded_normal'.
+        proposal steps exceeds ``stability_duration''. Default is
+        ``'at_adaptive_bounded_normal'``.
     jump_interval : int, optional
         The jump interval of the proposal, the proposal only gets called every
         jump interval-th time. After ``jump_interval_duration`` number of
@@ -85,8 +85,15 @@ class BoundedEigenvector(Eigenvector):
         # set the boundaries
         self.boundaries = boundaries
         # set the initial phase settings
-        self.set_initial_proposal(initial_proposal, stability_duration,
-                                  boundaries)
+        if initial_proposal == 'bounded_normal':
+            self._initial_proposal = BoundedNormal(self.parameters, boundaries)
+        elif initial_proposal == 'at_adaptive_bounded_normal':
+            self._initial_proposal = ATAdaptiveBoundedNormal(
+                self.parameters, boundaries,
+                adaptation_duration=self._stability_duration)
+        else:
+            raise ValueError("Proposal '{}' not implemented for "
+                             "bounded_eigenvector".format(initial_proposal))
         # cache the boundaries for repeated calls
         self._cache = {'hash': None}
 
@@ -275,14 +282,14 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
         jump interval-th time. After ``jump_interval_duration`` number of
         proposal steps elapses the proposal will again be called on every
         chain iteration. By default ``jump_interval`` = 1.
-    initial_proposal : str (optional)
+    initial_proposal : str, optional
         Name of the initial proposal that is called before the number of
         proposal seps exceeds ``stability_duration''. By default se to the
         'epsie.proposals.ATAdaptiveProposal'. Supported options
         include: 'bounded_normal', 'at_adaptive_bounded_normal'.
-    target_rate: float (optional)
+    target_rate: float, optional
         Target acceptance ratio. By default 0.234
-    shuffle_rate : float (optional)
+    shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
     """
