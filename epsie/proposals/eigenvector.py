@@ -162,14 +162,15 @@ class Eigenvector(BaseProposal):
 
     @property
     def state(self):
-        state = {'nsteps': self._nsteps,
-                 'random_state': self.random_state,
-                 'mu': self._mu,
-                 'cov': self._cov,
-                 'ind': self._ind}
-        return state
+        return {'nsteps': self._nsteps,
+                'random_state': self.random_state,
+                'initial_proposal': self._initial_proposal.state,
+                'mu': self._mu,
+                'cov': self._cov,
+                'ind': self._ind}
 
     def set_state(self, state):
+        self._initial_proposal.set_state(state['initial_proposal'])
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
         self._mu = state['mu']
@@ -181,9 +182,7 @@ class Eigenvector(BaseProposal):
     @property
     def _call_initial_proposal(self):
         """Decides whether to call the initial proposal."""
-        if self.nsteps <= self.stability_duration:
-            return True
-        return False
+        return self.nsteps <= self.stability_duration
 
     @property
     def _jump_eigenvector(self):
@@ -242,7 +241,6 @@ class Eigenvector(BaseProposal):
                     self._cov = self._cov.reshape(1, 1)
             else:
                 self._recursive_mean_cov(chain)
-
         if self.nsteps == self.stability_duration:
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
 
@@ -314,6 +312,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     @property
     def state(self):
         return {'nsteps': self._nsteps,
+                'initial_proposal': self._initial_proposal.state,
                 'random_state': self.random_state,
                 'mu': self._mu,
                 'cov': self._cov,
@@ -321,15 +320,16 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
                 'log_lambda': self._log_lambda}
 
     def set_state(self, state):
+        self._initial_proposal.set_state(state['initial_proposal'])
         self._nsteps = state['nsteps']
         self.random_state = state['random_state']
         self._mu = state['mu']
         self._cov = state['cov']
+        self._log_lambda = state['log_lambda']
         if self._cov is not None:
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             self.eigvals *= numpy.exp(self._log_lambda)
         self._ind = state['ind']
-        self._log_lambda = state['log_lambda']
 
 
 class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
