@@ -20,7 +20,7 @@ import numpy
 from epsie import array2dict
 
 
-class ChainData(object):
+class ChainData:
     """Handles reading and adding data to a chain.
 
     When initialized, a list of parameter names must be provided for which the

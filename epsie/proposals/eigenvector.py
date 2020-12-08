@@ -377,7 +377,7 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
                  target_rate=0.234, shuffle_rate=0.33, jump_interval=1,
                  initial_proposal='at_adaptive_normal'):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveEigenvector, self).__init__(
+        super().__init__(
             parameters=parameters, stability_duration=stability_duration,
             shuffle_rate=shuffle_rate, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration+stability_duration,

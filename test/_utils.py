@@ -29,7 +29,8 @@ MODEL_SEED = 1983
 # =============================================================================
 #
 
-class Model(object):
+
+class Model:
     """A simple model for testing the samplers.
 
     The likelihood function is a 2D gaussian with parameters "x0" and "x1",
@@ -100,7 +101,7 @@ class ModelWithBlobs(Model):
         return logl, logp, blob
 
 
-class AngularModel(object):
+class AngularModel:
     r"""A simple angular model.
 
     The likelihood is a truncated normal centered on :math:`\phi_0`, with
@@ -152,7 +153,7 @@ class AngularModel(object):
         return logl, logp
 
 
-class PoissonModel(object):
+class PoissonModel:
     r"""A poisson model.
 
     The free parameter is the number of foreground counts, which is
@@ -196,7 +197,7 @@ class PoissonModel(object):
         return logl, logp
 
 
-class PolynomialRegressionModel(object):
+class PolynomialRegressionModel:
     r""" A polynomial regression model.
 
     The free parameters are the polynomial coefficients:
@@ -304,7 +305,7 @@ class PolynomialRegressionModel(object):
         return logl, logp
 
 
-class SolidAngleModel(object):
+class SolidAngleModel:
     r"""A solid angle isotropic model centered at some point on a 2-sphere.
     """
     blob_params = None

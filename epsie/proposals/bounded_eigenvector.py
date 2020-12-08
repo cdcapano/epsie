@@ -75,7 +75,7 @@ class BoundedEigenvector(Eigenvector):
                  jump_interval=1, jump_interval_duration=None,
                  shuffle_rate=0.33,
                  initial_proposal='at_adaptive_bounded_normal'):
-        super(BoundedEigenvector, self).__init__(
+        super().__init__(
             parameters, stability_duration, shuffle_rate=shuffle_rate,
             jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
@@ -302,7 +302,7 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
                  initial_proposal='at_adaptive_bounded_normal',
                  target_rate=0.234, shuffle_rate=0.33):
         # set the parameters, initial proposal
-        super(AdaptiveBoundedEigenvector, self).__init__(
+        super().__init__(
             parameters=parameters, boundaries=boundaries,
             stability_duration=stability_duration, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration + stability_duration,

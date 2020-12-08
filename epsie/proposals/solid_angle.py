@@ -355,7 +355,7 @@ class AdaptiveIsotropicSolidAngle(AdaptiveIsotropicSolidAngleSupport,
                  adaptation_duration, start_step=1, target_rate=0.234,
                  radec=False, degs=False, jump_interval=1):
         # setup the main isotropic solid angle proposal
-        super(AdaptiveIsotropicSolidAngle, self).__init__(
+        super().__init__(
             azimuthal_parameter=azimuthal_parameter,
             polar_parameter=polar_parameter, kappa=5., radec=radec, degs=degs,
             jump_interval=jump_interval,

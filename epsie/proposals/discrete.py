@@ -82,7 +82,7 @@ class NormalDiscrete(Normal):
 
     def __init__(self, parameters, cov=None, successive=None, jump_interval=1,
                  jump_interval_duration=None):
-        super(NormalDiscrete, self).__init__(
+        super().__init__(
             parameters, cov=cov, jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         # this only works for diagonal pdfs
@@ -224,7 +224,7 @@ class BoundedDiscrete(BoundedNormal):
 
     def __init__(self, parameters, boundaries, cov=None, successive=None,
                  jump_interval=1, jump_interval_duration=None):
-        super(BoundedDiscrete, self).__init__(
+        super().__init__(
             parameters, boundaries, cov=cov, jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         self.successive = successive
@@ -388,7 +388,7 @@ class SSAdaptiveNormalDiscrete(SSAdaptiveSupport, NormalDiscrete):
     def __init__(self, parameters, cov=None, successive=None, jump_interval=1,
                  jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveNormalDiscrete, self).__init__(
+        super().__init__(
             parameters, cov=cov, successive=successive,
             jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
@@ -435,7 +435,7 @@ class SSAdaptiveBoundedDiscrete(SSAdaptiveSupport, BoundedDiscrete):
     def __init__(self, parameters, boundaries,  cov=None, successive=None,
                  jump_interval=1, jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveBoundedDiscrete, self).__init__(
+        super().__init__(
             parameters, boundaries, cov=cov, successive=successive,
             jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
@@ -480,7 +480,7 @@ class AdaptiveNormalDiscrete(AdaptiveSupport, NormalDiscrete):
     def __init__(self, parameters, prior_widths, adaptation_duration,
                  successive=None, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveNormalDiscrete, self).__init__(
+        super().__init__(
             parameters, successive=successive, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
@@ -519,7 +519,7 @@ class AdaptiveBoundedDiscrete(AdaptiveSupport, BoundedDiscrete):
     def __init__(self, parameters, boundaries, adaptation_duration,
                  successive=None, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedDiscrete, self).__init__(
+        super().__init__(
             parameters, boundaries, successive=successive, jump_interval=1,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters

@@ -59,7 +59,7 @@ class BoundedNormal(Normal):
 
     def __init__(self, parameters, boundaries, cov=None, jump_interval=1,
                  jump_interval_duration=None):
-        super(BoundedNormal, self).__init__(
+        super().__init__(
             parameters, cov=cov, jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         # check that a diagonal covariance was provided
@@ -179,7 +179,7 @@ class AdaptiveBoundedNormal(AdaptiveSupport, BoundedNormal):
     def __init__(self, parameters, boundaries, adaptation_duration,
                  start_step=1, jump_interval=1, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(AdaptiveBoundedNormal, self).__init__(
+        super().__init__(
             parameters, boundaries, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
@@ -230,7 +230,7 @@ class SSAdaptiveBoundedNormal(SSAdaptiveSupport, BoundedNormal):
     def __init__(self, parameters, boundaries, cov=None, jump_interval=1,
                  jump_interval_duration=None, **kwargs):
         # set the parameters, initialize the covariance matrix
-        super(SSAdaptiveBoundedNormal, self).__init__(
+        super().__init__(
               parameters, boundaries, cov=cov, jump_interval=jump_interval,
               jump_interval_duration=jump_interval_duration)
         # set up the adaptation parameters
@@ -280,7 +280,7 @@ class ATAdaptiveBoundedNormal(ATAdaptiveSupport, BoundedNormal):
                  componentwise=False, start_step=1, target_rate=None,
                  jump_interval=1):
         # set the parameters, initialize the covariance matrix
-        super(ATAdaptiveBoundedNormal, self).__init__(
+        super().__init__(
             parameters, boundaries, jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
