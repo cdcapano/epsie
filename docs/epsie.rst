@@ -1,4 +1,4 @@
-epsie package
+API Reference
 =============
 
 Subpackages
