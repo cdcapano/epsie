@@ -35,6 +35,10 @@ extensions = ['sphinx_rtd_theme',
               'sphinx.ext.napoleon'
 ]
 
+# We use numpy style for docs
+napoleon_numpy_docstring = True
+napoleon_google_docstring = False
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
