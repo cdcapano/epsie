@@ -1,17 +1,13 @@
-EPSIE: an Embarrasingly Parallel Sampler for Inference Estimation
-=================================================================
+.. include:: ../README.rst
+
+.. include:: quickstart.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-EPSIE is an embarrasingly parallel sampler for inference estimation.
-
-To install, run:
-
-.. code-block:: bash
-
-   pip install epsie
+   quickstart
+   epsie
 
 
 Indices and tables
