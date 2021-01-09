@@ -9,6 +9,8 @@
    quickstart
    epsie
 
+.. include:: tutorials.rst
+
 
 Indices and tables
 ==================
