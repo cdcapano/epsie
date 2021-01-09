@@ -1,8 +1,10 @@
 EPSIE
 =====
 
-[![Build Status](https://github.com/cdcapano/epsie/workflows/build/badge.svg?branch=master)](https://github.com/cdcapano/epsie/actions?query=workflow%3Abuild+branch%3Amaster)
-[![Coverage Status](https://coveralls.io/repos/github/cdcapano/epsie/badge.svg)](https://coveralls.io/github/cdcapano/epsie)
+.. image:: https://github.com/cdcapano/epsie/workflows/build/badge.svg?branch=master
+    :target: https://github.com/cdcapano/epsie/actions?query=workflow%3Abuild+branch%3Amaster
+.. image:: https://coveralls.io/repos/github/cdcapano/epsie/badge.svg
+    :target: https://coveralls.io/github/cdcapano/epsie
 
 EPSIE is a parallelized Markov chain Monte Carlo (MCMC) sampler for Bayesian
 inference. It is meant for problems with complicated likelihood surfaces,
