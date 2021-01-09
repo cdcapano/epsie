@@ -7,3 +7,5 @@ h5py
 # for docs:
 sphinx
 sphinx-rtd-theme
+jupyter
+jupyter_contrib_nbextensions
