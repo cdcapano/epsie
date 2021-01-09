@@ -55,4 +55,4 @@ In this simple example we will have used the default
 jumps, and we will have used only a single core.
 
 To learn how to use more advanced features and how to interact with
-sampler data, see the tutorial notebooks provided in the examples directory.
+sampler data, see the notebooks provided in the :doc:`tutorials <tutorials>`.
