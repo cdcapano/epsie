@@ -7,6 +7,7 @@
    :caption: Contents:
 
    quickstart
+   proposals
    epsie
 
 .. include:: tutorials.rst
