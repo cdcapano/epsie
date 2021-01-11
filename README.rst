@@ -14,7 +14,7 @@ problems in gravitational-wave astronomy, but can be used for any general
 purpose problem.
 
 EPSIE is in many ways similar to `emcee
-<https://emcee.readthedocs.io/en/stable/emcee>`_ and other "bring your own
+<https://emcee.readthedocs.io/en/stable/>`_ and other "bring your own
 likelihood" Python-based samplers. The primary difference from emcee is EPSIE
 is not an ensemble sampler; i.e., the Markov chains used by EPSIE do not
 attempt to share information between each other. Instead, to speed convergence,
