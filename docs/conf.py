@@ -32,12 +32,22 @@ release = '1.0.0'
 # ones.
 extensions = ['sphinx_rtd_theme',
               'sphinx.ext.autodoc',
-              'sphinx.ext.napoleon'
+              'sphinx.ext.napoleon',
+              'sphinx.ext.viewcode',
+              'sphinx.ext.intersphinx',
 ]
 
 # We use numpy style for docs
 napoleon_numpy_docstring = True
 napoleon_google_docstring = False
+
+# external packages for intersphinx
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    'h5py': ('https://docs.h5py.org/en/latest/', None),
+    }
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -67,7 +77,12 @@ import os
 print("Running scripts in _include directory:")
 cwd = os.getcwd()
 os.chdir('_include')
+# bash scripts
 for fn in glob.glob("*.sh"):
     print("  {}".format(fn))
     subprocess.run(['sh', fn])
+# python scripts
+for fn in glob.glob("*.py"):
+    print("  {}".format(fn))
+    subprocess.run(['python', fn])
 os.chdir(cwd)
