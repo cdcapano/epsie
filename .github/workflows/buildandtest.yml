@@ -1,7 +1,14 @@
 name: build and test
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  release:
+  schedule:
+    # run nightly at 00:00:00 UTC
+    - cron: '0 0 * * *'
 jobs:
   build:
 
