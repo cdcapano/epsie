@@ -7,6 +7,7 @@
    :caption: Contents:
 
    quickstart
+   parallelization
    proposals
    epsie
 
