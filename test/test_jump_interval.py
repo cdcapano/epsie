@@ -29,10 +29,8 @@ STABILITY_DURATION = 48
 DURATION = 16
 
 
-def _setup_proposal(proposal_name, jump_interval, params=None):
+def _setup_proposal(proposal_name, jump_interval, params):
     duration = STABILITY_DURATION + DURATION
-    if params is None:
-        params = model.params
     if proposal_name == 'normal':
         return Normal(params, jump_interval=jump_interval,
                       jump_interval_duration=duration)
