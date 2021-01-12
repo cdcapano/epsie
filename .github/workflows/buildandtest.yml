@@ -40,7 +40,7 @@ jobs:
       run: |
         coverage run --source epsie -m pytest test
     - name: Coveralls
+      env:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
       run: |
         coveralls
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
