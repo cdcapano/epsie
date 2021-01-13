@@ -31,13 +31,13 @@ class Eigenvector(BaseProposal):
         The names of the parameters to produce proposals for.
     stability_duration : int
         Number of initial steps done with a initial proposal specified by name
-        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        in ``initial_proposal``. After this eigenvalues and eigenvectors are
         evaluated (and never again) and jumps proposed along those. This is
         also used for the adaptation duration if the ``initial_proposal`` is
         set to ``at_adaptive_normal``.
     initial_proposal : {'at_adaptive_normal', 'normal'}
         Name of the initial proposal that is called before the number of
-        proposal steps exceeds ``stability_duration''. Default is
+        proposal steps exceeds ``stability_duration``. Default is
         ``'at_adaptive_normal'``.
     shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
@@ -111,7 +111,7 @@ class Eigenvector(BaseProposal):
 
     @property
     def stability_duration(self):
-        """Number of proposal steps during which ``self.initial_proposal'' is
+        """Number of proposal steps during which ``self.initial_proposal`` is
         used instead of eigenvector jumps"""
         return self._stability_duration
 
@@ -257,14 +257,14 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     See [1] for details.
 
     Notes
-    ----------
+    -----
     For the vanishing decay we use
 
     .. math::
         \gamma_{g+1} = \left(g - g_{0}\right)^{-0.6} - C,
 
-    where :math: `g_{0}` is the iteration at which adaptation starts,
-    by default :math: `g_{0}=1` and :math: `C` is a positive constant
+    where :math:`g_{0}` is the iteration at which adaptation starts,
+    by default :math:`g_{0}=1` and :math:`C` is a positive constant
     ensuring that when the adaptation phase ends the vanishing decay tends to
     zero. By default assumes that the adaptation phase never ends (only
     decays with time)
@@ -280,6 +280,9 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
 
     def setup_adaptation(self, adaptation_duration, target_rate=0.234):
         r"""Sets up the adaptation parameters.
+
+        Parameters
+        ----------
         adaptation_duration : int
             The number of adaptation steps.
         target_rate : float, optional
@@ -292,6 +295,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
 
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
+
         This prepares the proposal for the next jump.
         """
         dk = self.nsteps - self.stability_duration + 1
@@ -344,19 +348,19 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
         The names of the parameters.
     stability_duration : int
         Number of initial steps done with a initial proposal specified by name
-        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        in ``initial_proposal``. After this eigenvalues and eigenvectors are
         evaluated and jumps proposed along those.
     adaptation_duration: int
         The number of steps after which adaptation of the eigenvectors ends.
         This is defined such that while the number of proposal steps :math:`N`
         satisfies :math:`N <= \mathrm{stability_duration}` the
-        ``initial_proposal'' is called and while
+        ``initial_proposal`` is called and while
         :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
         the eigenvectors are being adapted. Post-adaptation phase the
         eigenvectors and eigenvalues are kept constant.
     initial_proposal : str (optional)
         Name of the initial proposal that is called before the number of
-        proposal seps exceeds ``stability_duration''. By default se to the
+        proposal seps exceeds ``stability_duration``. By default se to the
         'epsie.proposals.ATAdaptiveProposal'. Supported options
         include: 'normal', 'at_adaptive_normal'.
     target_rate: float (optional)

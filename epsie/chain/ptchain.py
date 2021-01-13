@@ -128,7 +128,6 @@ class ParallelTemperedChain(BaseChain):
 
     @property
     def bit_generator(self):
-        """The random bit generator being used."""
         return self._bit_generator
 
     @bit_generator.setter

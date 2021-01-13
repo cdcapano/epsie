@@ -62,13 +62,13 @@ def create_seed(seed=None):
 
 
 def create_bit_generator(seed=None, stream=0):
-    """Creates an instance of :py:class:`epsie.BIT_GENERATOR`.
+    """Creates an instance of a ``BIT_GENERATOR``.
 
     Parameters
     ----------
     seed : int, optional
         The seed to use. If seed is None (the default), will create a seed
-        using ``create_seed``.
+        using :py:func:`create_seed`.
     stream : int, optional
         The stream to create the bit generator for. This allows multiple
         generators to exist with the same seed, but that produce different sets
@@ -95,7 +95,7 @@ def create_bit_generators(ngenerators, seed=None):
     Parameters
     ----------
     ngenerators : int
-        The number of generators to create. Must be >= 1.
+        The number of generators to create. Must be :math:`\geq` 1.
     seed : int, optional
         The seed to use. If none provided, will generate one using the system
         entropy.
@@ -103,7 +103,7 @@ def create_bit_generators(ngenerators, seed=None):
     Returns
     -------
     list :
-        List of :py:class:`BIT_GENERATOR`s.
+        List of ``BIT_GENERATOR``.
     """
     if ngenerators < 1:
         raise ValueError("ngenerators must be >= 1")
