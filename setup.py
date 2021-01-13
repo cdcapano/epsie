@@ -27,7 +27,7 @@ install_requires = ["numpy>=1.17.0",
                     'six>1.10.0',
                    ]
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 # get version
