@@ -38,8 +38,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        # FIXME: run all tests once coveralls is working
-        coverage run --source epsie -m pytest test/test_normal_proposal.py
+        coverage run --source epsie -m pytest test
     - name: Coveralls
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
