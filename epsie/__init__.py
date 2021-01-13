@@ -87,7 +87,7 @@ def create_bit_generator(seed=None, stream=0):
 
 
 def create_bit_generators(ngenerators, seed=None):
-    """Creates a collection of random bit generators.
+    r"""Creates a collection of random bit generators.
 
     The bit generators are different streams with the same seed. They are all
     statistically independent of each other, while still being reproducable.

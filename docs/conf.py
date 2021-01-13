@@ -12,6 +12,8 @@
 #
 import os
 import sys
+import glob
+import subprocess
 sys.path.insert(0, os.path.abspath('../epsie'))
 
 
@@ -30,12 +32,13 @@ release = '1.0.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx_rtd_theme',
-              'sphinx.ext.autodoc',
-              'sphinx.ext.napoleon',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.intersphinx',
-]
+extensions = [
+    'sphinx_rtd_theme',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
+    ]
 
 # We use numpy style for docs
 napoleon_numpy_docstring = True
@@ -71,9 +74,6 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # run scripts in _include
-import glob
-import subprocess
-import os
 print("Running scripts in _include directory:")
 cwd = os.getcwd()
 os.chdir('_include')
