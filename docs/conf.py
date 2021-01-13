@@ -14,6 +14,7 @@ import os
 import sys
 import glob
 import subprocess
+import epsie
 sys.path.insert(0, os.path.abspath('../epsie'))
 
 
@@ -24,7 +25,7 @@ copyright = '2020, Collin D. Capano'
 author = 'Collin D. Capano'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = epsie.__version__
 
 
 # -- General configuration ---------------------------------------------------
