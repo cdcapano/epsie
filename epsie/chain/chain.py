@@ -325,9 +325,6 @@ class Chain(BaseChain):
 
     @property
     def acceptance(self):
-        """The history of all of acceptance ratios and accepted booleans,
-        as a structred array.
-        """
         if self.iteration == 0:
             raise ValueError("No acceptance as chain hasn't been stepped "
                              "yet; run step() at least once")
@@ -430,7 +427,6 @@ class Chain(BaseChain):
 
     @property
     def bit_generator(self):
-        """The random bit generator being used."""
         return self.proposal_dist.bit_generator
 
     @property

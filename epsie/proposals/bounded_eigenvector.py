@@ -44,11 +44,11 @@ class BoundedEigenvector(Eigenvector):
         tuple or iterable of length two.
     stability_duration : int
         Number of initial steps done with a initial proposal specified by name
-        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        in ``initial_proposal``. After this eigenvalues and eigenvectors are
         evaluated (and never again) and jumps proposed along those.
     initial_proposal : {'at_adaptive_bounded_normal', 'bounded_normal'}
         Name of the initial proposal that is called before the number of
-        proposal steps exceeds ``stability_duration''. Default is
+        proposal steps exceeds ``stability_duration``. Default is
         ``'at_adaptive_bounded_normal'``.
     jump_interval : int, optional
         The jump interval of the proposal, the proposal only gets called every
@@ -267,13 +267,13 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
         tuple or iterable of length two.
     stability_duration : int
         Number of initial steps done with a initial proposal specified by name
-        in ``initial_proposal''. After this eigenvalues and eigenvectors are
+        in ``initial_proposal``. After this eigenvalues and eigenvectors are
         evaluated and jumps proposed along those.
     adaptation_duration: int
         The number of steps after which adaptation of the eigenvectors ends.
         This is defined such that while the number of proposal steps :math:`N`
         satisfies :math:`N <= \mathrm{stability_duration}` the
-        ``initial_proposal'' is called and while
+        ``initial_proposal`` is called and while
         :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
         the eigenvectors are being adapted. Post-adaptation phase the
         eigenvectors and eigenvalues are kept constant.
@@ -284,7 +284,7 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
         chain iteration. By default ``jump_interval`` = 1.
     initial_proposal : str, optional
         Name of the initial proposal that is called before the number of
-        proposal seps exceeds ``stability_duration''. By default se to the
+        proposal seps exceeds ``stability_duration``. By default se to the
         'epsie.proposals.ATAdaptiveProposal'. Supported options
         include: 'bounded_normal', 'at_adaptive_bounded_normal'.
     target_rate: float, optional

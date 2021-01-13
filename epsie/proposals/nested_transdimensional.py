@@ -24,24 +24,24 @@ class NestedTransdimensional(BaseProposal):
     ----------
     parameters : (list of) str
         The names of the parameters to produce proposals for.
-    model_proposal : py:class `epsie.proposals`
+    model_proposal : proposal
         The model hopping proposals. This must be a discrete, bounded proposal.
-    proposals : list of py:class `epsie.proposals`
+    proposals : list of proposals
         The transdimensional proposals that are being turned on/off.
     birth_distributions: list of objects
         Objects that match transdimensional proposals and are used to birth
         new samples and evaluate their proposal probability. Must use structure
         as given in the example.
-    bit_generator : :py:class:`epsie.BIT_GENERATOR` instance or int, optional
+    bit_generator : BIT_GENERATOR or int, optional
         The random bit generator to use, or an integer/None. If the latter, a
         bit generator will be created using
         :py:func:`epsie.create_bit_generator`.
 
     Attributes
     ----------
-    proposals: list of py:class `epsie.proposals`
+    proposals: list of proposals
         The constituent in-model proposals.
-    model_proposal: py:class `epsie.proposals.DiscreteBounded
+    model_proposal: epsie.proposals.discrete.BoundedDiscrete
         The model hopping proposal
     """
     name = 'nested_transdimensional'

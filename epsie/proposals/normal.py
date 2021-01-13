@@ -211,8 +211,8 @@ class AdaptiveSupport(BaseAdaptiveSupport):
 
     Notes
     -----
-    For a given parameter, the standard deviation of the :math:`k`th iteration
-    is given by [1]_:
+    For a given parameter, the standard deviation of the :math:`k^{\rm th}`
+    iteration is given by [1]_:
 
     .. math::
 
@@ -393,7 +393,7 @@ class AdaptiveNormal(AdaptiveSupport, Normal):
 class SSAdaptiveSupport(BaseAdaptiveSupport):
     r"""Utility class for adding adaptive variance support to a proposal.
 
-    The adaptation algorithm is based on a method in Sivia and Skilling [1]_.
+    The adaptation algorithm is based on a method in Sivia and Skilling [2]_.
 
     Notes
     -----
@@ -421,7 +421,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
 
     References
     ----------
-    .. [1] Sivia D., Skilling J., "Data Analysis: A Bayesian Tutorial,"
+    .. [2] Sivia D., Skilling J., "Data Analysis: A Bayesian Tutorial,"
         Oxford Univ. Press, Oxford (2006)
     """
     n_accepted = None
