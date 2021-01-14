@@ -6,3 +6,7 @@
   color: #cd7000;
 }
 
+.rst-current-version, .rst-versions {
+    color: #31a4fe !important;
+    text-align: left !important;
+}
