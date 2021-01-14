@@ -78,6 +78,51 @@ html_static_path = ['_static']
 def setup(app):
     app.add_css_file('custom.css')
 
+# see if we're adding versions: we will do this if sphinx-build was run with
+# tags set to either latest or versioned
+if tags.has('latest'):
+    docversion = 'latest'
+elif tags.has('versioned'):
+    # ignore the patch part
+    docversion = '.'.join(epsie.__version__.split('.')[:2])
+else:
+    docversion = ''
+
+# load previous versions from cache
+if docversion:
+    with open('.docversions', 'a+') as fp:
+        # skip the comment line
+        fp.seek(0)
+        cached_versions = [l.rstrip('\n') for l in fp.readlines()
+                    if not l.startswith('#')]
+        if docversion not in cached_versions and docversion != 'latest':
+            # add to the file
+            print(docversion, file=fp)
+    # add relative paths for index
+    versions = [(v, '../{}/index.html'.format(v)) for v in cached_versions
+                if v != docversion]
+    # current
+    versions.append((docversion, ''))
+    # add latest if it isn't there
+    if docversion != 'latest':
+        versions.append(('latest', '../latest/index.html'))
+    # reverse order to ensure latest comes first
+    versions = versions[::-1]
+else:
+    versions = []
+
+# set html settings
+html_context = {
+    'current_version': docversion,
+    'version': epsie.__version__,
+    'versions': versions,
+    'display_lower_left': True,
+    'display_github': True,
+    'github_user': 'cdcapano',
+    'github_repo': 'epsie',
+    'github_version': 'master/docs/',
+}
+
 # run scripts in _include
 print("Running scripts in _include directory:")
 cwd = os.getcwd()
