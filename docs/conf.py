@@ -90,14 +90,18 @@ else:
 
 # load previous versions from cache
 if docversion:
-    with open('.docversions', 'a+') as fp:
-        # skip the comment line
-        fp.seek(0)
-        cached_versions = [l.rstrip('\n') for l in fp.readlines()
-                    if not l.startswith('#')]
-        if docversion not in cached_versions and docversion != 'latest':
-            # add to the file
-            print(docversion, file=fp)
+    # check if there is a cache of previous versions
+    if os.path.exists('.docversions'):
+        with open('.docversions', 'a+') as fp:
+            # skip the comment line
+            fp.seek(0)
+            cached_versions = [l.rstrip('\n') for l in fp.readlines()
+                        if not l.startswith('#')]
+            if docversion not in cached_versions and docversion != 'latest':
+                # add to the file
+                print(docversion, file=fp)
+    else:
+        cached_versions = []
     # add relative paths for index
     versions = [(v, '../{}/index.html'.format(v)) for v in cached_versions
                 if v != docversion]
