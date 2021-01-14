@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Proposals &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="epsie.html" />
+    <link rel="prev" title="Parallelization" href="parallelization.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallelization.html">Parallelization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Proposals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-custom-proposals">Creating Custom Proposals</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Proposals</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/proposals.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="proposals">
+<h1>Proposals<a class="headerlink" href="#proposals" title="Permalink to this headline">¶</a></h1>
+<p>The classical Metropolis-Hastings algorithm uses a normal distribution for
+producing jump proposals. This can be quite inefficient for many likelihood
+surfaces. To improve convergence, multiple proposal classes are offered that
+can be used for different parameters in your model. These are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.Normal" title="epsie.proposals.normal.Normal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Normal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.eigenvector.Eigenvector" title="epsie.proposals.eigenvector.Eigenvector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Eigenvector</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_eigenvector.BoundedEigenvector" title="epsie.proposals.bounded_eigenvector.BoundedEigenvector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedEigenvector</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.SSAdaptiveNormal" title="epsie.proposals.normal.SSAdaptiveNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.AdaptiveNormal" title="epsie.proposals.normal.AdaptiveNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.BoundedNormal" title="epsie.proposals.bounded_normal.BoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.SSAdaptiveBoundedNormal" title="epsie.proposals.bounded_normal.SSAdaptiveBoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveBoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.AdaptiveBoundedNormal" title="epsie.proposals.bounded_normal.AdaptiveBoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveBoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.Angular" title="epsie.proposals.angular.Angular"><code class="xref py py-class docutils literal notranslate"><span class="pre">Angular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.SSAdaptiveAngular" title="epsie.proposals.angular.SSAdaptiveAngular"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveAngular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.AdaptiveAngular" title="epsie.proposals.angular.AdaptiveAngular"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveAngular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.NormalDiscrete" title="epsie.proposals.discrete.NormalDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.SSAdaptiveNormalDiscrete" title="epsie.proposals.discrete.SSAdaptiveNormalDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveNormalDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.AdaptiveNormalDiscrete" title="epsie.proposals.discrete.AdaptiveNormalDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveNormalDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.BoundedDiscrete" title="epsie.proposals.discrete.BoundedDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.SSAdaptiveBoundedDiscrete" title="epsie.proposals.discrete.SSAdaptiveBoundedDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveBoundedDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.AdaptiveBoundedDiscrete" title="epsie.proposals.discrete.AdaptiveBoundedDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveBoundedDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.nested_transdimensional.NestedTransdimensional" title="epsie.proposals.nested_transdimensional.NestedTransdimensional"><code class="xref py py-class docutils literal notranslate"><span class="pre">NestedTransdimensional</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.ATAdaptiveNormal" title="epsie.proposals.normal.ATAdaptiveNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATAdaptiveNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.ATAdaptiveBoundedNormal" title="epsie.proposals.bounded_normal.ATAdaptiveBoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATAdaptiveBoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.ATAdaptiveAngular" title="epsie.proposals.angular.ATAdaptiveAngular"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATAdaptiveAngular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvector" title="epsie.proposals.eigenvector.AdaptiveEigenvector"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveEigenvector</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.solid_angle.IsotropicSolidAngle" title="epsie.proposals.solid_angle.IsotropicSolidAngle"><code class="xref py py-class docutils literal notranslate"><span class="pre">IsotropicSolidAngle</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.solid_angle.AdaptiveIsotropicSolidAngle" title="epsie.proposals.solid_angle.AdaptiveIsotropicSolidAngle"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveIsotropicSolidAngle</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>Proposals with <code class="docutils literal notranslate"><span class="pre">Adaptive</span></code> in the name attempt to learn the shape of the
+likelihood surface during a burn-in period; see the documentation for each
+class for details.</p>
+<p>By default, if no proposal class is provided for a parameter the
+<a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.Normal" title="epsie.proposals.normal.Normal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Normal</span></code></a> proposal is used with a standard
+deviation of 1. To use one of the other proposals (or to use a different
+standard deviation with the normal proposal), you must first initialize the
+proposal class giving the name(s) of the parameter(s) you wish to use it for.
+You then provide the list of proposals to use to the sampler’s <code class="docutils literal notranslate"><span class="pre">proposals</span></code>
+argument.</p>
+<p>For example, say your model consists of two parameters, <code class="docutils literal notranslate"><span class="pre">amp</span></code> and <code class="docutils literal notranslate"><span class="pre">phase</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">phase</span></code> is cyclic on <span class="math notranslate nohighlight">\([0, 2\pi)\)</span> and <code class="docutils literal notranslate"><span class="pre">amp</span></code> is in <span class="math notranslate nohighlight">\([0,
+1)\)</span>. You wish to use the
+<a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.BoundedNormal" title="epsie.proposals.bounded_normal.BoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedNormal</span></code></a> proposal for <code class="docutils literal notranslate"><span class="pre">amp</span></code>
+and the <a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.Angular" title="epsie.proposals.angular.Angular"><code class="xref py py-class docutils literal notranslate"><span class="pre">Angular</span></code></a> proposal for <code class="docutils literal notranslate"><span class="pre">phase</span></code>.
+To do so, you first initialize the appropriate proposal for each parameter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">epsie.proposals</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BoundedNormal</span><span class="p">,</span> <span class="n">Angular</span><span class="p">)</span>
+<span class="n">amp_prop</span> <span class="o">=</span> <span class="n">BoundedNormal</span><span class="p">([</span><span class="s1">&#39;amp&#39;</span><span class="p">],</span> <span class="n">boundaries</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;amp&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)})</span>
+<span class="n">phase_prop</span> <span class="o">=</span> <span class="n">Angular</span><span class="p">([</span><span class="s1">&#39;phase&#39;</span><span class="p">])</span>
+<span class="n">proposals</span> <span class="o">=</span> <span class="p">[</span><span class="n">amp_prop</span><span class="p">,</span> <span class="n">phase_prop</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>You would then initialize the sampler passing the list of proposals to the
+sampler’s <code class="docutils literal notranslate"><span class="pre">proposals</span></code> keyword argument (both the
+<a class="reference internal" href="epsie.samplers.html#epsie.samplers.mhsampler.MetropolisHastingsSampler" title="epsie.samplers.mhsampler.MetropolisHastingsSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetropolisHastingsSampler</span></code></a> and the
+<a class="reference internal" href="epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler" title="epsie.samplers.ptsampler.ParallelTemperedSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelTemperedSampler</span></code></a> use this
+argument). For a detailed example, see the
+<a class="reference internal" href="tutorials/test_angular.html"><span class="doc">angular proposal tutorial</span></a>.</p>
+<div class="section" id="creating-custom-proposals">
+<h2>Creating Custom Proposals<a class="headerlink" href="#creating-custom-proposals" title="Permalink to this headline">¶</a></h2>
+<p>You may also define your own proposal classes. The only requirement is that
+the proposal class inherits from
+<a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseProposal" title="epsie.proposals.base.BaseProposal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProposal</span></code></a>. This is an abstract base class
+that defines the standard API needed for all proposals. At bare minimum, you
+must provide:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a <code class="docutils literal notranslate"><span class="pre">parameters</span></code> attribute: a list of the parameter names that the
+proposal produces jumps for.</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">_jump</span></code> method: this should take a dictionary (<code class="docutils literal notranslate"><span class="pre">fromx</span></code>) that defines
+the current point in parameter space and returns another dictionary giving
+the new proposed point to jump to.</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">_logpdf</span></code> method: this should take two dictionaries (<code class="docutils literal notranslate"><span class="pre">xi</span></code> and
+<code class="docutils literal notranslate"><span class="pre">givenx</span></code>) that define the proposed point and the current position,
+respectively, and returns the log of the pdf of jumping from the current
+position to the new point. This only used for non-symmetric proposals, but
+is good to define regardless.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">symmetric</span></code>: a boolean indicating whether the proposal is symmetric or
+not (see
+<a class="reference internal" href="epsie.proposals.html#id1" title="epsie.proposals.base.BaseProposal.symmetric"><code class="xref py py-meth docutils literal notranslate"><span class="pre">symmetric()</span></code></a> for details).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: a dictionary of any parameters that need to be set in order to
+produce a deterministic jump; see
+<a class="reference internal" href="epsie.proposals.html#id6" title="epsie.proposals.base.BaseRandom.state"><code class="xref py py-attr docutils literal notranslate"><span class="pre">state</span></code></a> for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set_state</span></code>: a method for setting the state when recovering from a
+checkpoint; see <a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseRandom.set_state" title="epsie.proposals.base.BaseRandom.set_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_state()</span></code></a> for
+details.</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseProposal" title="epsie.proposals.base.BaseProposal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProposal</span></code></a> has a
+<a class="reference internal" href="epsie.proposals.html#id4" title="epsie.proposals.base.BaseRandom.random_generator"><code class="xref py py-attr docutils literal notranslate"><span class="pre">random_generator</span></code></a> attribute,
+which is inherited from <a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseRandom" title="epsie.proposals.base.BaseRandom"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseRandom</span></code></a>. This
+is a thin wrapper around an instance of <a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v1.19)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code></a>.
+<strong>You must use the</strong>
+<a class="reference internal" href="epsie.proposals.html#id4" title="epsie.proposals.base.BaseRandom.random_generator"><code class="xref py py-attr docutils literal notranslate"><span class="pre">random_generator</span></code></a> <strong>attribute
+for producing random variates for jump proposals, or any other random
+variates you create in the proposal class.</strong> Use of any other psuedo-random
+number generator will cause the sampler to not work correctly in a parallel
+environment.</p>
+</div>
+<p>If you wish to create a proposal that makes use of the chain history — e.g.,
+for creating an adaptive proposal — an
+<a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseProposal.update" title="epsie.proposals.base.BaseProposal.update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update()</span></code></a> method can be optionally
+implemented. This should expect to take an instance of
+<a class="reference internal" href="epsie.chain.html#epsie.chain.chain.Chain" title="epsie.chain.chain.Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chain</span></code></a>, which contains the history of the samples
+(up to the last time a <a class="reference internal" href="epsie.chain.html#epsie.chain.chain.Chain.clear" title="epsie.chain.chain.Chain.clear"><code class="xref py py-meth docutils literal notranslate"><span class="pre">clear()</span></code></a> was called),
+as well as several other properties, such as the acceptance ratio.  See the
+<a class="reference internal" href="epsie.chain.html#epsie.chain.chain.Chain" title="epsie.chain.chain.Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chain</span></code></a> API for more details.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="epsie.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="parallelization.html" class="btn btn-neutral float-left" title="Parallelization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

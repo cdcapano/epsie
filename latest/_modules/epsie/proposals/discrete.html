@@ -1,0 +1,759 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie.proposals.discrete &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+        
+      <li>epsie.proposals.discrete</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie.proposals.discrete</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2020  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span> <span class="nn">.normal</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Normal</span><span class="p">,</span> <span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">SSAdaptiveSupport</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.bounded_normal</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BoundedNormal</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="NormalDiscrete"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.discrete.NormalDiscrete">[docs]</a><span class="k">class</span> <span class="nc">NormalDiscrete</span><span class="p">(</span><span class="n">Normal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A proposal for discrete parameters.</span>
+
+<span class="sd">    The jump proposals produced by this are always integer values. For a given</span>
+<span class="sd">    point :math:`x \in \mathbb{Z}`, a new point :math:`x&#39; = x + \bar{\Delta x}`</span>
+<span class="sd">    is generated by using</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \bar{\Delta x} = \begin{cases}</span>
+<span class="sd">            \lfloor \Delta x \rfloor \textrm{ if } \Delta x &lt; 0, \\</span>
+<span class="sd">            \lceil \Delta x \rceil \textrm{ if } \Delta x &gt; 0,</span>
+<span class="sd">            \end{cases}</span>
+
+<span class="sd">    where :math:`\Delta x \sim \mathcal{N}(0, \sigma)` if `successive`</span>
+<span class="sd">    is False. This results in a stepped probability density that is zero</span>
+<span class="sd">    :math:`\in [0, 1)`. In other words, the proposal will never produce the</span>
+<span class="sd">    same integer on successive jumps, and it will most often draw integers</span>
+<span class="sd">    closest to the current point.</span>
+
+<span class="sd">    If `successive` is True, then for a given point :math:`x \in \mathbb{Z}`,</span>
+<span class="sd">    a new point :math:`x&#39; = x + \bar{\Delta x}` is generated by using</span>
+
+<span class="sd">    .. math:: \bar{\Delta x} = Round\left(\mathcal{N}(0, \sigma)\right),</span>
+
+<span class="sd">    meaning that the proposal can now propose the same integer on successive</span>
+<span class="sd">    jumps.</span>
+
+<span class="sd">    The variance used for drawing :math:`\Delta x` need not be an integer,</span>
+<span class="sd">    and can be set. Multiple parameters are supported, however, they all must</span>
+<span class="sd">    be independent of each other.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    cov : array, optional</span>
+<span class="sd">        The covariance matrix of the parameters. May provide either a single</span>
+<span class="sd">        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,</span>
+<span class="sd">        where ``ndim`` = the number of parameters given. If 2D array is given,</span>
+<span class="sd">        the off-diagonal terms must be zero. Default is 1 for all parameters.</span>
+<span class="sd">    successive: dict, optional</span>
+<span class="sd">        Dictionary of bools, keys must be parameters and items bools. If False</span>
+<span class="sd">        then the proposal never produces the same integer on successive jumps.</span>
+<span class="sd">        Default is False for all parameters</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;discrete&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_successive</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># this only works for diagonal pdfs</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only independent variables are supported &quot;</span>
+                             <span class="s2">&quot;(all off-diagonal terms in the covariance &quot;</span>
+                             <span class="s2">&quot;must be zero)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">successive</span> <span class="o">=</span> <span class="n">successive</span>
+        <span class="c1"># cache for the cdfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span> <span class="o">=</span> <span class="p">[{}]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cachedstd</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">successive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of `successive` toggles for each parameter. If True</span>
+<span class="sd">        allows two equal integers on successive jumps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_successive</span>
+
+    <span class="nd">@successive</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">successive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">successive</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">successive</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_successive</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="nb">bool</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">successive</span><span class="o">.</span><span class="n">keys</span><span class="p">())]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;all dictionary values must be bools&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_successive</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must provide `successive` for each parameter&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_cdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Caches CDF for faster call back.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pi : int</span>
+<span class="sd">            Index of parameter that is being evaluated.</span>
+<span class="sd">        dx : int</span>
+<span class="sd">            Value to evaulate. Should be the difference between a point and</span>
+<span class="sd">            the mean.</span>
+<span class="sd">        std : float</span>
+<span class="sd">            Standard deviation of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">std</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cachedstd</span><span class="p">[</span><span class="n">pi</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span><span class="p">[</span><span class="n">pi</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span><span class="p">[</span><span class="n">pi</span><span class="p">][</span><span class="n">dx</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">cdf</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">std</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span><span class="p">[</span><span class="n">pi</span><span class="p">][</span><span class="n">dx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdf</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cachedstd</span><span class="p">[</span><span class="n">pi</span><span class="p">]</span> <span class="o">=</span> <span class="n">std</span>
+            <span class="k">return</span> <span class="n">cdf</span>
+
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="n">to_x</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+            <span class="c1"># convert to int</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_floorceil</span><span class="p">(</span><span class="n">dx</span><span class="p">))</span>
+            <span class="n">to_x</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">])</span> <span class="o">+</span> <span class="n">dx</span>
+        <span class="k">return</span> <span class="n">to_x</span>
+
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="n">logp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">dx</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">dx</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">dp</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">-</span> <span class="n">p0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span>
+                <span class="c1"># if given point is same as test point, the pdf will just be 0</span>
+                <span class="c1"># don&#39;t need to evaluate the other parameters</span>
+                <span class="k">if</span> <span class="n">dx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+                <span class="c1"># we&#39;ll just evaluate positive dx, since the distribution is</span>
+                <span class="c1"># symmetric about 0</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">dx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">dp</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">-</span> <span class="n">p0</span>
+                <span class="k">if</span> <span class="n">dp</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">logp</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logp</span></div>
+
+
+<div class="viewcode-block" id="BoundedDiscrete"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.discrete.BoundedDiscrete">[docs]</a><span class="k">class</span> <span class="nc">BoundedDiscrete</span><span class="p">(</span><span class="n">BoundedNormal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A proposal for discrete parameters with bounds.</span>
+
+<span class="sd">    This is a discretized form of :py:class:`BoundedNormal`. Jump proposals</span>
+<span class="sd">    are produced in the same manner as :py:class:`NormalDiscrete`, except</span>
+<span class="sd">    that the distribution used to draw :math:`\Delta x` (before applying the</span>
+<span class="sd">    floor/ceil or round) is a truncated normal. As such, this is not a</span>
+<span class="sd">    symmetric distribution.</span>
+
+<span class="sd">    The variance used for drawing :math:`\Delta x` need not be an integer,</span>
+<span class="sd">    and can be set. Multiple parameters are supported, however, they all must</span>
+<span class="sd">    be independent of each other.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    boundaries : dict</span>
+<span class="sd">        Dictionary mapping parameters to boundaries. Boundaries must be a</span>
+<span class="sd">        tuple or iterable of length two. If floats are provided, the floor</span>
+<span class="sd">        (ceil) of the lower (upper) bound will be used.</span>
+<span class="sd">    cov : array, optional</span>
+<span class="sd">        The covariance matrix of the parameters. May provide either a single</span>
+<span class="sd">        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,</span>
+<span class="sd">        where ``ndim`` = the number of parameters given. If 2D array is given,</span>
+<span class="sd">        the off-diagonal terms must be zero. Default is 1 for all parameters.</span>
+<span class="sd">    successive: dict, optional</span>
+<span class="sd">        Dictionary of bools, keys must be parameters and items bools. If False</span>
+<span class="sd">        then the proposal never produces the same integer on successive jumps.</span>
+<span class="sd">        Default is False for all parameters</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;bounded_discrete&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_successive</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">successive</span> <span class="o">=</span> <span class="n">successive</span>
+        <span class="c1"># ensure boundaries are integers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">lower</span><span class="p">)),</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">upper</span><span class="p">)))</span>
+                           <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="c1"># cache for the cdfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span> <span class="o">=</span> <span class="p">[{}]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cachedstd</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">successive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of `successive` toggles for each parameter. If True</span>
+<span class="sd">        allows two equal integers on successive jumps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_successive</span>
+
+    <span class="nd">@successive</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">successive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">successive</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">successive</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_successive</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="nb">bool</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">successive</span><span class="o">.</span><span class="n">keys</span><span class="p">())]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;all dictionary values must be bools&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_successive</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must provide `successive` for each parameter&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_cdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Caches CDF for faster call back.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pi : int</span>
+<span class="sd">            Index of parameter that is being evaluated.</span>
+<span class="sd">        x : int</span>
+<span class="sd">            Value to evaulate.</span>
+<span class="sd">        a : int</span>
+<span class="sd">            Lower bound of the distribution (with respect to mu).</span>
+<span class="sd">        b : int</span>
+<span class="sd">            Upper bound of the distribution (with respect to mu).</span>
+<span class="sd">        mu : int</span>
+<span class="sd">            Mean of the distribution.</span>
+<span class="sd">        std : float</span>
+<span class="sd">            Standard deviation of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">std</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cachedstd</span><span class="p">[</span><span class="n">pi</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span><span class="p">[</span><span class="n">pi</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span><span class="p">[</span><span class="n">pi</span><span class="p">][</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">cdf</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">truncnorm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">/</span><span class="n">std</span><span class="p">,</span> <span class="n">b</span><span class="o">/</span><span class="n">std</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">std</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cdfcache</span><span class="p">[</span><span class="n">pi</span><span class="p">][</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdf</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cachedstd</span><span class="p">[</span><span class="n">pi</span><span class="p">]</span> <span class="o">=</span> <span class="n">std</span>
+            <span class="k">return</span> <span class="n">cdf</span>
+
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="c1"># make sure we&#39;re in bounds</span>
+        <span class="k">if</span> <span class="n">fromx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Given point is not in bounds; I don&#39;t know how &quot;</span>
+                             <span class="s2">&quot;to jump from there.&quot;</span><span class="p">)</span>
+        <span class="c1"># we&#39;ll just use rejection sampling to get a new point. This should</span>
+        <span class="c1"># be reasonably fast since fromx is always at the peak of the</span>
+        <span class="c1"># distribution</span>
+        <span class="n">to_x</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="n">inbnds</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="n">inbnds</span><span class="p">:</span>
+                <span class="c1"># draw a delta x</span>
+                <span class="n">deltax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                    <span class="n">deltax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">deltax</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for values &lt; 0, we want the floor; for values &gt; 0, the</span>
+                    <span class="c1"># ceiling</span>
+                    <span class="n">deltax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_floorceil</span><span class="p">(</span><span class="n">deltax</span><span class="p">))</span>
+                <span class="n">newpt</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">])</span><span class="o">+</span><span class="n">deltax</span><span class="p">}</span>
+                <span class="n">inbnds</span> <span class="o">=</span> <span class="n">newpt</span> <span class="ow">in</span> <span class="bp">self</span>
+            <span class="n">to_x</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newpt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">to_x</span>
+
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="n">logp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">successive</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+                <span class="n">mu</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lowerbnd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">mu</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upperbnd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">mu</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">x</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">x</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">logp</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p1</span> <span class="o">-</span> <span class="n">p0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mu</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_floorceil</span><span class="p">(</span><span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_ceilfloor</span><span class="p">(</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span>
+                <span class="c1"># if given point is same as test point, the pdf will just be 0;</span>
+                <span class="c1"># don&#39;t need to evaluate the other parameters</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">mu</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lowerbnd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">mu</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upperbnd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">-</span> <span class="n">mu</span>
+                <span class="c1"># the pdf is the difference in the trunc norm&#39;s cdf around x;</span>
+                <span class="c1"># whether we take the difference between x+1 and x or x and x-1</span>
+                <span class="c1"># depends on where x is w.r.t. mu</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">mu</span><span class="p">:</span>
+                    <span class="n">x0</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">x0</span> <span class="o">=</span> <span class="n">x</span>
+                    <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">p0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cdf</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+                <span class="n">logp</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p1</span> <span class="o">-</span> <span class="n">p0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logp</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                           Adaptive versions</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="SSAdaptiveNormalDiscrete"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.discrete.SSAdaptiveNormalDiscrete">[docs]</a><span class="k">class</span> <span class="nc">SSAdaptiveNormalDiscrete</span><span class="p">(</span><span class="n">SSAdaptiveSupport</span><span class="p">,</span> <span class="n">NormalDiscrete</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A discrete proposoal with adaptive variance, using the algorithm from</span>
+<span class="sd">    Sivia and Skilling.</span>
+
+<span class="sd">    See :py:class:`SSAdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    cov : array, optional</span>
+<span class="sd">        The covariance matrix of the parameters. May provide either a single</span>
+<span class="sd">        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,</span>
+<span class="sd">        where ``ndim`` = the number of parameters given. If 2D array is given,</span>
+<span class="sd">        the off-diagonal terms must be zero. Default is 1 for all parameters.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;ss_adaptive_discrete&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="n">successive</span><span class="p">,</span>
+            <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SSAdaptiveBoundedDiscrete"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.discrete.SSAdaptiveBoundedDiscrete">[docs]</a><span class="k">class</span> <span class="nc">SSAdaptiveBoundedDiscrete</span><span class="p">(</span><span class="n">SSAdaptiveSupport</span><span class="p">,</span> <span class="n">BoundedDiscrete</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A bounded discrete proposoal with adaptive variance, using the</span>
+<span class="sd">    algorithm from Sivia and Skilling.</span>
+
+<span class="sd">    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    boundaries : dict</span>
+<span class="sd">        Dictionary mapping parameters to boundaries. Boundaries must be a</span>
+<span class="sd">        tuple or iterable of length two. If floats are provided, the floor</span>
+<span class="sd">        (ceil) of the lower (upper) bound will be used.</span>
+<span class="sd">    cov : array, optional</span>
+<span class="sd">        The covariance matrix of the parameters. May provide either a single</span>
+<span class="sd">        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,</span>
+<span class="sd">        where ``ndim`` = the number of parameters given. If 2D array is given,</span>
+<span class="sd">        the off-diagonal terms must be zero. Default is 1 for all parameters.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;ss_adaptive_bounded_discrete&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span>  <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="n">successive</span><span class="p">,</span>
+            <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="k">if</span> <span class="s1">&#39;max_cov&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="c1"># set the max std to be (1.49*abs(bounds)</span>
+            <span class="n">maxwidth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">abs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;max_cov&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.49</span><span class="o">*</span><span class="n">maxwidth</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AdaptiveNormalDiscrete"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.discrete.AdaptiveNormalDiscrete">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveNormalDiscrete</span><span class="p">(</span><span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">NormalDiscrete</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A discrete proposoal with adaptive variance, using the algorithm from</span>
+<span class="sd">    Veitch et al.</span>
+
+<span class="sd">    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    prior_widths : dict</span>
+<span class="sd">        Dictionary mapping parameter names to values giving the width of each</span>
+<span class="sd">        parameter&#39;s prior. The values may be floats, or any object that has</span>
+<span class="sd">        an ``__abs__`` method that will return a float.</span>
+<span class="sd">    adaptation_duration: int</span>
+<span class="sd">        The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">        more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;adaptive_discrete&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">prior_widths</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                 <span class="n">successive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="n">successive</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="n">prior_widths</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AdaptiveBoundedDiscrete"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.discrete.AdaptiveBoundedDiscrete">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveBoundedDiscrete</span><span class="p">(</span><span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">BoundedDiscrete</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A bounded discrete proposoal with adaptive variance.</span>
+
+<span class="sd">    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    boundaries : dict</span>
+<span class="sd">        Dictionary mapping parameters to boundaries. Boundaries must be a</span>
+<span class="sd">        tuple or iterable of length two. If floats are provided, the floor</span>
+<span class="sd">        (ceil) of the lower (upper) bound will be used.</span>
+<span class="sd">    adaptation_duration: int</span>
+<span class="sd">        The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">        more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;adaptive_bounded_discrete&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                 <span class="n">successive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">successive</span><span class="o">=</span><span class="n">successive</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                           Helper functions</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<span class="k">def</span> <span class="nf">_floorceil</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns floor (ceil) of values &lt; (&gt;) 0.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_ceilfloor</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the ceil (floor) of values &lt; (&gt;) 0.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>epsie</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2019  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="sd">&quot;&quot;&quot;EPSIE is a toolkit for doing MCMCs using embarrasingly parallel Markov</span>
+<span class="sd">chains.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># get the version number</span>
+<span class="kn">from</span> <span class="nn">._version</span> <span class="kn">import</span> <span class="n">__version__</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PCG64</span><span class="p">,</span> <span class="n">SeedSequence</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                     Random number generation utilities</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+<span class="c1"># The bit generator used for all random number generation.</span>
+<span class="c1"># Users may change this, but it has to be something recognized by numpy.random</span>
+<span class="n">BIT_GENERATOR</span> <span class="o">=</span> <span class="n">PCG64</span>
+
+
+<div class="viewcode-block" id="create_seed"><a class="viewcode-back" href="../epsie.html#epsie.create_seed">[docs]</a><span class="k">def</span> <span class="nf">create_seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a seed for a :py:class:`numpy.random.SeedSequence`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    seed : int, optional</span>
+<span class="sd">        If a seed is given, will just return it. Default is None, in which case</span>
+<span class="sd">        a seed is created.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int :</span>
+<span class="sd">        A seed to use.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">SeedSequence</span><span class="p">()</span><span class="o">.</span><span class="n">entropy</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using seed: </span><span class="si">%i</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">seed</span></div>
+
+
+<div class="viewcode-block" id="create_bit_generator"><a class="viewcode-back" href="../epsie.html#epsie.create_bit_generator">[docs]</a><span class="k">def</span> <span class="nf">create_bit_generator</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates an instance of a ``BIT_GENERATOR``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    seed : int, optional</span>
+<span class="sd">        The seed to use. If seed is None (the default), will create a seed</span>
+<span class="sd">        using :py:func:`create_seed`.</span>
+<span class="sd">    stream : int, optional</span>
+<span class="sd">        The stream to create the bit generator for. This allows multiple</span>
+<span class="sd">        generators to exist with the same seed, but that produce different sets</span>
+<span class="sd">        of random numbers. Default is 0.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    BIT_GENERATOR :</span>
+<span class="sd">        The bit generator initialized with the given seed and stream.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># create the seed sequence</span>
+    <span class="n">seedseq</span> <span class="o">=</span> <span class="n">SeedSequence</span><span class="p">(</span><span class="n">create_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">stream</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">seedseq</span> <span class="o">=</span> <span class="n">seedseq</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">stream</span><span class="o">+</span><span class="mi">1</span><span class="p">)[</span><span class="n">stream</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">BIT_GENERATOR</span><span class="p">(</span><span class="n">seedseq</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create_bit_generators"><a class="viewcode-back" href="../epsie.html#epsie.create_bit_generators">[docs]</a><span class="k">def</span> <span class="nf">create_bit_generators</span><span class="p">(</span><span class="n">ngenerators</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a collection of random bit generators.</span>
+
+<span class="sd">    The bit generators are different streams with the same seed. They are all</span>
+<span class="sd">    statistically independent of each other, while still being reproducable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ngenerators : int</span>
+<span class="sd">        The number of generators to create. Must be :math:`\geq` 1.</span>
+<span class="sd">    seed : int, optional</span>
+<span class="sd">        The seed to use. If none provided, will generate one using the system</span>
+<span class="sd">        entropy.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list :</span>
+<span class="sd">        List of ``BIT_GENERATOR``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ngenerators</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ngenerators must be &gt;= 1&quot;</span><span class="p">)</span>
+    <span class="n">seeds</span> <span class="o">=</span> <span class="n">SeedSequence</span><span class="p">(</span><span class="n">create_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">ngenerators</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">BIT_GENERATOR</span><span class="p">,</span> <span class="n">seeds</span><span class="p">))</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                          Array utilities</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="array2dict"><a class="viewcode-back" href="../epsie.html#epsie.array2dict">[docs]</a><span class="k">def</span> <span class="nf">array2dict</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts a structured array into a dictionary.&quot;&quot;&quot;</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>  <span class="c1"># raises an AttributeError if array is None</span>
+    <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># not a structred array, just return</span>
+        <span class="k">return</span> <span class="n">array</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">_getatomic</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="n">f</span><span class="p">])</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">}</span></div>
+
+
+<span class="k">def</span> <span class="nf">_getatomic</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks if a given value is numpy scalar. If so, it returns</span>
+<span class="sd">    the value as its native python type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">val</span>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                          Parallel tempering utilities</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="make_betas_ladder"><a class="viewcode-back" href="../epsie.html#epsie.make_betas_ladder">[docs]</a><span class="k">def</span> <span class="nf">make_betas_ladder</span><span class="p">(</span><span class="n">ntemps</span><span class="p">,</span> <span class="n">maxtemp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Makes a log spaced ladder of betas.&quot;&quot;&quot;</span>
+    <span class="n">minbeta</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">maxtemp</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="n">minbeta</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">ntemps</span><span class="p">)</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                          Checkpointing utilities</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="dump_state"><a class="viewcode-back" href="../epsie.html#epsie.dump_state">[docs]</a><span class="k">def</span> <span class="nf">dump_state</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsetname</span><span class="o">=</span><span class="s1">&#39;sampler_state&#39;</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dumps the given state to an hdf5 file handler.</span>
+
+<span class="sd">    The state is stored as a raw binary array to ``{path}/{dsetname}`` in the</span>
+<span class="sd">    given hdf5 file handler. If a dataset with the same name and path is</span>
+<span class="sd">    already in the file, the dataset will be resized and overwritten with the</span>
+<span class="sd">    new state data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    state : any picklable object</span>
+<span class="sd">        The sampler state to dump to file. Can be the object returned by</span>
+<span class="sd">        any of the samplers&#39; `.state` attribute (a dictionary of dictionaries),</span>
+<span class="sd">        or any picklable object.</span>
+<span class="sd">    fp : h5py.File</span>
+<span class="sd">        An open hdf5 file handler. Must have write capability enabled.</span>
+<span class="sd">    path : str, optional</span>
+<span class="sd">        The path (group name) to store the state dataset to. Default (None)</span>
+<span class="sd">        will result in the array being stored to the top level.</span>
+<span class="sd">    dsetname : str, optional</span>
+<span class="sd">        The name of the dataset to store the binary array to. Default is</span>
+<span class="sd">        ``sampler_state``.</span>
+<span class="sd">    protocol : int, optional</span>
+<span class="sd">        The protocol version to use for pickling. See the :py:mod:`pickle`</span>
+<span class="sd">        module for more details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">memfp</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">memfp</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span><span class="p">)</span>
+    <span class="n">dump_pickle_to_hdf</span><span class="p">(</span><span class="n">memfp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">dsetname</span><span class="o">=</span><span class="n">dsetname</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dump_pickle_to_hdf"><a class="viewcode-back" href="../epsie.html#epsie.dump_pickle_to_hdf">[docs]</a><span class="k">def</span> <span class="nf">dump_pickle_to_hdf</span><span class="p">(</span><span class="n">memfp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsetname</span><span class="o">=</span><span class="s1">&#39;sampler_state&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dumps pickled data to an hdf5 file object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    memfp : file object</span>
+<span class="sd">        Bytes stream of pickled data.</span>
+<span class="sd">    fp : h5py.File</span>
+<span class="sd">        An open hdf5 file handler. Must have write capability enabled.</span>
+<span class="sd">    path : str, optional</span>
+<span class="sd">        The path (group name) to store the state dataset to. Default (None)</span>
+<span class="sd">        will result in the array being stored to the top level.</span>
+<span class="sd">    dsetname : str, optional</span>
+<span class="sd">        The name of the dataset to store the binary array to. Default is</span>
+<span class="sd">        ``sampler_state``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">memfp</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">bdata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">memfp</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">fp</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dsetname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">dsetname</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">bdata</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,),</span>
+                          <span class="n">dtype</span><span class="o">=</span><span class="n">bdata</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">bdata</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">fp</span><span class="p">[</span><span class="n">dsetname</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">fp</span><span class="p">[</span><span class="n">dsetname</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">bdata</span><span class="o">.</span><span class="n">size</span><span class="p">,))</span>
+    <span class="n">fp</span><span class="p">[</span><span class="n">dsetname</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">bdata</span></div>
+
+
+<div class="viewcode-block" id="load_state"><a class="viewcode-back" href="../epsie.html#epsie.load_state">[docs]</a><span class="k">def</span> <span class="nf">load_state</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsetname</span><span class="o">=</span><span class="s1">&#39;sampler_state&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads a sampler state from the given hdf5 file object.</span>
+
+<span class="sd">    The sampler state is expected to be stored as a raw bytes array which can</span>
+<span class="sd">    be loaded by pickle.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fp : h5py.File</span>
+<span class="sd">        An open hdf5 file handler.</span>
+<span class="sd">    path : str, optional</span>
+<span class="sd">        The path (group name) that the state data is stored to. Default (None)</span>
+<span class="sd">        is to read from the top level.</span>
+<span class="sd">    dsetname : str, optional</span>
+<span class="sd">        The name of the dataset that the state data is stored to. Default is</span>
+<span class="sd">        ``sampler_state``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">fp</span><span class="p">[</span><span class="n">path</span><span class="p">]</span>
+    <span class="n">bdata</span> <span class="o">=</span> <span class="n">fp</span><span class="p">[</span><span class="n">dsetname</span><span class="p">][()]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">bdata</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

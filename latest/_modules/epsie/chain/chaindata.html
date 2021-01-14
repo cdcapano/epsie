@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie.chain.chaindata &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+        
+      <li>epsie.chain.chaindata</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie.chain.chaindata</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2019  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="sd">&quot;&quot;&quot;Utilities for handling chain data.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">epsie</span> <span class="kn">import</span> <span class="n">array2dict</span>
+
+
+<div class="viewcode-block" id="ChainData"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chaindata.ChainData">[docs]</a><span class="k">class</span> <span class="nc">ChainData</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Handles reading and adding data to a chain.</span>
+
+<span class="sd">    When initialized, a list of parameter names must be provided for which the</span>
+<span class="sd">    data will be stored. Items may then be added by giving a dictionary mapping</span>
+<span class="sd">    parameter names to their values. See the Examples below. If the index given</span>
+<span class="sd">    where the new data should be added is larger then the length of the</span>
+<span class="sd">    instance&#39;s current memory, it will automatically be extended by the amount</span>
+<span class="sd">    needed. Scratch space may be allocated ahead of time by using the</span>
+<span class="sd">    ``extend`` method.</span>
+
+<span class="sd">    Data can be retrieved using the ``.data`` attribute, which will return the</span>
+<span class="sd">    data as a numpy structred array.</span>
+
+<span class="sd">    Space for multiple temperatures may be specified by providing the</span>
+<span class="sd">    ``ntemps`` argument. In this case, the array will have shape</span>
+<span class="sd">    ``niterations x ntemps``.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Note that the temperatures are the last index. This is because numpy is</span>
+<span class="sd">        row major. When stepping a chain, the collection of temperatures at a</span>
+<span class="sd">        given iteration are often accessed, to write data, and to do</span>
+<span class="sd">        temperature swaps. However, once the chain is complete, it is more</span>
+<span class="sd">        common to access all the iterations at once for a given temperature;</span>
+<span class="sd">        e.g., to calculate autocorrelation length. For this reason, it is</span>
+<span class="sd">        recommended that the chain data be transposed before doing other</span>
+<span class="sd">        operations and writing to disk.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : list or tuple of str</span>
+<span class="sd">        The names of the parameters to store data for.</span>
+<span class="sd">    dtypes : dict, optional</span>
+<span class="sd">        Dictionary mapping parameter names to types. Will default to using</span>
+<span class="sd">        ``float`` for any parameters that are not provided.</span>
+<span class="sd">    ntemps : int, optional</span>
+<span class="sd">        The number of temperatures used by the chain. Default is 1.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : tuple</span>
+<span class="sd">        The names of the parameters that were given.</span>
+<span class="sd">    dtypes : dict</span>
+<span class="sd">        The data type used for each of the parameters.</span>
+<span class="sd">    data</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create an scratch space for two parameters, &quot;x&quot; and &quot;y&quot;. Note that,</span>
+<span class="sd">    initially, the data attribute returns None, and the length is zero:</span>
+
+<span class="sd">    &gt;&gt;&gt; from epsie.chain import ChainData</span>
+<span class="sd">    &gt;&gt;&gt; chaindata = ChainData([&#39;x&#39;, &#39;y&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; print(len(chaindata))</span>
+<span class="sd">    0</span>
+<span class="sd">    &gt;&gt;&gt; print(chaindata.data)</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Now add some data by passing a dictionary of values. Note that the length</span>
+<span class="sd">    is automatically extended to accomodate the given index, with zeroes filled</span>
+<span class="sd">    in up to that point:</span>
+
+<span class="sd">    &gt;&gt;&gt; chaindata[1] = {&#39;x&#39;: 2.5, &#39;y&#39;: 1.}</span>
+<span class="sd">    &gt;&gt;&gt; chaindata.data</span>
+<span class="sd">    array([(0. , 0.), (2.5, 1.)], dtype=[(&#39;x&#39;, &#39;&lt;f8&#39;), (&#39;y&#39;, &#39;&lt;f8&#39;)])</span>
+<span class="sd">    &gt;&gt;&gt; len(chaindata)</span>
+<span class="sd">    2</span>
+
+<span class="sd">    Manually extend the scratch space, and fill it. Note that we can set</span>
+<span class="sd">    multiple values at once using standard slicing syntax:</span>
+
+<span class="sd">    &gt;&gt;&gt; chaindata.extend(4)</span>
+<span class="sd">    &gt;&gt;&gt; chaindata[2:] = {&#39;x&#39;: [3.5, 4.5, 5.5, 6.5], &#39;y&#39;: [2, 3, 4, 5]}</span>
+<span class="sd">    &gt;&gt;&gt; chaindata.data</span>
+<span class="sd">    array([(0. , 0.), (2.5, 1.), (3.5, 2.), (4.5, 3.), (5.5, 4.), (6.5, 5.)],</span>
+<span class="sd">      dtype=[(&#39;x&#39;, &#39;&lt;f8&#39;), (&#39;y&#39;, &#39;&lt;f8&#39;)])</span>
+
+<span class="sd">    Since we did not specify dtypes, the data types have all defaulted to</span>
+<span class="sd">    floats. Change &#39;y&#39; to be ints instead:</span>
+
+<span class="sd">    &gt;&gt;&gt; chaindata.dtypes = {&#39;y&#39;: int}</span>
+<span class="sd">    &gt;&gt;&gt; chaindata.data</span>
+<span class="sd">    array([(0. , 0), (2.5, 1), (3.5, 2), (4.5, 3), (5.5, 4), (6.5, 5)],</span>
+<span class="sd">      dtype=[(&#39;x&#39;, &#39;&lt;f8&#39;), (&#39;y&#39;, &#39;&lt;i8&#39;)])</span>
+
+<span class="sd">    Clear the memory, and set the new length to be 3:</span>
+
+<span class="sd">    &gt;&gt;&gt; chaindata.clear(3)</span>
+<span class="sd">    &gt;&gt;&gt; chaindata.data</span>
+<span class="sd">    array([(0., 0), (0., 0), (0., 0)], dtype=[(&#39;x&#39;, &#39;&lt;f8&#39;), (&#39;y&#39;, &#39;&lt;i8&#39;)])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">dtypes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ntemps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dtypes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">dtypes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">=</span> <span class="n">dtypes</span>  <span class="c1"># will call the dtypes.setter, below</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span> <span class="o">=</span> <span class="n">ntemps</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the saved data as a numpy structered array.</span>
+
+<span class="sd">        If no data has been added yet, and an initial length was not specified,</span>
+<span class="sd">        returns ``None``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary mapping parameter names to their data types.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtypes</span>
+
+    <span class="nd">@dtypes</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtypes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets/updates the dtypes to the given dictionary.</span>
+
+<span class="sd">        If data has already been saved for a parameter, an attempt will be</span>
+<span class="sd">        made to cast the data to the new data type.</span>
+
+<span class="sd">        A ``ValueError`` will be raised if a parameter name is in the</span>
+<span class="sd">        dictionary that was not provided upon initialization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dtypes : dict</span>
+<span class="sd">            Dictionary mapping parameter names to data types. The data type</span>
+<span class="sd">            of any parameters not provided will remain their current/default</span>
+<span class="sd">            (float) type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unrecognized</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">dtypes</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">unrecognized</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unrecognized parameter(s) </span><span class="si">{}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unrecognized</span><span class="p">)))</span>
+        <span class="c1"># store it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dtypes</span><span class="p">)</span>
+        <span class="c1"># fill in any missing parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dtypes</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+                             <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtypes</span><span class="p">})</span>
+        <span class="c1"># create the numpy verion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_npdtype</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+                                     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        <span class="c1"># cast to new dtype if data already exists</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_npdtype</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ChainData.extend"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chaindata.ChainData.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extends scratch space by n items.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">newshape</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newshape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">newshape</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_npdtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChainData.set_len"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chaindata.ChainData.set_len">[docs]</a>    <span class="k">def</span> <span class="nf">set_len</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the data length to ``n``.</span>
+
+<span class="sd">        If the data length is already &gt; ``n``, a ``ValueError`` is raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lself</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lself</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">lself</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;current length (</span><span class="si">{}</span><span class="s2">) is already greater than </span><span class="si">{}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lself</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ChainData.clear"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chaindata.ChainData.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newlen</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clears the memory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newlen : int, optional</span>
+<span class="sd">            If provided, will create new scratch space with the given length.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">newlen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">newlen</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">newlen</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no data has been set yet&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ChainData.asdict"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chaindata.ChainData.asdict">[docs]</a>    <span class="k">def</span> <span class="nf">asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the data as a dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : slice, optional</span>
+<span class="sd">            Only get the elements indicated by the given slice before</span>
+<span class="sd">            converting to a dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">array2dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">array2dict</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># try to get the element to set; if it fails, then try extending the</span>
+        <span class="c1"># data by the amount needed</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>  <span class="c1"># get TypeError if _data is None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="c1"># if value is a dictionary and index is not a string, then we&#39;re</span>
+        <span class="c1"># setting values in the array by dictionary</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">elem</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+        <span class="c1"># otherwise, just fall back to using the structred array&#39;s setitem</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="detect_dtypes"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chaindata.detect_dtypes">[docs]</a><span class="k">def</span> <span class="nf">detect_dtypes</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convenience function to detect the dtype of some data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : dict or numpy.ndarray</span>
+<span class="sd">        Either a numpy structred array/void or a dictionary mapping parameter</span>
+<span class="sd">        names to some (arbitrary) values. The values may be either arrays or</span>
+<span class="sd">        atomic data. If the former, the dtype will be taken from the array&#39;s</span>
+<span class="sd">        dtype.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict :</span>
+<span class="sd">        Dictionary mapping the parameter names to types.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># assume it&#39;s a numpy.void or numpy.ndarray</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">array2dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">val</span><span class="o">.</span><span class="n">dtype</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

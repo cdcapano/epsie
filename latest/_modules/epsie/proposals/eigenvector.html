@@ -1,0 +1,604 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie.proposals.eigenvector &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+        
+      <li>epsie.proposals.eigenvector</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie.proposals.eigenvector</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2020 Richard Stiskalek, Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BaseProposal</span><span class="p">,</span> <span class="n">BaseAdaptiveSupport</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.normal</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Normal</span><span class="p">,</span> <span class="n">ATAdaptiveNormal</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Eigenvector"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.Eigenvector">[docs]</a><span class="k">class</span> <span class="nc">Eigenvector</span><span class="p">(</span><span class="n">BaseProposal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uses a eigenvector jump with a fixed scale.</span>
+
+<span class="sd">    This proposal may handle one or more parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    stability_duration : int</span>
+<span class="sd">        Number of initial steps done with a initial proposal specified by name</span>
+<span class="sd">        in ``initial_proposal``. After this eigenvalues and eigenvectors are</span>
+<span class="sd">        evaluated (and never again) and jumps proposed along those. This is</span>
+<span class="sd">        also used for the adaptation duration if the ``initial_proposal`` is</span>
+<span class="sd">        set to ``at_adaptive_normal``.</span>
+<span class="sd">    initial_proposal : {&#39;at_adaptive_normal&#39;, &#39;normal&#39;}</span>
+<span class="sd">        Name of the initial proposal that is called before the number of</span>
+<span class="sd">        proposal steps exceeds ``stability_duration``. Default is</span>
+<span class="sd">        ``&#39;at_adaptive_normal&#39;``.</span>
+<span class="sd">    shuffle_rate : float, optional</span>
+<span class="sd">        Probability of shuffling the eigenvector jump probabilities. By</span>
+<span class="sd">        default 0.33.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;eigenvector&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_shuffle_rate</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_cov</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_mu</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_eigvals</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_eigvects</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_initial_proposal</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_stability_duration</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">stability_duration</span><span class="p">,</span> <span class="n">shuffle_rate</span><span class="o">=</span><span class="mf">0.33</span><span class="p">,</span>
+                 <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">initial_proposal</span><span class="o">=</span><span class="s1">&#39;at_adaptive_normal&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="c1"># used for picking which direction to hop along</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle_rate</span> <span class="o">=</span> <span class="n">shuffle_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Add support for this</span>
+        <span class="c1"># store the jump interval information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_jump_interval</span><span class="p">(</span><span class="n">jump_interval</span><span class="p">,</span> <span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># store the stability duration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stability_duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stability_duration</span><span class="p">)</span>
+        <span class="c1"># set the initial proposal</span>
+        <span class="k">if</span> <span class="n">initial_proposal</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">initial_proposal</span> <span class="o">==</span> <span class="s1">&#39;at_adaptive_normal&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span> <span class="o">=</span> <span class="n">ATAdaptiveNormal</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stability_duration</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Proposal &#39;</span><span class="si">{}</span><span class="s2">&#39; not implemented for eigenvector&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">initial_proposal</span><span class="p">))</span>
+        <span class="c1"># cache the eigenvector index used to produce a jump</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># cache the last jump scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dx</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@BaseProposal</span><span class="o">.</span><span class="n">bit_generator</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">bit_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bit_generator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the random bit generator.</span>
+
+<span class="sd">        Also sets the bit generator of the ``initial_proposal``.</span>
+
+<span class="sd">        See :py:class:`epsie.proposals.base.BaseProposal` for more details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># this borrowed from: https://stackoverflow.com/a/31909212</span>
+        <span class="n">BaseProposal</span><span class="o">.</span><span class="n">bit_generator</span><span class="o">.</span><span class="n">fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bit_generator</span><span class="p">)</span>
+        <span class="c1"># set the initial too</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span><span class="o">.</span><span class="n">bit_generator</span> <span class="o">=</span> <span class="n">bit_generator</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">initial_proposal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initial proposal used during the stability phase, before estimated</span>
+<span class="sd">        eigenvectors become reliable.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stability_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of proposal steps during which ``self.initial_proposal`` is</span>
+<span class="sd">        used instead of eigenvector jumps&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stability_duration</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the eigenvalues&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span>
+
+    <span class="nd">@eigvals</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">eigvals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eigvals</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">eigvals</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid eigenvalue shape&quot;</span><span class="p">)</span>
+        <span class="c1"># check that we have no negatives; if we do, and the value is</span>
+        <span class="c1"># sufficiently close to 0, set it to 0</span>
+        <span class="n">negvals</span> <span class="o">=</span> <span class="n">eigvals</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">negvals</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">eigvals</span><span class="p">[</span><span class="n">negvals</span><span class="p">]</span>
+            <span class="n">relsize</span> <span class="o">=</span> <span class="n">vals</span> <span class="o">/</span> <span class="n">eigvals</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">relsize</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="c1"># replace with 0</span>
+                <span class="n">eigvals</span><span class="p">[</span><span class="n">negvals</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># one or more values are &lt; 0 beyond the tolerance; raise error</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;one or more of the given eigenvalues (</span><span class="si">{}</span><span class="s2">) &quot;</span>
+                                 <span class="s2">&quot;are negative&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">eigvals</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span> <span class="o">=</span> <span class="n">eigvals</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">eigvects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the eigenvectors&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigvects</span>
+
+    <span class="nd">@eigvects</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">eigvects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eigvects</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">eigvects</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid eigenvector shape.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eigvects</span> <span class="o">=</span> <span class="n">eigvects</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shuffle_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_rate</span>
+
+    <span class="nd">@shuffle_rate</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">shuffle_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">rate</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Shuffle rate  must be in range (0, 1).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_rate</span> <span class="o">=</span> <span class="n">rate</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">,</span>
+                <span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+                <span class="s1">&#39;initial_proposal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span><span class="o">.</span><span class="n">state</span><span class="p">,</span>
+                <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span><span class="p">,</span>
+                <span class="s1">&#39;cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span>
+                <span class="s1">&#39;ind&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span><span class="p">}</span>
+
+<div class="viewcode-block" id="Eigenvector.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.Eigenvector.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;initial_proposal&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;ind&#39;</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_call_initial_proposal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decides whether to call the initial proposal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_jump_eigenvector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Picks along which eigenvector to jump.&quot;&quot;&quot;</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">)</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span>
+        <span class="c1"># with shuffle_rate probability randomly shuffle the probabilities</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">uniform</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle_rate</span><span class="p">:</span>
+            <span class="c1"># make sure we don&#39;t shuffle any 0 probabilities</span>
+            <span class="n">isz</span> <span class="o">=</span> <span class="n">probs</span> <span class="o">==</span> <span class="mf">0.</span>
+            <span class="k">if</span> <span class="n">isz</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">isz</span>
+                <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_initial_proposal</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_proposal</span><span class="o">.</span><span class="n">jump</span><span class="p">(</span><span class="n">fromx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jump_eigenvector</span>
+        <span class="c1"># scale of the 1D jump</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ind</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_initial_proposal</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_proposal</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dx</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ind</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_recursive_mean_cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recursive updates of the mean and covariance given the new data&quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">newpt</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">chain</span><span class="o">.</span><span class="n">current_position</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                             <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">newpt</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="o">+=</span> <span class="n">df</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">n</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span>
+
+    <span class="k">def</span> <span class="nf">_stability_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the covariance matrix during the stabilisation period&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_proposal</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_proposal</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+            <span class="c1"># estimate covariance and mean and start recursively updating</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">X</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">chain</span><span class="o">.</span><span class="n">positions</span><span class="p">[</span><span class="n">p</span><span class="p">][</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span><span class="o">//</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+                <span class="c1"># calculate mean and cov</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_mean_cov</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_initial_proposal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stability_update</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AdaptiveEigenvectorSupport"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvectorSupport">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveEigenvectorSupport</span><span class="p">(</span><span class="n">BaseAdaptiveSupport</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Utility class for adding AdaptiveEigenvector proposal support.</span>
+
+<span class="sd">    The adaptation algorithm is based on Algorithm 8 in [1].</span>
+
+<span class="sd">    See [1] for details.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For the vanishing decay we use</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \gamma_{g+1} = \left(g - g_{0}\right)^{-0.6} - C,</span>
+
+<span class="sd">    where :math:`g_{0}` is the iteration at which adaptation starts,</span>
+<span class="sd">    by default :math:`g_{0}=1` and :math:`C` is a positive constant</span>
+<span class="sd">    ensuring that when the adaptation phase ends the vanishing decay tends to</span>
+<span class="sd">    zero. By default assumes that the adaptation phase never ends (only</span>
+<span class="sd">    decays with time)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] Andrieu, Christophe &amp; Thoms, Johannes. (2008).</span>
+<span class="sd">    A tutorial on adaptive MCMC. Statistics and Computing.</span>
+<span class="sd">    18. 10.1007/s11222-008-9110-y.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_decay_const</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="AdaptiveEigenvectorSupport.setup_adaptation"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvectorSupport.setup_adaptation">[docs]</a>    <span class="k">def</span> <span class="nf">setup_adaptation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="mf">0.234</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sets up the adaptation parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        adaptation_duration : int</span>
+<span class="sd">            The number of adaptation steps.</span>
+<span class="sd">        target_rate : float, optional</span>
+<span class="sd">            Target acceptance rate. By default 0.234</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span> <span class="o">=</span> <span class="n">adaptation_duration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span> <span class="o">=</span> <span class="n">adaptation_duration</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the adaptation based on whether the last jump was accepted.</span>
+
+<span class="sd">        This prepares the proposal for the next jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">stability_duration</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_initial_proposal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stability_update</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">dk</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_mean_cov</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+            <span class="c1"># update eigenvalues and eigenvectors</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">)</span>
+            <span class="c1"># update the scaling factor</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="n">dk</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span>
+            <span class="c1"># Update of the global scaling</span>
+            <span class="n">ar</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">acceptance</span><span class="p">[</span><span class="s1">&#39;acceptance_ratio&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">+=</span> <span class="n">dk</span> <span class="o">*</span> <span class="p">(</span><span class="n">ar</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">)</span>
+            <span class="c1"># Rescale the eigenvalues</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span> <span class="o">*=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">,</span>
+                <span class="s1">&#39;initial_proposal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span><span class="o">.</span><span class="n">state</span><span class="p">,</span>
+                <span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+                <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span><span class="p">,</span>
+                <span class="s1">&#39;cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span>
+                <span class="s1">&#39;ind&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span><span class="p">,</span>
+                <span class="s1">&#39;log_lambda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">}</span>
+
+<div class="viewcode-block" id="AdaptiveEigenvectorSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvectorSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;initial_proposal&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;log_lambda&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span> <span class="o">*=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;ind&#39;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="AdaptiveEigenvector"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvector">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveEigenvector</span><span class="p">(</span><span class="n">AdaptiveEigenvectorSupport</span><span class="p">,</span> <span class="n">Eigenvector</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Uses jumps along eigenvectors with adaptive scales</span>
+
+<span class="sd">    See :py:class:`AdaptiveEigenvectorSupport` for details on the adaptation</span>
+<span class="sd">    algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters: (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    stability_duration : int</span>
+<span class="sd">        Number of initial steps done with a initial proposal specified by name</span>
+<span class="sd">        in ``initial_proposal``. After this eigenvalues and eigenvectors are</span>
+<span class="sd">        evaluated and jumps proposed along those.</span>
+<span class="sd">    adaptation_duration: int</span>
+<span class="sd">        The number of steps after which adaptation of the eigenvectors ends.</span>
+<span class="sd">        This is defined such that while the number of proposal steps :math:`N`</span>
+<span class="sd">        satisfies :math:`N &lt;= \mathrm{stability_duration}` the</span>
+<span class="sd">        ``initial_proposal`` is called and while</span>
+<span class="sd">        :math:`N + \mathrm{stability_duration} &lt; \mathrm{adaptation_duration}`</span>
+<span class="sd">        the eigenvectors are being adapted. Post-adaptation phase the</span>
+<span class="sd">        eigenvectors and eigenvalues are kept constant.</span>
+<span class="sd">    initial_proposal : str (optional)</span>
+<span class="sd">        Name of the initial proposal that is called before the number of</span>
+<span class="sd">        proposal seps exceeds ``stability_duration``. By default se to the</span>
+<span class="sd">        &#39;epsie.proposals.ATAdaptiveProposal&#39;. Supported options</span>
+<span class="sd">        include: &#39;normal&#39;, &#39;at_adaptive_normal&#39;.</span>
+<span class="sd">    target_rate: float (optional)</span>
+<span class="sd">        Target acceptance ratio. By default 0.234</span>
+<span class="sd">    shuffle_rate : float, optional</span>
+<span class="sd">        Probability of shuffling the eigenvector jump probabilities. By</span>
+<span class="sd">        default 0.33.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;adaptive_eigenvector&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">stability_duration</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                 <span class="n">target_rate</span><span class="o">=</span><span class="mf">0.234</span><span class="p">,</span> <span class="n">shuffle_rate</span><span class="o">=</span><span class="mf">0.33</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">initial_proposal</span><span class="o">=</span><span class="s1">&#39;at_adaptive_normal&#39;</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">stability_duration</span><span class="o">=</span><span class="n">stability_duration</span><span class="p">,</span>
+            <span class="n">shuffle_rate</span><span class="o">=</span><span class="n">shuffle_rate</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="o">+</span><span class="n">stability_duration</span><span class="p">,</span>
+            <span class="n">initial_proposal</span><span class="o">=</span><span class="n">initial_proposal</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="n">adaptation_duration</span><span class="p">,</span> <span class="n">target_rate</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

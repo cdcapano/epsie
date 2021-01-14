@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie.proposals.angular &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+        
+      <li>epsie.proposals.angular</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie.proposals.angular</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2020  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span> <span class="nn">.normal</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Normal</span><span class="p">,</span> <span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">SSAdaptiveSupport</span><span class="p">,</span>
+                     <span class="n">ATAdaptiveSupport</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.bounded_normal</span> <span class="kn">import</span> <span class="n">Boundaries</span>
+
+
+<div class="viewcode-block" id="Angular"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.angular.Angular">[docs]</a><span class="k">class</span> <span class="nc">Angular</span><span class="p">(</span><span class="n">Normal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A propsal distribution for parameters that are cyclic over</span>
+<span class="sd">    :math:`[0, 2\pi)`.</span>
+
+<span class="sd">    To generate a jump proposal from a given point, a truncated normal</span>
+<span class="sd">    distribution centered on the point and with bounds at :math:`\pm \pi`</span>
+<span class="sd">    around the point. Cyclic bounds are then applied, resulting in a proposed</span>
+<span class="sd">    point that is in :math:`[0, 2\pi)`. For example, if a the given point is</span>
+<span class="sd">    at :math:`1.75\pi` and the jump is :math:`+0.5\pi`, then proposed point</span>
+<span class="sd">    will be at :math:`0.25\pi`. Since the same proposal distribution is used</span>
+<span class="sd">    regardless of the location, this is a symmetric proposal.</span>
+
+<span class="sd">    This proposal can handle more than one parameter; however, parameters must</span>
+<span class="sd">    all be independent of each other.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to create proposals for.</span>
+<span class="sd">    cov : (array of) float, optional</span>
+<span class="sd">        The covariance to use for the underlying truncated normal</span>
+<span class="sd">        distribution, in squared radians. May provide either a single float, a</span>
+<span class="sd">        1D array with length ``ndim``, or an ``ndim x ndim`` array, where</span>
+<span class="sd">        ``ndim`` = the number of parameters given. If 2D array is given, the</span>
+<span class="sd">        off-diagonal terms must be zero. Default is 1 sq. radian for all</span>
+<span class="sd">        parameters.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;angular&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># _halfwidth is half the width of the interval, in factors of pi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_factor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="c1"># for speed up</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_invfactor</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logfactor</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_factor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_apply_cyclic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies cyclic boundaries to the given value.</span>
+
+<span class="sd">        This causes the value to lie within 0 and ``2*_halfwidth``. With the</span>
+<span class="sd">        default ``_halfwidth`` = 1, this means the value will be within 0</span>
+<span class="sd">        and 2.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        value : float</span>
+<span class="sd">            The value to apply the boundaries to.</span>
+<span class="sd">        offset : float, optional</span>
+<span class="sd">            Offset to apply. If none provided, will use the ``_offset``</span>
+<span class="sd">            attribute.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float :</span>
+<span class="sd">            The value remapped to be within the boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="c1"># we&#39;ll do something similar as the bounded normal here: draw points</span>
+        <span class="c1"># using a bounded normal centered on 0 with bounds at -pi and pi.</span>
+        <span class="c1"># we&#39;ll just use rejection sampling for this</span>
+        <span class="n">to_x</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="c1"># remove the common factor from the std</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invfactor</span>
+            <span class="n">newpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">std</span><span class="p">)</span>
+            <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="n">newpt</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span><span class="p">:</span>
+                <span class="n">newpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">std</span><span class="p">)</span>
+            <span class="c1"># add to fromx, then put back within bounds</span>
+            <span class="n">newpt</span> <span class="o">+=</span> <span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invfactor</span>
+            <span class="n">newpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_cyclic</span><span class="p">(</span><span class="n">newpt</span><span class="p">)</span>
+            <span class="c1"># now convert back to radians</span>
+            <span class="n">to_x</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">newpt</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_factor</span>
+        <span class="k">return</span> <span class="n">to_x</span>
+
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="c1"># convert to arrays</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_invfactor</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        <span class="n">givenx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_invfactor</span>
+                              <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        <span class="c1"># make sure givenx is in bounds and figure out how far it is from the</span>
+        <span class="c1"># middle of the interval</span>
+        <span class="n">givenx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_cyclic</span><span class="p">(</span><span class="n">givenx</span><span class="p">)</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span> <span class="o">-</span> <span class="n">givenx</span>
+        <span class="c1"># apply cyclic boundaries to xi</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_cyclic</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+        <span class="c1"># shift xi and apply cyclic boundaries again</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_cyclic</span><span class="p">(</span><span class="n">xi</span> <span class="o">+</span> <span class="n">dx</span><span class="p">)</span>
+        <span class="c1"># now evaluate using a truncated normal centered on the middle of</span>
+        <span class="c1"># the interval</span>
+        <span class="c1"># remove the common factor from the std</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invfactor</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span><span class="o">/</span><span class="n">std</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="o">-</span><span class="n">b</span>
+        <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">truncnorm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span><span class="p">,</span>
+                                      <span class="n">scale</span><span class="o">=</span><span class="n">std</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logfactor</span></div>
+
+
+<div class="viewcode-block" id="AdaptiveAngular"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.angular.AdaptiveAngular">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveAngular</span><span class="p">(</span><span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">Angular</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;An angular proposoal with adaptive variance, using the algorithm from</span>
+<span class="sd">    Veitch et al.</span>
+
+<span class="sd">    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    boundaries : dict</span>
+<span class="sd">        Dictionary mapping parameters to boundaries. Boundaries must be a</span>
+<span class="sd">        tuple or iterable of length two. The boundaries will be used for the</span>
+<span class="sd">        prior widths in the adaptation algorithm.</span>
+<span class="sd">    adaptation_duration: int</span>
+<span class="sd">        The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">        more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    start_step : int, optional</span>
+<span class="sd">        The proposal step to start doing the adaptation (:math:`k_0+1` in the</span>
+<span class="sd">        equation below). Must be greater than zero. Default is 1.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;adaptive_angular&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">start_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="c1"># all parameters have the same (cyclic) boundaries</span>
+        <span class="n">boundaries</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">Boundaries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_halfwidth</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_factor</span><span class="p">))</span>
+                      <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                              <span class="n">start_step</span><span class="o">=</span><span class="n">start_step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SSAdaptiveAngular"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.angular.SSAdaptiveAngular">[docs]</a><span class="k">class</span> <span class="nc">SSAdaptiveAngular</span><span class="p">(</span><span class="n">SSAdaptiveSupport</span><span class="p">,</span> <span class="n">Angular</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;An angular proposoal with adaptive variance, using the algorithm from</span>
+<span class="sd">    Sivia and Skilling.</span>
+
+<span class="sd">    See :py:class:`SSAdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    boundaries : dict</span>
+<span class="sd">        Dictionary mapping parameters to boundaries. Boundaries must be a</span>
+<span class="sd">        tuple or iterable of length two. The boundaries will be used for the</span>
+<span class="sd">        prior widths in the adaptation algorithm.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;ss_adaptive_angular&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="k">if</span> <span class="s1">&#39;max_cov&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="c1"># set the max std to be (1.49*2*pi)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;max_cov&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.49</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ATAdaptiveAngular"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.angular.ATAdaptiveAngular">[docs]</a><span class="k">class</span> <span class="nc">ATAdaptiveAngular</span><span class="p">(</span><span class="n">ATAdaptiveSupport</span><span class="p">,</span> <span class="n">Angular</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;An angular proposal with adaptive variance, using the algorithm from</span>
+<span class="sd">    Andrieu &amp; Thoms.</span>
+
+<span class="sd">    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    adaptation_duration: int</span>
+<span class="sd">        The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">        more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">    start_step: int, optional</span>
+<span class="sd">        The proposal step index when adaptation phase begins.</span>
+<span class="sd">    target_rate: float, optional</span>
+<span class="sd">        Target acceptance ratio. By default 0.234 and 0.48 for componentwise</span>
+<span class="sd">        scaling.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;at_adaptive_angular&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="n">componentwise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">start_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="n">adaptation_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">,</span>
+                              <span class="n">diagonal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">componentwise</span><span class="o">=</span><span class="n">componentwise</span><span class="p">,</span>
+                              <span class="n">start_step</span><span class="o">=</span><span class="n">start_step</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="n">target_rate</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

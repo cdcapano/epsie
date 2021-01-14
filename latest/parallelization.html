@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Parallelization &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Proposals" href="proposals.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parallelization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-python-s-multiprocessing">Using Python’s multiprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-mpi">Using MPI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Parallelization</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/parallelization.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="parallelization">
+<h1>Parallelization<a class="headerlink" href="#parallelization" title="Permalink to this headline">¶</a></h1>
+<p>EPSIE samplers can be parallelized over multiple cores and even (via MPI)
+multiple CPUs. In order to do so, you create a <code class="docutils literal notranslate"><span class="pre">pool</span></code> object and pass that
+to the sampler on initialization. The pool object must have a <code class="docutils literal notranslate"><span class="pre">map</span></code> method
+that has the same API as the standard Python <a class="reference external" href="https://docs.python.org/3/library/functions.html#map" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">map()</span></code></a> function.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Parallelization occurs over multiple chains. After a sampler has been setup
+with some number of Markov chains, you evolve the chains for a given number of
+iterations by calling the sampler’s
+<a class="reference internal" href="epsie.samplers.html#epsie.samplers.base.BaseSampler.run" title="epsie.samplers.base.BaseSampler.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a> method. The run method uses the
+<code class="docutils literal notranslate"><span class="pre">pool</span></code> that was provided to the sampler to split up the chains over child
+processes. Each child process gets a subset of chains, and is told to iterate
+the chains for the desired number of iterations by the parent process.  When
+the children processes have finished iterating their chains, they send the
+results (positions, proposal states, etc.) back to the parent process. How many
+chains a child process gets is determined by the pool being used (not by
+EPSIE), but, roughly, is the number of chains divided by the number of
+processes.</p>
+<p>No other communication occurs between the parent process and the child
+processes while chains are being iterated. This differs from ensemble samplers,
+which typically pass information between children and parent processes on each
+iteration of the sampler.</p>
+<p>Children processes evolve each chain by the number of iterations passed to the
+run command before moving on to the next chain. For example, if a child process
+is told to evolve 4 chains for 100 iterations, it will
+<a class="reference internal" href="epsie.chain.html#epsie.chain.chain.Chain.step" title="epsie.chain.chain.Chain.step"><code class="xref py py-func docutils literal notranslate"><span class="pre">step()</span></code></a> the first chain 100 times, then move
+to the second chain, etc. For this reason, samplers should not be interrupted
+while the <a class="reference internal" href="epsie.samplers.html#epsie.samplers.base.BaseSampler.run" title="epsie.samplers.base.BaseSampler.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a> method is being
+executed.  Instead, it is best to run samplers for successive short periods of
+time, with results checkpointed in between.</p>
+<p>For the <a class="reference internal" href="epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler" title="epsie.samplers.ptsampler.ParallelTemperedSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelTemperedSampler</span></code></a>, all
+temperatures of a given chain are grouped together via the
+<a class="reference internal" href="epsie.chain.html#epsie.chain.ptchain.ParallelTemperedChain" title="epsie.chain.ptchain.ParallelTemperedChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelTemperedChain</span></code></a>. <strong>Temperatures are not
+split up over processes.</strong> Instead, all temperatures for a given chain are
+evolved together on each iteration.  For example, if a child process receives
+N chains, each with K temperatures, it will
+<a class="reference internal" href="epsie.chain.html#epsie.chain.chain.Chain.step" title="epsie.chain.chain.Chain.step"><code class="xref py py-func docutils literal notranslate"><span class="pre">step()</span></code></a> each temperature of the first chain,
+perform any temperature swaps, then repeat for the same chain by the requested
+number of iterations. It will then move on to the next chain.</p>
+<p>For a detailed example see the <a class="reference internal" href="tutorials/02-mhsampler.html"><span class="doc">Example of creating and running a
+Metropolis-Hastings Sampler</span></a> and the <a class="reference internal" href="tutorials/03-ptsampler.html"><span class="doc">Example of
+creating and running a Parallel Tempered Sampler</span></a>
+tutorials.</p>
+</div>
+<div class="section" id="using-python-s-multiprocessing">
+<h2>Using Python’s multiprocessing<a class="headerlink" href="#using-python-s-multiprocessing" title="Permalink to this headline">¶</a></h2>
+<p>If you are using shared memory, the easiest way to parallelize is to use
+Python’s <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">multiprocessing</span></code></a> module. For example, if you wish to use
+<code class="docutils literal notranslate"><span class="pre">N</span></code> cores:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You then pass the <code class="docutils literal notranslate"><span class="pre">pool</span></code> object to the sampler’s <code class="docutils literal notranslate"><span class="pre">pool</span></code> keyword argument
+when initializing it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">samlper</span> <span class="o">=</span> <span class="n">MetropolisHastingsSampler</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">nchains</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-mpi">
+<h2>Using MPI<a class="headerlink" href="#using-mpi" title="Permalink to this headline">¶</a></h2>
+<p>To use parallelize over multiple CPUs (not shared memory) you will need to use
+some implementation of
+<a class="reference external" href="https://en.wikipedia.org/wiki/Message_Passing_Interface">MPI</a>, such as
+<a class="reference external" href="https://www.open-mpi.org/">Open MPI</a>. To use within Python, we recommend
+using a combination of <a class="reference external" href="https://mpi4py.readthedocs.io/en/stable/">mpi4py</a> and
+<a class="reference external" href="https://schwimmbad.readthedocs.io/en/latest/">schwimmbad</a>, both of which can
+be installed via <code class="docutils literal notranslate"><span class="pre">pip</span></code>. For example, to use <code class="docutils literal notranslate"><span class="pre">N</span></code> processes, you would
+create the pool by doing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">schwimmbad</span>
+<span class="n">pool</span> <span class="o">=</span> <span class="n">schwimmbad</span><span class="o">.</span><span class="n">choose_pool</span><span class="p">(</span><span class="n">mpi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This <code class="docutils literal notranslate"><span class="pre">pool</span></code> object can be passed to the sampler. You would then run your
+Python script using your installation of MPI, e.g., <a class="reference external" href="https://www.open-mpi.org/doc/v4.0/man1/mpirun.1.php">mpirun</a>.</p>
+<p>For more information, see the documentation for these packages. A more
+feature-rich example of setting up an MPI pool can be found in the PyCBC
+suite’s <a class="reference external" href="http://pycbc.org/pycbc/latest/html/pycbc.html#module-pycbc.pool">pool module</a>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="proposals.html" class="btn btn-neutral float-right" title="Proposals" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,435 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie.samplers.ptsampler &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+        
+      <li>epsie.samplers.ptsampler</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie.samplers.ptsampler</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+
+<span class="c1"># Copyright (C) 2020 Collin Capano, Richard Stiskalek</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="sd">&quot;&quot;&quot;Classes for parallel tempered Markov chains.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">epsie</span> <span class="kn">import</span> <span class="p">(</span><span class="n">create_bit_generators</span><span class="p">,</span> <span class="n">array2dict</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">epsie.chain</span> <span class="kn">import</span> <span class="n">ParallelTemperedChain</span>
+<span class="kn">from</span> <span class="nn">epsie.chain.chaindata</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ChainData</span><span class="p">,</span> <span class="n">detect_dtypes</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BaseSampler</span>
+
+
+<div class="viewcode-block" id="ParallelTemperedSampler"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler">[docs]</a><span class="k">class</span> <span class="nc">ParallelTemperedSampler</span><span class="p">(</span><span class="n">BaseSampler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evolves a collection of parallel tempered Markov chains.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : tuple or list</span>
+<span class="sd">        Names of the parameters to sample.</span>
+<span class="sd">    model : object</span>
+<span class="sd">        Model object.</span>
+<span class="sd">    nchains : int</span>
+<span class="sd">        The number of chains to create per temperature. Must be greater than</span>
+<span class="sd">        zero.</span>
+<span class="sd">    betas : numpy.ndarray of floats</span>
+<span class="sd">        The betas (= 1 / temperatures) to use. All betas must be between [0,1].</span>
+<span class="sd">        Must provide at least one. If one is not included in the betas, a</span>
+<span class="sd">        warning will be printed.</span>
+<span class="sd">    swap_interval : int, optional</span>
+<span class="sd">        How often to calculate temperature swaps. Default is 1 (= swap on every</span>
+<span class="sd">        iteration).</span>
+<span class="sd">    proposals : list, optional</span>
+<span class="sd">        List of proposals to use. Any parameters that do not have a proposal</span>
+<span class="sd">        provided will use the ``default_propsal``.</span>
+<span class="sd">    default_proposal : an epsie.Proposal class, optional</span>
+<span class="sd">        The default proposal to use for parameters not in ``proposals``.</span>
+<span class="sd">        Default is :py:class:`epsie.proposals.Normal`.</span>
+<span class="sd">    default_proposal_args : dict, optional</span>
+<span class="sd">        Dictionary of arguments to pass to the default proposal.</span>
+<span class="sd">    seed : int, optional</span>
+<span class="sd">        Seed for the random number generator. If None provided, will create</span>
+<span class="sd">        one.</span>
+<span class="sd">    pool : Pool object, optional</span>
+<span class="sd">        Specify a process pool to use for parallelization. Default is to use a</span>
+<span class="sd">        single core.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">proposals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_proposal</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">default_proposal_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_proposals</span><span class="p">(</span><span class="n">proposals</span><span class="p">,</span> <span class="n">default_proposal</span><span class="p">,</span> <span class="n">default_proposal_args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="c1"># only single temperature; turn into list so things below won&#39;t</span>
+            <span class="c1"># break</span>
+            <span class="n">betas</span> <span class="o">=</span> <span class="p">[</span><span class="n">betas</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="c1"># betas is probably a list or tuple; convert to array so we can use</span>
+            <span class="c1"># numpy functions</span>
+            <span class="n">betas</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_chains</span><span class="p">(</span><span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="p">,</span> <span class="n">adaptive_annealer</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ParallelTemperedSampler.create_chains"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler.create_chains">[docs]</a>    <span class="k">def</span> <span class="nf">create_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                      <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a list of :py:class:`chain.ParallelTemperedChain`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nchains : int</span>
+<span class="sd">            The number of parallel tempered chains to create.</span>
+<span class="sd">        betas : array</span>
+<span class="sd">            Array of inverse temperatures to use for each parallel tempered</span>
+<span class="sd">            chain.</span>
+<span class="sd">        swap_interval : int, optional</span>
+<span class="sd">            How often to calculate temperature swaps. Default is 1 (= swap on</span>
+<span class="sd">            every iteration).</span>
+<span class="sd">        adaptive_annealer : object, optional</span>
+<span class="sd">            Adaptive anneler adjusting temperatures on the go.</span>
+<span class="sd">            Default is `None`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">nchains</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nchains must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="c1"># create the generators for each chain</span>
+        <span class="n">bitgens</span> <span class="o">=</span> <span class="n">create_bit_generators</span><span class="p">(</span><span class="n">nchains</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chains</span> <span class="o">=</span> <span class="p">[</span><span class="n">ParallelTemperedChain</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">],</span>
+            <span class="n">betas</span><span class="o">=</span><span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="n">swap_interval</span><span class="p">,</span>
+            <span class="n">adaptive_annealer</span><span class="o">=</span><span class="n">adaptive_annealer</span><span class="p">,</span>
+            <span class="n">bit_generator</span><span class="o">=</span><span class="n">bg</span><span class="p">,</span> <span class="n">chain_id</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">bg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bitgens</span><span class="p">)]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">betas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The betas used for each chain. Shape is (nchains, ntemps).</span>
+<span class="sd">        If temperatures are being dynamically adjusted each chain will</span>
+<span class="sd">        have a different set of temperatures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">betas</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nchains</span><span class="p">)])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ntemps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of temperatures used.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">temperatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The temperatures used. Shape is (nchains, ntemps)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">1.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">betas</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">swap_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the swap interval used for parallel tempering.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">swap_interval</span>
+
+    <span class="nd">@swap_interval</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">swap_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the swap interval to use.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">swap_interval</span> <span class="o">=</span> <span class="n">interval</span>
+
+    <span class="k">def</span> <span class="nf">_concatenate_dicts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Concatenates dictionary attributes over all of the chains.</span>
+
+<span class="sd">        This is a convenience function used by properties such as</span>
+<span class="sd">        ``current_positions`` to gather all of the dictionary attributes from</span>
+<span class="sd">        the chains.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        attr : str</span>
+<span class="sd">            The name of the attribute to get from the chains. The attribute</span>
+<span class="sd">            is assumed to return a dictionary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict :</span>
+<span class="sd">            Dictionary mapping parameters to arrays. The arrays have shape</span>
+<span class="sd">            ``ntemps x nchains``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># we&#39;ll create a chain data instance to stack the dictionaries</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">ChainData</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">dtypes</span><span class="o">=</span><span class="n">detect_dtypes</span><span class="p">(</span><span class="n">d</span><span class="p">),</span>
+                        <span class="n">ntemps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nchains</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">):</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">array2dict</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_concatenate_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Concatenates the given attribute over all of the chains.</span>
+
+<span class="sd">        This is a convenience function used by properties such as ``positions``</span>
+<span class="sd">        to gather all of the array attributes from the chains.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        attr : str</span>
+<span class="sd">            The name of the attribute to get from the chains. The attribute</span>
+<span class="sd">            is assumed to return a (structred) array.</span>
+<span class="sd">        item : str or array index, optional</span>
+<span class="sd">            Get a particular item from the (structred) array from each chain</span>
+<span class="sd">            before concatenating.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array :</span>
+<span class="sd">            The returned array has shape ``ntemps x nchains x niterations``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">arrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">attr</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">arrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">attr</span><span class="p">)[</span><span class="n">item</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">arrs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">temperature_acceptance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of the temperature acceptance from all of the chains.</span>
+
+<span class="sd">        If ntemps is 1, just returns None.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This does not return a structured array, since there is only</span>
+<span class="sd">           one field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_arrays</span><span class="p">(</span><span class="s1">&#39;temperature_acceptance&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">temperature_swaps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of all the temperature swaps from all of the chains.</span>
+
+<span class="sd">        If ntemps is 1, just returns None.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This does not return a structured array, since there is only</span>
+<span class="sd">           one field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_arrays</span><span class="p">(</span><span class="s1">&#39;temperature_swaps&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,788 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>epsie.chain.chain &mdash; EPSIE 1.0.dev0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+        
+      <li>epsie.chain.chain</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for epsie.chain.chain</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2019  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="sd">&quot;&quot;&quot;Classes for individual Markov chains.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">epsie.proposals</span> <span class="kn">import</span> <span class="n">JointProposal</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BaseChain</span>
+<span class="kn">from</span> <span class="nn">.chaindata</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ChainData</span><span class="p">,</span> <span class="n">detect_dtypes</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Chain"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chain.Chain">[docs]</a><span class="k">class</span> <span class="nc">Chain</span><span class="p">(</span><span class="n">BaseChain</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Markov chain.</span>
+
+<span class="sd">    The chain requires a ``model`` to  be provided. This can be any object that</span>
+<span class="sd">    can be called with keyword arguments that map parameter names to values.</span>
+<span class="sd">    When called, the object must return a tuple of two or three elements. The</span>
+<span class="sd">    first element must be a float representing the log likelihood at that</span>
+<span class="sd">    point; the second must be a float representing the log prior at that point.</span>
+<span class="sd">    Additionally, the model may return a dictionary as a third element in the</span>
+<span class="sd">    tuple that maps strings to arbitrary data. This additional data will be</span>
+<span class="sd">    stored as ``blob`` data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : list or tuple</span>
+<span class="sd">        List of the parameter names to sample.</span>
+<span class="sd">    model : object</span>
+<span class="sd">        Any object that can be called with keyword arguments that map parameter</span>
+<span class="sd">        names to values. When called, the object must a tuple of ``logl, logp``</span>
+<span class="sd">        where ``logp`` is the log prior and ``logl`` is the log likelihood at</span>
+<span class="sd">        the given point. The model may optionally return a dictionary in</span>
+<span class="sd">        addition that maps strings to any arbitrary data.</span>
+<span class="sd">    proposals : list of epsie.proposals instances</span>
+<span class="sd">        List of proposal classes to use for the parameters. There must be one</span>
+<span class="sd">        and only one proposal for every parameter. A single proposal may cover</span>
+<span class="sd">        multiple parameters. Proposals must be instances of classes that</span>
+<span class="sd">        inherit from :py:class:`epsie.proposals.BaseProposal`.</span>
+<span class="sd">    bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional</span>
+<span class="sd">        Use the given random bit generator for generating random variates. If</span>
+<span class="sd">        an int or None is provided, a generator will be created instead using</span>
+<span class="sd">        ``bit_generator`` as a seed.</span>
+<span class="sd">    chain_id : int, optional</span>
+<span class="sd">        An interger identifying which chain this is. Default is 0.</span>
+<span class="sd">    beta : float, optional</span>
+<span class="sd">        The inverse temperature of the chain. Default is 1.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters</span>
+<span class="sd">    iteration</span>
+<span class="sd">    lastclear</span>
+<span class="sd">    scratchlen</span>
+<span class="sd">    positions</span>
+<span class="sd">    stats</span>
+<span class="sd">    acceptance</span>
+<span class="sd">    blobs</span>
+<span class="sd">    start_position</span>
+<span class="sd">    stats0</span>
+<span class="sd">    blob0</span>
+<span class="sd">    current_position</span>
+<span class="sd">    current_stats</span>
+<span class="sd">    current_blob</span>
+<span class="sd">    bit_generator</span>
+<span class="sd">    random_state</span>
+<span class="sd">    state</span>
+<span class="sd">    hasblobs</span>
+<span class="sd">    transdimensional</span>
+<span class="sd">    chain_id : int or None</span>
+<span class="sd">        Integer identifying the chain.</span>
+<span class="sd">    proposal_dist : JointProposal</span>
+<span class="sd">        The joint proposal used for all parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">proposals</span><span class="p">,</span> <span class="n">bit_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">chain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store_proposals</span><span class="p">(</span><span class="o">*</span><span class="n">proposals</span><span class="p">,</span>
+                                                   <span class="n">bit_generator</span><span class="o">=</span><span class="n">bit_generator</span><span class="p">)</span>
+        <span class="c1"># store the temp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="n">chain_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lastclear</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scratchlen</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span> <span class="o">=</span> <span class="n">ChainData</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span> <span class="o">=</span> <span class="n">ChainData</span><span class="p">([</span><span class="s1">&#39;logl&#39;</span><span class="p">,</span> <span class="s1">&#39;logp&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance</span> <span class="o">=</span> <span class="n">ChainData</span><span class="p">([</span><span class="s1">&#39;acceptance_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;accepted&#39;</span><span class="p">],</span>
+                                     <span class="n">dtypes</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accepted&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proposed_position</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logp0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logl0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blob0</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_store_proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">proposals</span><span class="p">,</span> <span class="n">bit_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Store either a ``JointProposal`` or the transdimensional proposal</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">proposals</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">prop</span><span class="o">.</span><span class="n">transdimensional</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can only provide a single transdimensinal &quot;</span>
+                                 <span class="s2">&quot;proposals that includes the constituent &quot;</span>
+                                 <span class="s2">&quot;proposals&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">JointProposal</span><span class="p">(</span><span class="o">*</span><span class="n">proposals</span><span class="p">,</span> <span class="n">bit_generator</span><span class="o">=</span><span class="n">bit_generator</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hasblobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Whether the model returns blobs.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The number of times the chain has been stepped.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lastclear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the iteration of the last time the chain memory was cleared.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lastclear</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">scratchlen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The length of the scratch space used.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scratchlen</span>
+
+    <span class="nd">@scratchlen</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">scratchlen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the scratch length to the given value.</span>
+
+<span class="sd">        This will immediately increase the scratch length to ``n``. If the</span>
+<span class="sd">        chain is already longer than ``n``, this will have no immediate impact.</span>
+<span class="sd">        However, the next time ``clear`` is called, the scratch length will</span>
+<span class="sd">        be reset to ``n``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n : int</span>
+<span class="sd">            The length to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scratchlen</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">.</span><span class="n">set_len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="o">.</span><span class="n">set_len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance</span><span class="o">.</span><span class="n">set_len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span><span class="o">.</span><span class="n">set_len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary mapping parameters to their start position.</span>
+
+<span class="sd">        If the start position hasn&#39;t been set, raises a ``ValueError``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Starting position not set!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span>
+
+    <span class="nd">@start_position</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">start_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the starting position.</span>
+
+<span class="sd">        This also evaulates the log likelihood and log prior at the starting</span>
+<span class="sd">        position, as well as determine if the model returns blob data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position : dict</span>
+<span class="sd">            Dictionary mapping parameters to values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="n">position</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># use start position to determine the dtype for positions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">=</span> <span class="n">detect_dtypes</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="c1"># evaluate logl, p at this point</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">position</span><span class="p">)</span>
+        <span class="c1"># if transdimensional decide which are active and store</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activate_proposals</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span><span class="p">,</span> <span class="n">blob</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;model must return blob data as a dictionary&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span> <span class="o">=</span> <span class="n">ChainData</span><span class="p">(</span><span class="n">blob</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">dtypes</span><span class="o">=</span><span class="n">detect_dtypes</span><span class="p">(</span><span class="n">blob</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;logl&#39;</span><span class="p">:</span> <span class="n">logl</span><span class="p">,</span> <span class="s1">&#39;logp&#39;</span><span class="p">:</span> <span class="n">logp</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blob0</span> <span class="o">=</span> <span class="n">blob</span>
+
+    <span class="k">def</span> <span class="nf">_activate_proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decide which proposals are initially active&quot;&quot;&quot;</span>
+        <span class="c1"># find the transdimensional proposal</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1"># cast this to int as the discrete jump cannot accept ndarray</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">[</span><span class="n">prop</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">[</span><span class="n">prop</span><span class="o">.</span><span class="n">_index</span><span class="p">])</span>
+        <span class="c1"># activate proposals that do not have nans</span>
+        <span class="k">for</span> <span class="n">ptd</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ptd</span><span class="o">.</span><span class="n">parameters</span><span class="p">])):</span>
+                <span class="n">ptd</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ptd</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">ptd</span><span class="o">.</span><span class="n">birth_distribution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must provide `birth distribution` &quot;</span>
+                                 <span class="s2">&quot;for transdimensional proposals&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_props</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">active</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">proposals</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stats0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of the log likelihood and log prior at the start</span>
+<span class="sd">        position.</span>
+
+<span class="sd">        Raises a ``ValueError`` if the start position has not been set yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check if the start position is set</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_position</span>  <span class="c1"># raises a ValueError if not set</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats0</span>
+
+    <span class="nd">@stats0</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">stats0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the starting stats.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dict, numpy structred array of len 1, or numpy.void</span>
+<span class="sd">            Dictionary or numpy array/void object mapping parameter names to</span>
+<span class="sd">            the starting statistics.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check that we&#39;re not starting outside of the prior</span>
+        <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;logp&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;starting position is outside of the prior!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats0</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">blob0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The blob data of the starting position, as a dictionary.</span>
+
+<span class="sd">        Raises a ``ValueError`` if ``set_start`` has not been run yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check if the start position is set</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_position</span>  <span class="c1"># raises a ValueError if not set</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blob0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blob0</span>
+        <span class="k">return</span> <span class="n">blob</span>
+
+    <span class="nd">@blob0</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">blob0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blob</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the starting blob.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        blob: dict</span>
+<span class="sd">            Dictionary mapping blob parameters to their values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">blob</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># create scratch for blobs</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span> <span class="o">=</span> <span class="n">ChainData</span><span class="p">(</span><span class="n">blob</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                                        <span class="n">dtypes</span><span class="o">=</span><span class="n">detect_dtypes</span><span class="p">(</span><span class="n">blob</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_blob0</span> <span class="o">=</span> <span class="n">blob</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of all of the positions, as a structred array.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No positions as chain hasn&#39;t been stepped &quot;</span>
+                             <span class="s2">&quot;yet; run step() at least once&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The log likelihoods and log priors of the positions, as a structured</span>
+<span class="sd">        array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No stats as chain hasn&#39;t been stepped &quot;</span>
+                             <span class="s2">&quot;yet; run step() at least once&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">acceptance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No acceptance as chain hasn&#39;t been stepped &quot;</span>
+                             <span class="s2">&quot;yet; run step() at least once&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">blobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of all of the blob data, as a structured array.</span>
+
+<span class="sd">        If the model does not return blobs, this is just ``None``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No blobs as chain hasn&#39;t been stepped &quot;</span>
+                             <span class="s2">&quot;yet; run step() at least once&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">blobs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of the current position of the chain.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_position</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pos</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">proposed_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of the current proposed position of the chain.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No proposed position as chain hasn&#39;t been &quot;</span>
+                             <span class="s2">&quot;stepped yet; run step() at least once&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_proposed_position</span>
+
+    <span class="nd">@proposed_position</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">proposed_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proposed_position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the current proposed position of the chain.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proposed_position</span> <span class="o">=</span> <span class="n">proposed_position</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary giving the log likelihood and log prior of the current</span>
+<span class="sd">        position.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stats</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_blob</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of the blob data of the current position.</span>
+
+<span class="sd">        If the model does not return blobs, just returns ``None``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">blob0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">blob</span>
+
+<div class="viewcode-block" id="Chain.clear"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chain.Chain.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clears memory of the current chain, and sets start position to the</span>
+<span class="sd">        current position.</span>
+
+<span class="sd">        New scratch space will be created with length equal to ``scratch_len``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># save position then clear</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scratchlen</span><span class="p">)</span>
+            <span class="c1"># save stats then clear</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stats0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_stats</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scratchlen</span><span class="p">)</span>
+            <span class="c1"># clear acceptance info</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scratchlen</span><span class="p">)</span>
+            <span class="c1"># save blobs then clear</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_blob0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_blob</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scratchlen</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lastclear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all of the chain data at the requested index.&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;positions&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+               <span class="s1">&#39;stats&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+               <span class="s1">&#39;acceptance&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+               <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;blobs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bit_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">bit_generator</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">random_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the random number generator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">random_generator</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the current state of the bit generator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">random_state</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the current state of the chain.</span>
+
+<span class="sd">        The state consists of everything needed such that setting a chain&#39;s</span>
+<span class="sd">        state using another&#39;s state will result in identical results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;chain_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;proposal_dist&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">state</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;iteration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;current_position&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;proposed_position&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposed_position</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;current_stats&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_stats</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;hasblobs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_blob</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;current_blob&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">blob</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<div class="viewcode-block" id="Chain.set_state"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chain.Chain.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the state of the chain using the given dict.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">           Running this will clear the chain&#39;s current memory, and replace its</span>
+<span class="sd">           current position with what is saved in the state.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state : dict</span>
+<span class="sd">            Dictionary of state values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;chain_id&#39;</span><span class="p">]</span>
+        <span class="c1"># set the chain position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;iteration&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lastclear</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;iteration&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;current_position&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;current_stats&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;hasblobs&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blob0</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;current_blob&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposed_position</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;proposed_position&#39;</span><span class="p">]</span>
+        <span class="c1"># set the proposals&#39; states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;proposal_dist&#39;</span><span class="p">])</span>
+        <span class="c1"># set the positions` dtypes to match the starting point</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">=</span> <span class="n">detect_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activate_proposals</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_acceptance_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logp</span><span class="p">,</span> <span class="n">logl</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span>
+                          <span class="n">current_logp</span><span class="p">,</span> <span class="n">current_logl</span><span class="p">,</span> <span class="n">current_pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculates the acceptance ratio and evaluates acceptance&quot;&quot;&quot;</span>
+        <span class="n">logar</span> <span class="o">=</span> <span class="p">(</span><span class="n">logp</span> <span class="o">+</span> <span class="n">logl</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span>
+                 <span class="o">-</span> <span class="n">current_logp</span> <span class="o">-</span> <span class="n">current_logl</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">symmetric</span><span class="p">:</span>
+            <span class="n">logar</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">current_pos</span><span class="p">,</span> <span class="n">proposal</span><span class="p">)</span> <span class="o">-</span> \
+                     <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">proposal</span><span class="p">,</span> <span class="n">current_pos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logar</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ar</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="n">accept</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ar</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logar</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ar</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;NaN acceptance!&#39;</span>
+                                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">chain: </span><span class="si">{}</span><span class="s1">;</span><span class="se">\n</span><span class="s1">beta: </span><span class="si">{}</span><span class="s1">;&#39;</span>
+                                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">current position: </span><span class="si">{}</span><span class="s1">;&#39;</span>
+                                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">proposed position: </span><span class="si">{}</span><span class="s1">;&#39;</span>
+                                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">proposal state: </span><span class="si">{}</span><span class="s1">&#39;</span>
+                                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span>
+                                         <span class="n">current_pos</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">state</span><span class="p">))</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">uniform</span><span class="p">()</span>
+            <span class="n">accept</span> <span class="o">=</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">ar</span>
+        <span class="k">return</span> <span class="n">accept</span><span class="p">,</span> <span class="n">ar</span>
+
+
+<div class="viewcode-block" id="Chain.step"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chain.Chain.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evolves the chain by a single step.&quot;&quot;&quot;</span>
+        <span class="c1"># get the current position; if this is the first step and set_start</span>
+        <span class="c1"># hasn&#39;t been run, this will raise a ValueError</span>
+        <span class="n">current_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span>
+        <span class="n">current_stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_stats</span>
+        <span class="n">current_blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_blob</span>
+        <span class="c1"># transdimensional proposals need to know which proposals are active</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+            <span class="n">current_pos</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_props</span><span class="p">})</span>
+        <span class="c1"># create a proposal and test it</span>
+        <span class="n">proposal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">jump</span><span class="p">(</span><span class="n">current_pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposed_position</span> <span class="o">=</span> <span class="n">proposal</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">proposal</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span><span class="p">:</span>
+            <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span><span class="p">,</span> <span class="n">blob</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># evaluate</span>
+        <span class="n">current_logl</span> <span class="o">=</span> <span class="n">current_stats</span><span class="p">[</span><span class="s1">&#39;logl&#39;</span><span class="p">]</span>
+        <span class="n">current_logp</span> <span class="o">=</span> <span class="n">current_stats</span><span class="p">[</span><span class="s1">&#39;logp&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">logp</span> <span class="o">==</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+            <span class="c1"># force a reject</span>
+            <span class="n">accept</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">ar</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">accept</span><span class="p">,</span> <span class="n">ar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance_ratio</span><span class="p">(</span><span class="n">logp</span><span class="p">,</span> <span class="n">logl</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span>
+                                                <span class="n">current_logp</span><span class="p">,</span> <span class="n">current_logl</span><span class="p">,</span>
+                                                <span class="n">current_pos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">accept</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_active_props</span> <span class="o">=</span> <span class="n">proposal</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_state&#39;</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">proposal</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;logl&#39;</span><span class="p">:</span> <span class="n">logl</span><span class="p">,</span> <span class="s1">&#39;logp&#39;</span><span class="p">:</span> <span class="n">logp</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transdimensional</span><span class="p">:</span>
+                <span class="n">__</span> <span class="o">=</span> <span class="n">current_pos</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_state&#39;</span><span class="p">)</span>
+            <span class="c1"># reject</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">current_pos</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="n">current_stats</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="n">current_blob</span>
+        <span class="c1"># save</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_acceptance</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ar</span><span class="p">,</span> <span class="n">accept</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasblobs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_blobs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">blob</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># in case the any of the proposals need information about the history</span>
+        <span class="c1"># of the chain:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Collin D. Capano.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
