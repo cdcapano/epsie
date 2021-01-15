@@ -75,11 +75,16 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+
 def setup(app):
     app.add_css_file('custom.css')
 
+
 # see if we're adding versions: we will do this if sphinx-build was run with
 # tags set to either latest or versioned
+# Apparently tags is passed in magically to conf.py by sphinx-build. We need
+# to tell pylint to ignore undefined name though...
+tags = tags  # noqa
 if tags.has('latest'):
     docversion = 'latest'
 elif tags.has('versioned'):
@@ -95,9 +100,9 @@ if docversion:
         with open('.docversions', 'a+') as fp:
             # skip the comment line
             fp.seek(0)
-            cached_versions = [l.rstrip('\n') for l in fp.readlines()
-                               if not l.startswith('#')
-                               and not l.startswith('latest')]
+            cached_versions = [line.rstrip('\n') for line in fp.readlines()
+                               if not line.startswith('#')
+                               and not line.startswith('latest')]
             if docversion not in cached_versions and docversion != 'latest':
                 # add to the file
                 print(docversion, file=fp)
