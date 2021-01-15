@@ -96,7 +96,8 @@ if docversion:
             # skip the comment line
             fp.seek(0)
             cached_versions = [l.rstrip('\n') for l in fp.readlines()
-                        if not l.startswith('#')]
+                               if not l.startswith('#')
+                               and not l.startswith('latest')]
             if docversion not in cached_versions and docversion != 'latest':
                 # add to the file
                 print(docversion, file=fp)
