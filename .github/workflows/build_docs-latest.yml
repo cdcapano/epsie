@@ -22,3 +22,4 @@ jobs:
     - name: Build the docs
       run: ./.github/scripts/builddocs.sh latest
       shell: bash
+      uses: docker://pandoc/core

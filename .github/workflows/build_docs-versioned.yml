@@ -23,3 +23,4 @@ jobs:
         # rebuild the latest docs to include links to the new version
         ./.github/scripts/builddocs.sh latest
       shell: bash
+      uses: docker://pandoc/core

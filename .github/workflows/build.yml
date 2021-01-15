@@ -46,6 +46,7 @@ jobs:
       run: |
         coveralls --service=github
     - name: Test docs
+      uses: docker://pandoc/core
       run: |
         # check that we can build the documents
         make -C docs clean
