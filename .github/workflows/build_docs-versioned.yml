@@ -17,10 +17,10 @@ jobs:
         pip install -r requirements.txt
         pip install -r companion.txt
         pip install .
+    - uses: docker://pandoc/core
     - name: Build the docs
       run: |
         ./.github/scripts/builddocs.sh versioned
         # rebuild the latest docs to include links to the new version
         ./.github/scripts/builddocs.sh latest
       shell: bash
-      uses: docker://pandoc/core

@@ -45,8 +45,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         coveralls --service=github
+    - uses: docker://pandoc/core
     - name: Test docs
-      uses: docker://pandoc/core
       run: |
         # check that we can build the documents
         make -C docs clean
