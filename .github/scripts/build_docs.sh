@@ -5,9 +5,11 @@
 #
 # Usage:
 #
-#   ./build_docs.sh TYPE
+#   ./.github/scripts/build_docs.sh TYPE
 #
-# where TYPE is either "latest" or "versioned"
+# where TYPE is either "latest" or "versioned".
+#
+# Note: This *must* be run from the top level directory of the repository.
 #
 set -e
 
@@ -15,7 +17,6 @@ set -e
 TYPE=$1
 
 # get cache of the currently documented versions on gh-pages
-pushd ..
 echo "Getting list of perviously documented versions"
 git ls-tree --name-only gh-pages | egrep '^latest|^[0-9]+' > docs/.docversions
 
@@ -37,4 +38,3 @@ git add ${docdir}
 # only generate a commit if there were changes (credit: https://stackoverflow.com/a/8123841)
 git diff-index --quiet HEAD && echo "No changes, not committing anything" || git commit -m "Update/Add ${docdir} docs"
 git checkout ${working_branch}
-popd
