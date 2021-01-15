@@ -32,9 +32,15 @@ echo "Docs to commit: ${docdir}"
 echo "Committing changes to gh-pages"
 working_branch=$(git branch --show-current)
 git checkout gh-pages
-echo "Overwritting previous"
+echo "Overwriting previous"
 rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
+
 # only generate a commit if there were changes (credit: https://stackoverflow.com/a/8123841)
-git diff-index --quiet HEAD && echo "No changes, not committing anything" || git commit -m "Update/Add ${docdir} docs"
+if [ $(git diff-index --quiet HEAD) ]; then
+    echo "No changes, not committing anything"
+else
+    git commit -m "Update/Add ${docdir} docs"
+fi
+
 git checkout ${working_branch}
