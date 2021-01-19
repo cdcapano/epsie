@@ -47,8 +47,6 @@ tmp=$(mktemp)
 rm ${tmp}
 tmpbranch=$(basename ${tmp})
 echo "Staging changes in branch ${tmpbranch}"
-echo $(git branch)
-working_branch=$(git branch --show-current)
 git checkout --track -b ${tmpbranch} origin/${target_branch}
 
 echo "Moving built docs and committing"
@@ -62,7 +60,7 @@ else
     git push origin ${tmpbranch}:${target_branch}
 fi
 
-echo "Switching back to ${working_branch} branch"
-git checkout ${working_branch}
+echo "Switching to master branch"
+git checkout master
 echo "Deleting temp branch"
 git branch -D ${tmpbranch}
