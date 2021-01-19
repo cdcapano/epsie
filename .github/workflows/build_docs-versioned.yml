@@ -3,12 +3,14 @@ name: build versioned docs
 on:
   release:
 jobs:
-  build:
+  build-versioned-docs:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: master
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
     - name: Install dependencies
@@ -21,7 +23,9 @@ jobs:
       run: sudo apt-get install pandoc
     - name: Build the docs
       run: |
-        ./.github/scripts/builddocs.sh versioned
+        ./.github/scripts/build_docs.sh versioned
         # rebuild the latest docs to include links to the new version
-        ./.github/scripts/builddocs.sh latest
+        ./.github/scripts/build_docs.sh latest
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_token }}
