@@ -13,6 +13,7 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
   
   
@@ -63,6 +64,10 @@
           
             
             
+              <div class="version">
+                1.0.dev0
+              </div>
+            
           
 
           
@@ -99,7 +104,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Example of creating and running a Parallel Tempered Sampler</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#create-the-model-to-sample">Create the model to sample</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#setup-and-run-the-sampler">Setup and run the sampler</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#lets-run-it">Let’s run it!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#let-s-run-it">Let’s run it!</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#extract-results">Extract results</a></li>
@@ -111,7 +116,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#create-an-animation-of-the-results">Create an animation of the results</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test_angular.html">The Angular proposal</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
 </ul>
@@ -168,7 +173,9 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/tutorials/03-ptsampler.rst.txt" rel="nofollow"> View page source</a>
+            
+              <a href="https://github.com/cdcapano/epsie/blob/master/docs/tutorials/03-ptsampler.rst" class="fa fa-github"> Edit on GitHub</a>
+            
           
         
       </li>
@@ -204,12 +211,12 @@ hdf5 file, as well as how to resume a sampler from the file.</p>
 </div>
 <div class="section" id="create-the-model-to-sample">
 <h2>Create the model to sample<a class="headerlink" href="#create-the-model-to-sample" title="Permalink to this headline">¶</a></h2>
-<p><strong>Note:</strong> Below we create a class with several functions to draw samples
-from the prior and to evaluate the log posterior. This isn’t strictly
-necessary. The only thing the Sampler really requires is a function that
-it can pass keyword arguments to and get back a tuple of (log
-likelihood, log prior). However, setting things up as a class will make
-it convenient to, e.g., draw random samples from the prior for the
+<p><strong>*Note:*</strong> Below we create a class with several functions to draw
+samples from the prior and to evaluate the log posterior. This isn’t
+strictly necessary. The only thing the Sampler really requires is a
+function that it can pass keyword arguments to and get back a tuple of
+(log likelihood, log prior). However, setting things up as a class will
+make it convenient to, e.g., draw random samples from the prior for the
 starting positiions, as well as plot the model later on.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
 <span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -274,8 +281,8 @@ from the model’s prior.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sampler</span><span class="o">.</span><span class="n">start_position</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prior_rvs</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">nchains</span><span class="o">*</span><span class="n">ntemps</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">ntemps</span><span class="p">,</span> <span class="n">nchains</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="section" id="lets-run-it">
-<h3>Let’s run it!<a class="headerlink" href="#lets-run-it" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="let-s-run-it">
+<h3>Let’s run it!<a class="headerlink" href="#let-s-run-it" title="Permalink to this headline">¶</a></h3>
 <p>This will evolve each chain in the collection by 256 steps. This is
 parallelized over the pool of processes.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
@@ -775,8 +782,8 @@ should be <span class="math notranslate nohighlight">\(\bar{x} \approx 2, \sigma
 <p>To visualize the results, we’ll create an animation showing how the
 chains evolved. We’ll do this by plotting one point for each chain, with
 each frame in the animation representing a single iteration.</p>
-<p><strong>Note: To keep file size down, the animation has not been created for
-the version of this notebook uploaded to the repository.</strong></p>
+<p><strong>*Note: To keep file size down, the animation has not been created for
+the version of this notebook uploaded to the repository.*</strong></p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">animation</span>
 </pre></div>
 </div>
@@ -903,7 +910,29 @@ the version of this notebook uploaded to the repository.</strong></p>
     </section>
 
   </div>
-  
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+           <strong> 
+          <dd><a href="">latest</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+
 
   <script type="text/javascript">
       jQuery(function () {

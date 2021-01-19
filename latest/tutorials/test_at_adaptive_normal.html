@@ -13,6 +13,7 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
   
   
@@ -62,6 +63,10 @@
           
             
             
+              <div class="version">
+                1.0.dev0
+              </div>
+            
           
 
           
@@ -96,12 +101,12 @@
 <li class="toctree-l1"><a class="reference internal" href="01-chain.html">Using a chain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
-<li class="toctree-l1"><a class="reference internal" href="test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test_angular.html">The Angular proposal</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The AT Adaptive Normal proposal</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#create-the-model-to-sample">Create the model to sample</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#setup-and-run-the-sampler">Setup and run the sampler</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#lets-run-it">Let’s run it!</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#let-s-run-it">Let’s run it!</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#extract-results">Extract results</a></li>
@@ -163,7 +168,9 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/tutorials/test_at_adaptive_normal.rst.txt" rel="nofollow"> View page source</a>
+            
+              <a href="https://github.com/cdcapano/epsie/blob/master/docs/tutorials/test_at_adaptive_normal.rst" class="fa fa-github"> Edit on GitHub</a>
+            
           
         
       </li>
@@ -258,8 +265,8 @@ from the model’s prior.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sampler</span><span class="o">.</span><span class="n">start_position</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prior_rvs</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">nchains</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="section" id="lets-run-it">
-<h3>Let’s run it!<a class="headerlink" href="#lets-run-it" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="let-s-run-it">
+<h3>Let’s run it!<a class="headerlink" href="#let-s-run-it" title="Permalink to this headline">¶</a></h3>
 <p>This will evolve each chain in the collection by 4096 steps. This is
 parallelized over the pool of processes.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">4096</span><span class="p">)</span>
@@ -565,7 +572,29 @@ should be <span class="math notranslate nohighlight">\(\bar{x} \approx 2, \sigma
     </section>
 
   </div>
-  
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+           <strong> 
+          <dd><a href="">latest</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+
 
   <script type="text/javascript">
       jQuery(function () {

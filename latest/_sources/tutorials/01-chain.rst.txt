@@ -6,7 +6,7 @@ Metropolis-Hastings sampler and the parallel tempered sampler use
 ``Chain`` to represent each of the parallel chains (the parallel
 tempered sampler uses a parallel tempered chain, which itself is just a
 collection of ``Chain`` instances). A ``Chain`` is also the thing that
-is passed to proposals’ update function.
+is passed to proposals' update function.
 
 In this notebook we demonstrate setting up and running a chain.
 Generally, you do not interact with chains directly, but rather with the
