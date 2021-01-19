@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 #
 # Builds documentation and commits it to the gh-pages branch.
@@ -47,6 +47,7 @@ tmp=$(mktemp)
 rm ${tmp}
 tmpbranch=$(basename ${tmp})
 echo "Staging changes in branch ${tmpbranch}"
+echo $(git branch)
 working_branch=$(git branch --show-current)
 git checkout --track -b ${tmpbranch} origin/${target_branch}
 
