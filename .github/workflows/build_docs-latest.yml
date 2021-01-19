@@ -25,3 +25,5 @@ jobs:
     - name: Build the docs
       run: ./.github/scripts/build_docs.sh latest
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_token }}

@@ -25,10 +25,11 @@ target_branch="test-gh-pages"
 git config user.name "$GITHUB_ACTOR"
 git config user.email "${GITHUB_ACTOR}@bots.github.com"
 git remote set-url origin ${repo_uri}
+git fetch origin
 
 # get cache of the currently documented versions on gh-pages
 echo "Getting list of perviously documented versions"
-git ls-tree --name-only ${target_branch} | egrep '^latest|^[0-9]+' > docs/.docversions
+git ls-tree --name-only origin/${target_branch} | egrep '^latest|^[0-9]+' > docs/.docversions
 
 # clean and build the docs
 echo "Building docs"
