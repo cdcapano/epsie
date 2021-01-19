@@ -1,4 +1,9 @@
-.. include:: ../README.rst
+EPSIE
+=====
+
+.. include:: overview.rst
+
+.. include:: install.rst
 
 .. include:: quickstart.rst
 

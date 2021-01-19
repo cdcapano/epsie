@@ -26,8 +26,11 @@ install_requires = ["numpy>=1.17.0",
                     'six>1.10.0',
                    ]
 
-with open("README.rst", "r") as fh:
-    long_description = fh.read()
+long_description = ["EPSIE\n=====\n\n"]
+for fn in ['status.rst', 'overview.rst']:
+    with open('docs/{}'.format(fn), "r") as fh:
+        long_description.append(fh.read())
+long_description = '\n'.join(long_description)
 
 # get version
 with open("epsie/_version.py", "r") as fh:
@@ -49,8 +52,8 @@ setuptools.setup(
     description="An Embarrassingly Parallel Sampler for "
                 "Inference Estimation.",
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/cdcapano/epsie",
+    long_description_content_type="text/x-rst",
+    url="https://cdcapano.github.io/epsie",
     install_requires=install_requires,
     python_requires=">=3.6",
     packages=setuptools.find_packages(),
