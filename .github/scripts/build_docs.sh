@@ -47,9 +47,10 @@ tmp=$(mktemp)
 # remove the file that was created; we only want the string
 rm ${tmp}
 tmpbranch=$(basename ${tmp})
+echo "Staging changes in branch ${tmpbranch}"
 git checkout --track -b ${tmpbranch} origin/${target_branch}
 
-echo "Overwriting previous"
+echo "Moving built docs and committing"
 rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
 
@@ -62,5 +63,7 @@ fi
 
 git push origin ${tmpbranch}:${target_branch}
 
+echo "Switching back to ${working_branch} branch"
 git checkout ${working_branch}
+echo "Deleting temp branch"
 git branch -D ${tmpbranch}
