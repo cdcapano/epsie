@@ -20,6 +20,11 @@ TYPE=$1
 # adopted from https://www.innoq.com/en/blog/github-actions-automation/
 #repo_uri="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 target_branch="test-gh-pages"
+working_branch=$(git branch --show-current)
+if [ -z "${working_branch}" ]; then
+    # possibly in detached head state, just use master
+    working_branch=master
+fi
 
 #git config user.name "$GITHUB_ACTOR"
 #git config user.email "${GITHUB_ACTOR}@bots.github.com"
@@ -49,11 +54,6 @@ tmp=$(mktemp)
 rm ${tmp}
 tmpbranch=$(basename ${tmp})
 echo "Staging changes in branch ${tmpbranch}"
-working_branch=$(git branch --show-current)
-if [ -z "${working_branch}" ]; then
-    # possibly in detached head state, just use master
-    working_branch=master
-fi
 git checkout --track -b ${tmpbranch} origin/${target_branch}
 
 echo "Moving built docs and committing"
