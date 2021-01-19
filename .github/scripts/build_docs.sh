@@ -17,7 +17,7 @@ set -e
 TYPE=$1
 
 # configure git
-target_branch="test-gh-pages"
+target_branch="gh-pages"
 working_branch=$(git branch --show-current)
 if [ -z "${working_branch}" ]; then
     # possibly in detached head state, just use master

@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-  pull_request:
 jobs:
   build-latest-docs:
 
@@ -13,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: automate_docs
+        ref: master
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
     - name: Install dependencies
