@@ -59,12 +59,13 @@ git checkout --track -b ${tmpbranch} origin/${target_branch}
 echo "Moving built docs and committing"
 rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
-git status
 
 # only generate a commit if there were changes
-if [[ $(git commit -m "Update/Add ${docdir} docs") ]]; then
+# (credit: https://stackoverflow.com/a/8123841)
+if [ $(git diff-index --quiet HEAD) ]; then
     echo "No changes, not committing anything"
 else
+    git commit -m "Update/Add ${docdir} docs"
     git push origin ${tmpbranch}:${target_branch}
 fi
 
