@@ -51,7 +51,7 @@ tmpbranch=$(basename ${tmp})
 echo "Staging changes in branch ${tmpbranch}"
 working_branch=$(git branch --show-current)
 if [ -z "${working_branch}" ]; then
-    # possible in detached head state, just use master
+    # possibly in detached head state, just use master
     working_branch=master
 fi
 git checkout --track -b ${tmpbranch} origin/${target_branch}
