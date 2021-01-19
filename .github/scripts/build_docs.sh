@@ -60,12 +60,12 @@ mv docs/_build/${docdir} .
 git add ${docdir}
 
 # only generate a commit if there were changes
-# (credit: https://stackoverflow.com/a/8123841)
-if ! git diff-index --quiet HEAD; then
-    echo "No changes, not committing anything"
-else
-    git commit -m "Update/Add ${docdir} docs"
+changes=true
+git commit -m "Update/Add ${docdir} docs" || changes=false
+if [ "$changes" = true ]; then
     git push origin ${tmpbranch}:${target_branch}
+else
+    echo "No changes, not committing anything"
 fi
 
 echo "Deleting temp branch"
