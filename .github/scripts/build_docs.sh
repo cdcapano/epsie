@@ -17,8 +17,6 @@ set -e
 TYPE=$1
 
 # configure git
-# adopted from https://www.innoq.com/en/blog/github-actions-automation/
-#repo_uri="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 target_branch="test-gh-pages"
 working_branch=$(git branch --show-current)
 if [ -z "${working_branch}" ]; then
@@ -26,11 +24,8 @@ if [ -z "${working_branch}" ]; then
     working_branch=master
 fi
 
-#git config user.name "$GITHUB_ACTOR"
-#git config user.email "${GITHUB_ACTOR}@bots.github.com"
 git config user.name github-actions
 git config user.email github-actions@github.com
-#git remote set-url origin ${repo_uri}
 git fetch origin
 
 # get cache of the currently documented versions on gh-pages
