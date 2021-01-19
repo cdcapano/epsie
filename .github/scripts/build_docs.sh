@@ -65,5 +65,5 @@ else
 fi
 
 echo "Deleting temp branch"
-git checkout ${working_branch}
+git checkout -f ${working_branch}
 git branch -D ${tmpbranch}
