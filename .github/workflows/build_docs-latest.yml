@@ -23,5 +23,5 @@ jobs:
     - name: Install pandoc
       run: sudo apt-get install pandoc
     - name: Build the docs
-      run: ./.github/scripts/builddocs.sh latest
+      run: ./.github/scripts/build_docs.sh latest
       shell: bash
