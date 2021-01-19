@@ -28,10 +28,18 @@ make -C docs ${TYPE}
 docdir=$(ls docs/_build | egrep '^latest|^[0-9]+') 
 echo "Docs to commit: ${docdir}"
 
-# commit to gh-pages
-echo "Committing changes to gh-pages"
+# commit to gh-pages;
+# adopted from https://www.innoq.com/en/blog/github-actions-automation/
+repo_uri="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 working_branch=$(git branch --show-current)
-git checkout gh-pages
+target_branch="test-gh-pages"
+
+echo "Committing changes to ${target_branch}"
+
+git config user.name "$GITHUB_ACTOR"
+git config user.email "${GITHUB_ACTOR}@bots.github.com"
+
+git checkout ${target_branch}
 echo "Overwriting previous"
 rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
@@ -42,5 +50,8 @@ if [ $(git diff-index --quiet HEAD) ]; then
 else
     git commit -m "Update/Add ${docdir} docs"
 fi
+
+git remote set-url origin ${repo_uri}
+git push origin ${target_branch}
 
 git checkout ${working_branch}
