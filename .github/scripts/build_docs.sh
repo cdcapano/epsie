@@ -52,7 +52,11 @@ echo "Staging changes in branch ${tmpbranch}"
 git checkout --track -b ${tmpbranch} origin/${target_branch}
 
 echo "Moving built docs and committing"
-rsync -a --remove-source-files  docs/_build/${docdir} ./
+# remove the current if it exists
+if [ -d ${docdir} ]; then
+    rm -r ${docdir}
+fi
+mv docs/_build/${docdir} .
 git add ${docdir}
 
 # only generate a commit if there were changes
@@ -65,5 +69,5 @@ else
 fi
 
 echo "Deleting temp branch"
-git checkout -f ${working_branch}
+git checkout ${working_branch}
 git branch -D ${tmpbranch}
