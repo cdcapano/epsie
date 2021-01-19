@@ -26,11 +26,8 @@ install_requires = ["numpy>=1.17.0",
                     'six>1.10.0',
                    ]
 
-long_description = ["EPSIE\n=====\n\n"]
-for fn in ['status.rst', 'overview.rst']:
-    with open('docs/{}'.format(fn), "r") as fh:
-        long_description.append(fh.read())
-long_description = '\n'.join(long_description)
+with open('README.rst', "r") as fh:
+    long_description = fh.read()
 
 # get version
 with open("epsie/_version.py", "r") as fh:
