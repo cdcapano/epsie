@@ -55,13 +55,11 @@ rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
 
 # only generate a commit if there were changes (credit: https://stackoverflow.com/a/8123841)
-if [ $(git diff-index --quiet HEAD) ]; then
+if [ $(git commit -m "Update/Add ${docdir} docs") ]; then
     echo "No changes, not committing anything"
 else
-    git commit -m "Update/Add ${docdir} docs"
+    git push origin ${tmpbranch}:${target_branch}
 fi
-
-git push origin ${tmpbranch}:${target_branch}
 
 echo "Switching back to ${working_branch} branch"
 git checkout ${working_branch}
