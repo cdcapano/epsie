@@ -42,7 +42,13 @@ echo "Docs to commit: ${docdir}"
 # commit to gh-pages
 echo "Committing changes to ${target_branch}"
 
-git checkout ${target_branch}
+# make a random local branch to stage changes in
+tmp=$(mktemp)
+# remove the file that was created; we only want the string
+rm ${tmp}
+tmpbranch=$(basename ${tmp})
+git checkout --track -b ${tmpbranch} origin/${target_branch}
+
 echo "Overwriting previous"
 rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
@@ -54,6 +60,7 @@ else
     git commit -m "Update/Add ${docdir} docs"
 fi
 
-git push origin ${target_branch}
+git push origin ${tmpbranch}:${target_branch}
 
 git checkout ${working_branch}
+git branch -D ${tmpbranch}
