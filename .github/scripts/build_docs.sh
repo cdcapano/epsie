@@ -19,7 +19,6 @@ TYPE=$1
 # configure git
 # adopted from https://www.innoq.com/en/blog/github-actions-automation/
 repo_uri="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-working_branch=$(git branch --show-current)
 target_branch="test-gh-pages"
 
 git config user.name "$GITHUB_ACTOR"
@@ -48,14 +47,15 @@ tmp=$(mktemp)
 rm ${tmp}
 tmpbranch=$(basename ${tmp})
 echo "Staging changes in branch ${tmpbranch}"
+working_branch=$(git branch --show-current)
 git checkout --track -b ${tmpbranch} origin/${target_branch}
 
 echo "Moving built docs and committing"
 rsync -a --remove-source-files  docs/_build/${docdir} ./
 git add ${docdir}
 
-# only generate a commit if there were changes (credit: https://stackoverflow.com/a/8123841)
-if [ $(git commit -m "Update/Add ${docdir} docs") ]; then
+# only generate a commit if there were changes
+if [[ $(git commit -m "Update/Add ${docdir} docs") ]]; then
     echo "No changes, not committing anything"
 else
     git push origin ${tmpbranch}:${target_branch}
