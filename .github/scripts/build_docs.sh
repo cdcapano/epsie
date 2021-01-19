@@ -16,9 +16,19 @@ set -e
 # get the type of docs we're building
 TYPE=$1
 
+# configure git
+# adopted from https://www.innoq.com/en/blog/github-actions-automation/
+repo_uri="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+working_branch=$(git branch --show-current)
+target_branch="test-gh-pages"
+
+git config user.name "$GITHUB_ACTOR"
+git config user.email "${GITHUB_ACTOR}@bots.github.com"
+git remote set-url origin ${repo_uri}
+
 # get cache of the currently documented versions on gh-pages
 echo "Getting list of perviously documented versions"
-git ls-tree --name-only gh-pages | egrep '^latest|^[0-9]+' > docs/.docversions
+git ls-tree --name-only ${target_branch} | egrep '^latest|^[0-9]+' > docs/.docversions
 
 # clean and build the docs
 echo "Building docs"
@@ -28,16 +38,8 @@ make -C docs ${TYPE}
 docdir=$(ls docs/_build | egrep '^latest|^[0-9]+') 
 echo "Docs to commit: ${docdir}"
 
-# commit to gh-pages;
-# adopted from https://www.innoq.com/en/blog/github-actions-automation/
-repo_uri="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-working_branch=$(git branch --show-current)
-target_branch="test-gh-pages"
-
+# commit to gh-pages
 echo "Committing changes to ${target_branch}"
-
-git config user.name "$GITHUB_ACTOR"
-git config user.email "${GITHUB_ACTOR}@bots.github.com"
 
 git checkout ${target_branch}
 echo "Overwriting previous"
@@ -51,7 +53,6 @@ else
     git commit -m "Update/Add ${docdir} docs"
 fi
 
-git remote set-url origin ${repo_uri}
 git push origin ${target_branch}
 
 git checkout ${working_branch}
