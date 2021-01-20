@@ -179,8 +179,8 @@
 <p>Two samplers are provided: the
 <a class="reference internal" href="epsie.samplers.html#epsie.samplers.mhsampler.MetropolisHastingsSampler" title="epsie.samplers.mhsampler.MetropolisHastingsSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetropolisHastingsSampler</span></code></a> and the
 <a class="reference internal" href="epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler" title="epsie.samplers.ptsampler.ParallelTemperedSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelTemperedSampler</span></code></a>.
-(Parallel tempering is useful for multi-modal distributions and for estimating
-Bayesian evidence, but is more computationally expensive.)</p>
+Parallel tempering is useful for multi-modal distributions and for estimating
+Bayesian evidence, but is more computationally expensive.</p>
 <p>To use either sampler, you provide a function that evaluates the likelihood and
 prior at given points. This function must take keyword arguments as input that
 map parameter names to values and return a tuple of the log likelihood and log

@@ -1,4 +1,11 @@
+EPSIE
+=====
+
 .. include:: ../README.rst
+    :start-after: docs-start-marker-do-not-remove
+    :end-before: docs-end-marker-do-not-remove
+
+.. include:: install.rst
 
 .. include:: quickstart.rst
 

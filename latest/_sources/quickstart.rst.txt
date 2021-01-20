@@ -4,8 +4,8 @@ Quick Start
 Two samplers are provided: the
 :py:class:`~epsie.samplers.mhsampler.MetropolisHastingsSampler` and the
 :py:class:`~epsie.samplers.ptsampler.ParallelTemperedSampler`.
-(Parallel tempering is useful for multi-modal distributions and for estimating
-Bayesian evidence, but is more computationally expensive.)
+Parallel tempering is useful for multi-modal distributions and for estimating
+Bayesian evidence, but is more computationally expensive.
 
 To use either sampler, you provide a function that evaluates the likelihood and
 prior at given points. This function must take keyword arguments as input that

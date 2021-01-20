@@ -175,14 +175,12 @@
             
   <div class="section" id="epsie">
 <h1>EPSIE<a class="headerlink" href="#epsie" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://github.com/cdcapano/epsie/actions?query=workflow%3Abuild+branch%3Amaster"><img alt="https://github.com/cdcapano/epsie/workflows/build/badge.svg?branch=master" src="https://github.com/cdcapano/epsie/workflows/build/badge.svg?branch=master" /></a>
-<a class="reference external image-reference" href="https://coveralls.io/github/cdcapano/epsie"><img alt="https://coveralls.io/repos/github/cdcapano/epsie/badge.svg" src="https://coveralls.io/repos/github/cdcapano/epsie/badge.svg" /></a>
 <p>EPSIE is a parallelized Markov chain Monte Carlo (MCMC) sampler for Bayesian
 inference. It is meant for problems with complicated likelihood surfaces,
 including multimodal distributions.  It has support both for parallel tempering
-and nested transdimensional problems. It was originally developed to tackle
-problems in gravitational-wave astronomy, but can be used for any general
-purpose problem.</p>
+and nested transdimensional problems. It was originally developed for
+gravitational-wave parameter estimation, but can be used for any Bayesian
+inference problem requring a stochastic sampler.</p>
 <p>EPSIE is in many ways similar to <a class="reference external" href="https://emcee.readthedocs.io/en/stable/">emcee</a> and other “bring your own
 likelihood” Python-based samplers. The primary difference from emcee is EPSIE
 is not an ensemble sampler; i.e., the Markov chains used by EPSIE do not
@@ -199,14 +197,27 @@ create their own jump proposals.</p>
 </div>
 <p>If you wish to install from the latest source code instead, you can clone a
 copy of the repository from GitHub, at <a class="reference external" href="https://github.com/cdcapano/epsie">https://github.com/cdcapano/epsie</a>.</p>
+<div class="section" id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
+<p>EPSIE requires Python 3.6 or later. The number of required dependencies for
+EPSIE is purposely kept to a minimum, to make for a light weight, quick to
+install package. You can find the required packages in the <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code>
+file. If you are installing from source, these can be installed via pip with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -r requirements.txt
+</pre></div>
+</div>
+<p>Optional dependencies can be found in <code class="docutils literal notranslate"><span class="pre">companion.txt</span></code>. These are needed for
+running the tutorials and building documentation, but are not necessary for
+regular use.</p>
+</div>
 </div>
 <div class="section" id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
 <p>Two samplers are provided: the
 <a class="reference internal" href="epsie.samplers.html#epsie.samplers.mhsampler.MetropolisHastingsSampler" title="epsie.samplers.mhsampler.MetropolisHastingsSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetropolisHastingsSampler</span></code></a> and the
 <a class="reference internal" href="epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler" title="epsie.samplers.ptsampler.ParallelTemperedSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelTemperedSampler</span></code></a>.
-(Parallel tempering is useful for multi-modal distributions and for estimating
-Bayesian evidence, but is more computationally expensive.)</p>
+Parallel tempering is useful for multi-modal distributions and for estimating
+Bayesian evidence, but is more computationally expensive.</p>
 <p>To use either sampler, you provide a function that evaluates the likelihood and
 prior at given points. This function must take keyword arguments as input that
 map parameter names to values and return a tuple of the log likelihood and log
