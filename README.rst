@@ -6,12 +6,14 @@ EPSIE
 .. image:: https://coveralls.io/repos/github/cdcapano/epsie/badge.svg
     :target: https://coveralls.io/github/cdcapano/epsie
 
+.. docs-start-marker-do-not-remove
+
 EPSIE is a parallelized Markov chain Monte Carlo (MCMC) sampler for Bayesian
 inference. It is meant for problems with complicated likelihood surfaces,
 including multimodal distributions.  It has support both for parallel tempering
-and nested transdimensional problems. It was originally developed to tackle
-problems in gravitational-wave astronomy, but can be used for any general
-purpose problem.
+and nested transdimensional problems. It was originally developed for
+gravitational-wave parameter estimation, but can be used for any Bayesian
+inference problem requring a stochastic sampler.
 
 EPSIE is in many ways similar to `emcee
 <https://emcee.readthedocs.io/en/stable/>`_ and other "bring your own
@@ -23,15 +25,7 @@ problem at hand.  These include adaptive proposals that attempt to learn the
 shape of the distribution during a burn-in period. The user can also easily
 create their own jump proposals.
 
+.. docs-end-marker-do-not-remove
 
-Installation
-------------
-
-The easiest way to install EPSIE is via pip:
-
-.. code-block:: bash
-
-   pip install epsie
-
-If you wish to install from the latest source code instead, you can clone a
-copy of the repository from GitHub, at https://github.com/cdcapano/epsie.
+For more information, see the documentation at:
+https://cdcapano.github.io/epsie
