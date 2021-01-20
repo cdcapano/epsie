@@ -2,7 +2,7 @@
 tutdir='tutorials'
 mkdir -p ../${tutdir}
 
-jupyter nbconvert ../../examples/*ipynb --to rst --output-dir ../${tutdir}
+jupyter nbconvert ../../tutorials/*ipynb --to rst --output-dir ../${tutdir}
 
 tutfile="../tutorials.rst"
 echo '.. toctree::
