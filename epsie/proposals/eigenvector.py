@@ -267,7 +267,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             dx = (x - self._mu).reshape(-1, 1)
             N = self.nsteps
             self._cov = (N - 1) / N \
-                       * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
+                * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
             self._mu = (N * self._mu + x) / (N + 1)
         # This still is an open question..
         # If too few points are initially collected the chain will preferably
@@ -276,7 +276,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
 
         # Some solutions that might help is to change the weighting on the
         # covariance matrix. By for example "up-weighting" the recently sampled
-        # this could perhaps be avoided.. 
+        # this could perhaps be avoided.
         elif all(numpy.unique(chain.positions[p]).size >= 10*self.ndim
                  for p in self.parameters):
             # at this step the adaptation begins. Thus shift the start_step
