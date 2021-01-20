@@ -338,12 +338,8 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
         The names of the parameters.
     adaptation_duration: int
         The number of steps after which adaptation of the eigenvectors ends.
-        This is defined such that while the number of proposal steps :math:`N`
-        satisfies :math:`N <= \mathrm{stability_duration}` the
-        ``initial_proposal`` is called and while
-        :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
-        the eigenvectors are being adapted. Post-adaptation phase the
-        eigenvectors and eigenvalues are kept constant.
+        Post-adaptation phase the eigenvectors and eigenvalues are kept
+        constant.
     cov0 : array, optional
         The initial covariance matrix of the parameters used to calculate the
         initial eigenvectors. May provide either a single float, a 1D array
