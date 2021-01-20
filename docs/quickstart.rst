@@ -10,9 +10,9 @@ Bayesian evidence, but is more computationally expensive.
 To use either sampler, you provide a function that evaluates the likelihood and
 prior at given points. This function must take keyword arguments as input that
 map parameter names to values and return a tuple of the log likelihood and log
-prior at that point. The function may also return additional "blob" data which
-is a dictionary of additional statistics that you would like to keep track of,
-but this is optional.
+prior at that point. The function may also return "blob" data, which is a
+dictionary of additional statistics that you would like to keep track of, but
+this is optional.
 
 For example, the following sets up the Metropolis-Hastings sampler with 3
 chains to sample a 2D normal distribution, with a prior uniform between [-5, 5)
@@ -50,9 +50,9 @@ on each parameter:
     print(positions['y'])
 
 
-In this simple example we will have used the default
+In this simple example we have used the default
 :py:class:`~epsie.proposals.normal.Normal` proposal class for producing
-jumps, and we will have used only a single core.
+jumps, and have used only a single core.
 
 To learn how to use more advanced features and how to interact with
 sampler data, see the notebooks provided in the :doc:`tutorials <tutorials>`.

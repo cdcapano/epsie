@@ -16,8 +16,8 @@ gravitational-wave parameter estimation, but can be used for any Bayesian
 inference problem requring a stochastic sampler.
 
 EPSIE is in many ways similar to `emcee
-<https://emcee.readthedocs.io/en/stable/>`_ and other "bring your own
-likelihood" Python-based samplers. The primary difference from emcee is EPSIE
+<https://emcee.readthedocs.io/en/stable/>`_ and other bring your own
+likelihood Python-based samplers. The primary difference from emcee is EPSIE
 is not an ensemble sampler; i.e., the Markov chains used by EPSIE do not
 attempt to share information between each other. Instead, to speed convergence,
 multiple jump proposal classes are offered that can be customized to the
