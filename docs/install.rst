@@ -15,9 +15,9 @@ Prerequisites
 +++++++++++++
 
 EPSIE requires Python 3.6 or later. The number of required dependencies for
-EPSIE is purposely kept small, to make it light weight. You can find the
-required packages in the ``requirements.txt`` file. If you are installing
-from source, these can be installed via pip with:
+EPSIE is purposely kept to a minimum, to make for a light weight, quick to
+install package. You can find the required packages in the ``requirements.txt``
+file. If you are installing from source, these can be installed via pip with:
 
 .. code-block:: bash
 
