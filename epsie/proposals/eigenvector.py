@@ -54,7 +54,7 @@ class Eigenvector(BaseProposal):
     symmetric = True
     _shuffle_rate = None
 
-    def __init__(self, parameters, cov, shuffle_rate=0.33,
+    def __init__(self, parameters, cov=None, shuffle_rate=0.33,
                  jump_interval=1, jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
@@ -237,10 +237,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     18. 10.1007/s11222-008-9110-y.
     """
 
-    _decay_const = None
-    _mu = None
-
-    def setup_adaptation(self, adaptation_duration, start_step,
+    def setup_adaptation(self, adaptation_duration, start_step=1,
                          target_rate=0.234):
         r"""Sets up the adaptation parameters.
 
@@ -248,6 +245,8 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         ----------
         adaptation_duration : int
             The number of adaptation steps.
+        start_step : int, optional
+            The proposal step when the adaptation phase begins.
         target_rate : float, optional
             Target acceptance rate. By default 0.234
         """
@@ -256,35 +255,20 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self._decay_const = adaptation_duration**(-0.6)
         self.start_step = start_step
         self._log_lambda = 0.0
+        # initialize mu to be zero
+        self._mu = numpy.zeros(self.ndim)
 
     def recursive_covariance(self, chain):
         """Recursively updates the covariance given the latest observation.
         Weights all sampled points uniformly.
         """
-        if self._mu is not None:
-            x = numpy.array([chain.current_position[p]
-                             for p in self.parameters])
-            dx = (x - self._mu).reshape(-1, 1)
-            N = self.nsteps
-            self._cov = (N - 1) / N \
-                * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
-            self._mu = (N * self._mu + x) / (N + 1)
-        # This still is an open question..
-        # If too few points are initially collected the chain will preferably
-        # explore some subspace which does not correspond to the posterior
-        # distribution
-
-        # Some solutions that might help is to change the weighting on the
-        # covariance matrix. By for example "up-weighting" the recently sampled
-        # this could perhaps be avoided.
-        elif all(numpy.unique(chain.positions[p]).size >= 10*self.ndim
-                 for p in self.parameters):
-            # at this step the adaptation begins. Thus shift the start_step
-            self.start_step = self.nsteps
-            points = numpy.array([chain.positions[p]
-                                 for p in self.parameters]).T
-            self._mu = numpy.mean(points, axis=0)
-            self._cov = numpy.cov(points, rowvar=False)
+        x = numpy.array([chain.current_position[p]
+                         for p in self.parameters])
+        dx = (x - self._mu).reshape(-1, 1)
+        N = self.nsteps
+        self._cov = (N - 1) / N \
+            * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
+        self._mu = (N * self._mu + x) / (N + 1)
 
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.

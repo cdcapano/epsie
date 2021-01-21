@@ -42,14 +42,16 @@ class BoundedEigenvector(Eigenvector):
     boundaries : dict
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two.
-    stability_duration : int
-        Number of initial steps done with a initial proposal specified by name
-        in ``initial_proposal``. After this eigenvalues and eigenvectors are
-        evaluated (and never again) and jumps proposed along those.
-    initial_proposal : {'at_adaptive_bounded_normal', 'bounded_normal'}
-        Name of the initial proposal that is called before the number of
-        proposal steps exceeds ``stability_duration``. Default is
-        ``'at_adaptive_bounded_normal'``.
+    cov : array, optional
+        The covariance matrix of the parameters. May provide either a single
+        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,
+        where ``ndim`` = the number of parameters given. If a single float or
+        a 1D array is given, will use a diagonal covariance matrix (i.e., all
+        parameters are independent of each other). Default (None) is to use
+        unit variance for all parameters.
+    shuffle_rate : float (optional)
+        Probability of shuffling the eigenvector jump probabilities. By
+        default 0.33.
     jump_interval : int, optional
         The jump interval of the proposal, the proposal only gets called every
         jump interval-th time. After ``jump_interval_duration`` number of
@@ -59,9 +61,6 @@ class BoundedEigenvector(Eigenvector):
         The number of proposals steps during which values of ``jump_interval``
         other than 1 are used. After this elapses the proposal is called on
         each iteration.
-    shuffle_rate : float (optional)
-        Probability of shuffling the eigenvector jump probabilities. By
-        default 0.33.
     """
 
     name = 'bounded_eigenvector'
@@ -71,12 +70,10 @@ class BoundedEigenvector(Eigenvector):
     _upperbnd = None
     _hyperplanes = None
 
-    def __init__(self, parameters, boundaries, stability_duration,
-                 jump_interval=1, jump_interval_duration=None,
-                 shuffle_rate=0.33,
-                 initial_proposal='at_adaptive_bounded_normal'):
+    def __init__(self, parameters, boundaries, cov=None, shuffle_rate=0.33,
+                 jump_interval=1, jump_interval_duration=None):
         super().__init__(
-            parameters, stability_duration, shuffle_rate=shuffle_rate,
+            parameters, cov=cov, shuffle_rate=shuffle_rate,
             jump_interval=jump_interval,
             jump_interval_duration=jump_interval_duration)
         if not self.ndim > 1:
@@ -84,16 +81,6 @@ class BoundedEigenvector(Eigenvector):
                              "least 2".format(self.name))
         # set the boundaries
         self.boundaries = boundaries
-        # set the initial phase settings
-        if initial_proposal == 'bounded_normal':
-            self._initial_proposal = BoundedNormal(self.parameters, boundaries)
-        elif initial_proposal == 'at_adaptive_bounded_normal':
-            self._initial_proposal = ATAdaptiveBoundedNormal(
-                self.parameters, boundaries,
-                adaptation_duration=self._stability_duration)
-        else:
-            raise ValueError("Proposal '{}' not implemented for "
-                             "bounded_eigenvector".format(initial_proposal))
         # cache the boundaries for repeated calls
         self._cache = {'hash': None}
 
@@ -211,9 +198,6 @@ class BoundedEigenvector(Eigenvector):
         if fromx not in self:
             raise ValueError("Given point is not in bounds; I don't know how "
                              "to jump from there.")
-        if self._call_initial_proposal:
-            return self.initial_proposal.jump(fromx)
-
         self._ind = self._jump_eigenvector
         # rejection sampling to find a point within bounds
         while True:
@@ -225,8 +209,6 @@ class BoundedEigenvector(Eigenvector):
                 return out
 
     def _logpdf(self, xi, givenx):
-        if self._call_initial_proposal:
-            return self.initial_proposal.logpdf(xi, givenx)
         # cache the intersects and width for repeated calls with givenx and xi
         x0 = [xi[p] for p in self.parameters]
         x1 = [givenx[p] for p in self.parameters]
@@ -265,47 +247,43 @@ class AdaptiveBoundedEigenvector(AdaptiveEigenvectorSupport,
     boundaries : dict
         Dictionary mapping parameters to boundaries. Boundaries must be a
         tuple or iterable of length two.
-    stability_duration : int
-        Number of initial steps done with a initial proposal specified by name
-        in ``initial_proposal``. After this eigenvalues and eigenvectors are
-        evaluated and jumps proposed along those.
     adaptation_duration: int
         The number of steps after which adaptation of the eigenvectors ends.
-        This is defined such that while the number of proposal steps :math:`N`
-        satisfies :math:`N <= \mathrm{stability_duration}` the
-        ``initial_proposal`` is called and while
-        :math:`N + \mathrm{stability_duration} < \mathrm{adaptation_duration}`
-        the eigenvectors are being adapted. Post-adaptation phase the
-        eigenvectors and eigenvalues are kept constant.
-    jump_interval : int, optional
-        The jump interval of the proposal, the proposal only gets called every
-        jump interval-th time. After ``jump_interval_duration`` number of
-        proposal steps elapses the proposal will again be called on every
-        chain iteration. By default ``jump_interval`` = 1.
-    initial_proposal : str, optional
-        Name of the initial proposal that is called before the number of
-        proposal seps exceeds ``stability_duration``. By default se to the
-        'epsie.proposals.ATAdaptiveProposal'. Supported options
-        include: 'bounded_normal', 'at_adaptive_bounded_normal'.
+        Post-adaptation phase the eigenvectors and eigenvalues are kept
+        constant.
+    cov0 : array, optional
+        The initial covariance matrix of the parameters used to calculate the
+        initial eigenvectors. May provide either a single float, a 1D array
+        with length ``ndim``, or an ``ndim x ndim`` array,
+        where ``ndim`` = the number of parameters given. If a single float or
+        a 1D array is given, will use a diagonal covariance matrix (i.e., all
+        parameters are independent of each other). Default (None) is to use
+        unit variance for all parameters.
     target_rate: float, optional
         Target acceptance ratio. By default 0.234
     shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
+    start_step: int, optional
+        The proposal step index when adaptation phase begins.
+    jump_interval : int, optional
+        The jump interval of the proposal, the proposal only gets called every
+        jump interval-th time. After ``jump_interval_duration`` number of
+        proposal steps elapses the proposal will again be called on every
+        chain iteration. By default ``jump_interval`` = 1.
     """
 
     name = 'adaptive_bounded_eigenvector'
     symmetric = False
 
-    def __init__(self, parameters, boundaries, stability_duration,
-                 adaptation_duration, jump_interval=1,
-                 initial_proposal='at_adaptive_bounded_normal',
-                 target_rate=0.234, shuffle_rate=0.33):
+    def __init__(self, parameters, boundaries, adaptation_duration, cov0=None,
+                 target_rate=0.234, shuffle_rate=0.33, start_step=1,
+                 jump_interval=1):
         # set the parameters, initial proposal
         super().__init__(
-            parameters=parameters, boundaries=boundaries,
-            stability_duration=stability_duration, jump_interval=jump_interval,
-            jump_interval_duration=adaptation_duration + stability_duration,
-            shuffle_rate=shuffle_rate, initial_proposal=initial_proposal)
+            parameters=parameters, boundaries=boundaries, cov=cov0,
+            jump_interval=jump_interval,
+            jump_interval_duration=adaptation_duration,
+            shuffle_rate=shuffle_rate)
         # set up the adaptation parameters
-        self.setup_adaptation(adaptation_duration, target_rate)
+        self.setup_adaptation(adaptation_duration, start_step, target_rate)
