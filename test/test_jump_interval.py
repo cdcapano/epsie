@@ -25,26 +25,25 @@ from test_ptsampler import _create_sampler
 
 from _utils import Model
 
-STABILITY_DURATION = 48
-DURATION = 16
+JUMP_DURATION = 64
+RUN_DURATION = 16
 
 
 def _setup_proposal(proposal_name, jump_interval, params):
-    duration = STABILITY_DURATION + DURATION
     if proposal_name == 'normal':
         return Normal(params, jump_interval=jump_interval,
-                      jump_interval_duration=duration)
+                      jump_interval_duration=JUMP_DURATION)
     elif proposal_name == 'eigenvector':
-        return Eigenvector(params, stability_duration=STABILITY_DURATION,
+        return Eigenvector(params,
                            jump_interval=jump_interval,
-                           jump_interval_duration=duration)
+                           jump_interval_duration=JUMP_DURATION)
     elif proposal_name == 'bounded_normal':
         bounds = {'x0': (-20, 20), 'x1': (-40, 40)}
         return BoundedNormal(params, bounds, jump_interval=jump_interval,
-                             jump_interval_duration=duration)
+                             jump_interval_duration=JUMP_DURATION)
     elif proposal_name == 'angular':
         return Angular(params, jump_interval=jump_interval,
-                       jump_interval_duration=duration)
+                       jump_interval_duration=JUMP_DURATION)
     else:
         return -1
 
@@ -70,9 +69,9 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
     proposal = _setup_proposal(proposal_name, jump_interval, params=['x0'])
     sampler = _create_sampler(model, nprocs, proposals=[proposal])
     # Run the sampler for some number of initial iterations
-    sampler.run((STABILITY_DURATION + 1) * jump_interval)
+    sampler.run((JUMP_DURATION + 1) * jump_interval)
 
-    for _ in range((DURATION - 1) * jump_interval):
+    for _ in range((RUN_DURATION - 1) * jump_interval):
         current_pos = _extract_positions(sampler.chains, 'current')
         sampler.run(1)
         proposed_pos = _extract_positions(sampler.chains, 'proposed')
@@ -88,7 +87,7 @@ def test_jump_proposal_interval(nprocs, proposal_name, jump_interval):
 
     # Now that the burnin phase is over check both x0 and x1 are proposed at
     # each turn
-    for i in range(DURATION):
+    for i in range(RUN_DURATION):
         current_pos = _extract_positions(sampler.chains, 'current')
         sampler.run(1)
         proposed_pos = _extract_positions(sampler.chains, 'proposed')
