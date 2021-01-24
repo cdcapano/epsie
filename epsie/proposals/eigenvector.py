@@ -39,6 +39,11 @@ class Eigenvector(BaseProposal):
     shuffle_rate : float, optional
         Probability of shuffling the eigenvector jump probabilities. By
         default 0.33.
+    minfac : float, optional
+        If any eigenvalues are zero, they will be replaced with
+        ``minfac`` times the smallest non-zero eigenvalue. Setting a non-zero
+        value will force the sampler to at least occasionally jump in the
+        zero direction(s). Default is 0.
     jump_interval : int, optional
         The jump interval of the proposal, the proposal only gets called every
         jump interval-th time. After ``jump_interval_duration`` number of
@@ -54,21 +59,21 @@ class Eigenvector(BaseProposal):
     symmetric = True
     _shuffle_rate = None
 
-    def __init__(self, parameters, cov=None, shuffle_rate=0.33,
+    def __init__(self, parameters, cov=None, shuffle_rate=0.33, minfac=0.,
                  jump_interval=1, jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
         self.shuffle_rate = shuffle_rate
         self.set_jump_interval(jump_interval, jump_interval_duration)
-
+        # set up needed parameters
         self._cov = None
         self._eigvals = None
         self._eigvects = None
         self._ind = None  # for caching the eigenvector index
         self._dx = None  # for caching the last jump std
-        self.minfac = 0.
-        self.mineigval = 0.
-
+        self._zeroeigvals = numpy.array([])
+        self._minfac = minfac
+        # calculate and store the eigenvectors/values
         self.cov = cov
         self.eigvals, self.eigvects = numpy.linalg.eigh(self.cov)
         # used for picking which direction to hop along
@@ -144,15 +149,29 @@ class Eigenvector(BaseProposal):
                 # one or more values are < 0 beyond the tolerance; raise error
                 raise ValueError("one or more of the given eigenvalues ({}) "
                                  "are negative".format(eigvals))
-        if False:
-            zerovals = eigvals == 0.
-            if zerovals.any() and self.minfac:
-                # replace with the min
-                eigvals[zerovals] = self.minfac * eigvals[~zerovals].min()
-        rep = eigvals < self.mineigval
-        if rep.any():
-            eigvals[rep] = self.mineigval
         self._eigvals = eigvals
+        # store and replace any zeroes
+        zerovals = eigvals == 0.
+        self._zeroeigvals = zerovals
+        self._replacezeroeig()
+
+    def _replacezeroeig(self):
+        if self._zeroeigvals.any():
+            # replace with the min
+            minnz = self._eigvals[~self._zeroeigvals].min()
+            self._eigvals[self._zeroeigvals] = self.minfac * minnz 
+
+    @property
+    def minfac(self):
+        """Factor of the smallest non-zero eigenvalue to use for zero values.
+        """
+        return self._minfac
+
+    @minfac.setter
+    def minfac(self, minfac):
+        self._minfac = minfac
+        # update the zeroeigen values
+        self._replacezeroeig()
 
     @property
     def eigvects(self):
@@ -289,8 +308,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             self._lastx = x
             self._lastind = self._ind
             # update the minfac
-            #self.minfac = 1./N
-            self.mineigval = (1./N)**0.5
+            self.minfac = (1./N)**0.5
 
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
@@ -373,11 +391,12 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration, cov0=None,
-                 target_rate=0.234, shuffle_rate=0.33, start_step=1,
+                 target_rate=0.234, shuffle_rate=0.33, minfac=0., start_step=1,
                  jump_interval=1):
         # set the parameters, initialize the covariance matrix
         super().__init__(
             parameters=parameters, cov=cov0, shuffle_rate=shuffle_rate,
+            minfac=minfac,
             jump_interval=jump_interval,
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
