@@ -66,6 +66,8 @@ class Eigenvector(BaseProposal):
         self._eigvects = None
         self._ind = None  # for caching the eigenvector index
         self._dx = None  # for caching the last jump std
+        self.minfac = 0.
+        self.mineigval = 0.
 
         self.cov = cov
         self.eigvals, self.eigvects = numpy.linalg.eigh(self.cov)
@@ -142,6 +144,14 @@ class Eigenvector(BaseProposal):
                 # one or more values are < 0 beyond the tolerance; raise error
                 raise ValueError("one or more of the given eigenvalues ({}) "
                                  "are negative".format(eigvals))
+        if False:
+            zerovals = eigvals == 0.
+            if zerovals.any() and self.minfac:
+                # replace with the min
+                eigvals[zerovals] = self.minfac * eigvals[~zerovals].min()
+        rep = eigvals < self.mineigval
+        if rep.any():
+            eigvals[rep] = self.mineigval
         self._eigvals = eigvals
 
     @property
@@ -183,7 +193,8 @@ class Eigenvector(BaseProposal):
     @property
     def _jump_eigenvector(self):
         """Picks along which eigenvector to jump."""
-        probs = self.eigvals / numpy.sum(self.eigvals)
+        # replace any zeros with the minimum
+        probs = self.eigvals / self.eigvals.sum()
         dims = self._dims
         # with shuffle_rate probability randomly shuffle the probabilities
         if self.random_generator.uniform() < self.shuffle_rate:
@@ -257,6 +268,9 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self._log_lambda = 0.0
         # initialize mu to be zero
         self._mu = numpy.zeros(self.ndim)
+        self._unique_steps = 1
+        self._lastx = None
+        self._lastind = None
 
     def recursive_covariance(self, chain):
         """Recursively updates the covariance given the latest observation.
@@ -264,11 +278,19 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """
         x = numpy.array([chain.current_position[p]
                          for p in self.parameters])
-        dx = (x - self._mu).reshape(-1, 1)
-        N = self.nsteps
-        self._cov = (N - 1) / N \
-            * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
-        self._mu = (N * self._mu + x) / (N + 1)
+        # only update if we have a new point and the last ind was different
+        if (x != self._lastx).any() and self._lastind != self._ind:
+            self._unique_steps += 1
+            N = self._unique_steps
+            dx = (x - self._mu).reshape(-1, 1)
+            self._cov = (N - 1) / N \
+                * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
+            self._mu = (N * self._mu + x) / (N + 1)
+            self._lastx = x
+            self._lastind = self._ind
+            # update the minfac
+            #self.minfac = 1./N
+            self.mineigval = (1./N)**0.5
 
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
@@ -296,6 +318,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
                 'mu': self._mu,
                 'cov': self._cov,
                 'ind': self._ind,
+                'unique_steps': self._unique_steps,
                 'log_lambda': self._log_lambda}
 
     def set_state(self, state):
@@ -304,6 +327,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self._mu = state['mu']
         self._cov = state['cov']
         self._log_lambda = state['log_lambda']
+        self._unique_steps = state['unique_steps']
         if self._cov is not None:
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             self.eigvals *= numpy.exp(self._log_lambda)
