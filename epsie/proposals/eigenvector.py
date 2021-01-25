@@ -13,6 +13,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import inspect
 import numpy
 from scipy.stats import norm
 
@@ -75,7 +76,6 @@ class Eigenvector(BaseProposal):
         self._minfac = minfac
         # calculate and store the eigenvectors/values
         self.cov = cov
-        self.eigvals, self.eigvects = numpy.linalg.eigh(self.cov)
         # used for picking which direction to hop along
         self._dims = numpy.arange(self.ndim)
 
@@ -116,16 +116,21 @@ class Eigenvector(BaseProposal):
 
     @cov.setter
     def cov(self, cov):
-        """Sets the covariance matrix. Checks that it is symmetric.
+        """Sets the covariance matrix, and calculates eigenvectors/values from
+        it.
 
         Raises a ``ValueError`` if the dimensionality of the given array
-        isn't ndim x ndim.
+        isn't ndim x ndim, or if the matrix is not symmetric.
+
+        If ``cov`` is None, will just use the identity matrix.
         """
         # make sure we have an array, filling in default as necessary
         cov = self._ensurearray(cov)
         if not (cov == cov.T).all():
             raise ValueError("must provide a symmetric covariance matrix")
         self._cov = cov
+        # calculate and store the eigenvectors/values
+        self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
 
     @property
     def eigvals(self):
@@ -204,9 +209,7 @@ class Eigenvector(BaseProposal):
     def set_state(self, state):
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
-        self._cov = state['cov']
-        if self._cov is not None:
-            self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
+        self.cov = state['cov']
         self._ind = state['ind']
 
     @property
@@ -401,3 +404,176 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
             jump_interval_duration=adaptation_duration)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, start_step, target_rate)
+
+
+class ATAdaptiveEigenvector(BaseProposal):
+    """Uses the :py:class:`~normal.ATAdativeNormal` with the
+    :py:class:`Eigenvector` proposal.
+    """
+    name = "at_adaptive_eigenvector"
+    symmetric = True
+    _switch_ratio = None
+
+    def __init__(self, parameters, adaptation_duration, switch_ratio,
+                 jump_interval=1, jump_interval_duration=None, **kwargs):
+        self.parameters = parameters
+        self.adaptation_duration = adaptation_duration
+        self.switch_ratio = switch_ratio
+        self.set_jump_interval(jump_interval, jump_interval_duration)
+        # figure out which kwargs to pass to the ATAdaptiveNormal proposal
+        # and which to pass to the Eigenvector
+        sig = inspect.signature(ATAdaptiveNormal)
+        possible_akwargs = set([arg for arg, spec in sig.parameters.items()
+                                if spec.default is not spec.empty])
+        sig = inspect.signature(Eigenvector)
+        possible_ekwargs = set([arg for arg, spec in sig.parameters.items()
+                                if spec.default is not spec.empty])
+        akwargs = {arg: kwargs[arg] for arg in possible_akwargs}
+        ekwargs = {arg: kwargs[arg] for arg in possible_ekwargs}
+        # make sure there's no leftover
+        remaining = set(kwargs.keys()) - possible_akwargs - possible_ekwargs
+        if remaining:
+            raise ValueError("unrecognized argument(s) {}"
+                              .format(', '.join(remaining)))
+        # depending on the switch ratio, the ATAdaptiveNormal may be called
+        # fewer times, so we'll modify it's adaptaiton duration accordingly
+        atadaptdur = adaptation_duration * (
+            self.switch_ratio[0] // sum(self.switch_ratio))
+        self._adaptivep = ATAdaptiveNormal(parameters, adaptdur,
+                                           **akwargs)
+        self._eigenvecp = Eigenvector(parameters, **ekwargs)
+        # ensure both proposals are using the same bit generator as this; the
+        # following will just create a new bit generator using a random seed;
+        # this may be changed later if the bit generator is set
+        self._adaptivep._bit_generator = self._eigenvecp._bit_generator = \
+            self.bit_generator
+        # eigenactive controls whether the adaptive or the eigenvector proposal
+        # is called. We always start out with the adaptive
+        self._eigenactive = False
+        # to keep track of how many jumps the active proposals has taken since
+        # the last switch
+        self._active_steps = 0
+
+    @bit_generator.setter
+    def bit_generator(self, bit_generator):
+        super().bit_generator = bit_generator
+        # ensure both sub-proposals use the same generator
+        self._adaptivep._bit_generator = self._eigenvecp._bit_generator = \
+            self._bit_generator
+
+    @property
+    def switch_ratio(self):
+        """The number of steps the adaptive proposal takes relative to the
+        eigenvector proposal duration the adaptation phase.
+        """
+        return (self._adaptive_interval, self._eigenvec_interval)
+
+    @switch_ratio.setter
+    def switch_ratio(self, switch_ratio):
+        if isinstance(switch_ratio, tuple):
+            a, e = map(int, switch_ratio)
+        elif switch_ratio == 0:
+            a = 1
+            e = 0
+        else:
+            a = int(switch_ratio)
+            e  = 1
+        self._adaptive_interval = a
+        self._eigenvec_interval = e
+
+    @property
+    def active_proposal(self):
+        """The currently active proposal."""
+        if self._eigenactive:
+            return self._eigenvecp
+        return self._adaptivep
+
+    @property
+    def inactive_proposal(self):
+        """The currently inactive proposal."""
+        if self._eigenactive:
+            return self._adaptivep
+        return self._eigenvecp
+
+    @property
+    def active_interval(self):
+        """The number of steps the currently active proposal is run for."""
+        if self._eigenactive:
+            return self._eigenvec_interval
+        return self._adaptive_interval
+
+    @property
+    def inactive_interval(self):
+        """The number of steps the currently inactive proposal is run for."""
+        if self._eigenactive:
+            return self._adaptive_interval
+        return self._eigenvec_interval
+
+    @property
+    def eigenactive(self):
+        """Whether or not the eigenvector proposal is currently active."""
+        return self._eigenactive
+
+    @eigenactive.setter
+    def eigenactive(self, eigenactive):
+        """Toggles the eigenactive setting.
+
+        If eigenactive was previously False, and this sets it to True, the
+        eigenvectors and values used by the eigenvector proposal will be
+        updated to use the current covariance of the adaptive proposal.
+        """
+        if not self._eigenactive and eigenactive:
+            # we're turning on th eigenvector proposal, so reset its cov,
+            # and calculate new eigenvectors and values
+            self._eigenvecp.cov = self._adaptivep.cov
+        self._eigenactive = eigenactive
+
+    def _update_active(self):
+        """Sets the active proposal based on the number of steps that have
+        been taken and the switch ratio.
+        """
+        # if we are beyond the adaptation duration, just use the eigenvector
+        if self.nsteps > self.adaptation_duration:
+            self.eigenactive = True
+        elif self._active_steps >= self.active_inteval and \
+                    self.inactive_interval != 0:
+            # switch and reset the active counter
+            self.eigenactive = not self.eigenactive
+            self._active_steps = 0
+        return
+
+    def _update(self, chain):
+        # call the active proposal's update
+        self.active_proposal.update(chain)
+        # update the active counter
+        self._active_steps += 1
+        # switch
+        self._update_active()
+
+    def _jump(self, fromx):
+        return self.active_proposal._jump(fromx)
+
+    def _logpdf(self, xi, givenx):
+        return self.active_proposal._logpdf(xi, givenx)
+
+    @property
+    def state(self):
+        state = {'random_state': self.random_state,
+                 'switch_ratio': self.switch_ratio,
+                 'eigenactive': self._eigenactive,
+                 'active_steps': self._active_steps,
+                 'nsteps': self.nsteps,
+                }
+        # add the state of the adaptive and eigenvector proposals
+        state['adaptive_proposal'] = self._adaptivep.state
+        state['eigenvector_proposal'] = self._eigenvecp.state
+        return state
+
+    def set_state(state):
+        self.random_state = state['random_state']
+        self.switch_ratio = switch_ratio
+        self._eigenactive = state['eigenactive']
+        self._active_steps = state['active_steps']
+        self.nsteps = state['nsteps']
+        self._adaptivep.set_state(state['adaptive_proposal'])
+        self._eigenvecp.set_state(state['eigenvector_proposal'])
