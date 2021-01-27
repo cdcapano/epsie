@@ -234,7 +234,7 @@ class Eigenvector(BaseProposal):
         self._ind = self._jump_eigenvector
         # scale of the 1D jump
         self._dx = self.random_generator.normal(
-            scale=self.eigvals[self._ind])
+            scale=self.eigvals[self._ind]**0.5)
         return {p: fromx[p] + self._dx * self.eigvects[i, self._ind]
                 for i, p in enumerate(self.parameters)}
 
