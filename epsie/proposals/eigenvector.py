@@ -18,6 +18,7 @@ import numpy
 from scipy.stats import norm
 
 from .base import (BaseProposal, BaseAdaptiveSupport)
+from .normal import ATAdaptiveNormal
 
 
 class Eigenvector(BaseProposal):
@@ -126,7 +127,7 @@ class Eigenvector(BaseProposal):
         """
         # make sure we have an array, filling in default as necessary
         cov = self._ensurearray(cov)
-        if not (cov == cov.T).all():
+        if not numpy.isclose(cov, cov.T).all():
             raise ValueError("must provide a symmetric covariance matrix")
         self._cov = cov
         # calculate and store the eigenvectors/values
@@ -195,8 +196,8 @@ class Eigenvector(BaseProposal):
 
     @shuffle_rate.setter
     def shuffle_rate(self, rate):
-        if not 0.0 < rate < 1.0:
-            raise ValueError("Shuffle rate  must be in range (0, 1).")
+        if not 0.0 <= rate < 1.0:
+            raise ValueError("Shuffle rate  must be in range [0, 1).")
         self._shuffle_rate = rate
 
     @property
@@ -232,7 +233,8 @@ class Eigenvector(BaseProposal):
     def _jump(self, fromx):
         self._ind = self._jump_eigenvector
         # scale of the 1D jump
-        self._dx = self.random_generator.normal(scale=self.eigvals[self._ind])
+        self._dx = self.random_generator.normal(
+            scale=self.eigvals[self._ind])
         return {p: fromx[p] + self._dx * self.eigvects[i, self._ind]
                 for i, p in enumerate(self.parameters)}
 
@@ -428,8 +430,10 @@ class ATAdaptiveEigenvector(BaseProposal):
         sig = inspect.signature(Eigenvector)
         possible_ekwargs = set([arg for arg, spec in sig.parameters.items()
                                 if spec.default is not spec.empty])
-        akwargs = {arg: kwargs[arg] for arg in possible_akwargs}
-        ekwargs = {arg: kwargs[arg] for arg in possible_ekwargs}
+        akwargs = {arg: kwargs[arg] for arg in possible_akwargs
+                   if arg in kwargs}
+        ekwargs = {arg: kwargs[arg] for arg in possible_ekwargs
+                   if arg in kwargs}
         # make sure there's no leftover
         remaining = set(kwargs.keys()) - possible_akwargs - possible_ekwargs
         if remaining:
@@ -437,8 +441,8 @@ class ATAdaptiveEigenvector(BaseProposal):
                               .format(', '.join(remaining)))
         # depending on the switch ratio, the ATAdaptiveNormal may be called
         # fewer times, so we'll modify it's adaptaiton duration accordingly
-        atadaptdur = adaptation_duration * (
-            self.switch_ratio[0] // sum(self.switch_ratio))
+        adaptdur = int(adaptation_duration * self.switch_ratio[0]
+                       / sum(self.switch_ratio))
         self._adaptivep = ATAdaptiveNormal(parameters, adaptdur,
                                            **akwargs)
         self._eigenvecp = Eigenvector(parameters, **ekwargs)
@@ -454,9 +458,9 @@ class ATAdaptiveEigenvector(BaseProposal):
         # the last switch
         self._active_steps = 0
 
-    @bit_generator.setter
+    @BaseProposal.bit_generator.setter
     def bit_generator(self, bit_generator):
-        super().bit_generator = bit_generator
+        BaseProposal.bit_generator.fset(self, bit_generator)
         # ensure both sub-proposals use the same generator
         self._adaptivep._bit_generator = self._eigenvecp._bit_generator = \
             self._bit_generator
@@ -480,6 +484,16 @@ class ATAdaptiveEigenvector(BaseProposal):
             e  = 1
         self._adaptive_interval = a
         self._eigenvec_interval = e
+
+    @property
+    def adaptive_proposal(self):
+        """The proposal used for adapting the covariance."""
+        return self._adaptivep
+
+    @property
+    def eigenvector_proposal(self):
+        """The proposal used for doing eigenvector jumps."""
+        return self._eigenvecp
 
     @property
     def active_proposal(self):
@@ -535,7 +549,7 @@ class ATAdaptiveEigenvector(BaseProposal):
         # if we are beyond the adaptation duration, just use the eigenvector
         if self.nsteps > self.adaptation_duration:
             self.eigenactive = True
-        elif self._active_steps >= self.active_inteval and \
+        elif self._active_steps >= self.active_interval and \
                     self.inactive_interval != 0:
             # switch and reset the active counter
             self.eigenactive = not self.eigenactive

@@ -18,7 +18,7 @@ from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal,
                      ATAdaptiveNormal)
-from .eigenvector import (Eigenvector, AdaptiveEigenvector)
+from .eigenvector import (Eigenvector, AdaptiveEigenvector, ATAdaptiveEigenvector)
 from .bounded_eigenvector import (BoundedEigenvector,
                                   AdaptiveBoundedEigenvector)
 # we'll also promote the Boundaries class to the top-level
@@ -60,6 +60,7 @@ proposals = {
     ATAdaptiveBoundedNormal.name: ATAdaptiveBoundedNormal,
     ATAdaptiveAngular.name: ATAdaptiveAngular,
     AdaptiveEigenvector.name: AdaptiveEigenvector,
+    ATAdaptiveEigenvector.name: ATAdaptiveEigenvector,
     IsotropicSolidAngle.name: IsotropicSolidAngle,
     AdaptiveIsotropicSolidAngle.name: AdaptiveIsotropicSolidAngle,
 }
