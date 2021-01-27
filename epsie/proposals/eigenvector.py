@@ -196,8 +196,8 @@ class Eigenvector(BaseProposal):
 
     @shuffle_rate.setter
     def shuffle_rate(self, rate):
-        if not 0.0 <= rate < 1.0:
-            raise ValueError("Shuffle rate  must be in range [0, 1).")
+        if not 0.0 <= rate <= 1.0:
+            raise ValueError("Shuffle rate  must be in range [0, 1].")
         self._shuffle_rate = rate
 
     @property
