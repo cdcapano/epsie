@@ -22,10 +22,13 @@ from .normal import ATAdaptiveNormal
 
 
 class Eigenvector(BaseProposal):
-    """Uses a eigenvector jump with a fixed scale that is determined by the
+    r"""Uses a eigenvector jump with a fixed scale that is determined by the
     given covariance matrix.
 
     This proposal may handle one or more parameters.
+
+    Based on Algorithm 8 of Andrieu & Thomas [#ateig]_, with some modifications
+    (see Notes).
 
     Parameters
     ----------
@@ -38,9 +41,13 @@ class Eigenvector(BaseProposal):
         a 1D array is given, will use a diagonal covariance matrix (i.e., all
         parameters are independent of each other). Default (None) is to use
         unit variance for all parameters.
-    shuffle_rate : float, optional
-        Probability of shuffling the eigenvector jump probabilities. By
-        default 0.33.
+    betamix : float, optional
+        Controls the probability that an eigenvector is used for a jump
+        (:math:`\beta` in the Notes). Must be between [0, 1]; default is
+        0 (all vectors treated equally).
+    lmbda : float, optional
+        Scale factor to apply to the eigenvalues when producing a jump
+        (:math:`\lambda` in the Notes). Must be > 0. Default is 1.
     minfac : float, optional
         If any eigenvalues are zero, they will be replaced with
         ``minfac`` times the smallest non-zero eigenvalue. Setting a non-zero
@@ -55,17 +62,52 @@ class Eigenvector(BaseProposal):
         The number of proposals steps during which values of ``jump_interval``
         other than 1 are used. After this elapses the proposal is called on
         each iteration.
+
+    Notes
+    -----
+    This propsal calculates the eigenvectors :math:`\mathbf{U}` and eigenvalues
+    :math:`\mu` of a given covariance matrix :math:`\mathbf{\Sigma}`. A jump is
+    produced by selecting an eigenvector :math:`\mathbf{u}_k` at random, then
+    obtaining a new point :math:`\mathbf{x'} = \mathbf{x} + \delta_k
+    \mathbf{u}_k` by drawing :math:`\delta_k` from a normal distribution with
+    zero mean and variance :math:`\lambda \mu_k`.  Here, :math:`\lambda` is a
+    constant that can be adjuated to control the acceptance rate.
+
+    The distribution to use for selecting the eigenvector to jump along is a
+    free parameter in Andrieu & Thomas [#ateig]_. Here, we choose a vector
+    :math:`\mathbf{u}_k` with probability:
+
+    .. math::
+
+        p_k = \frac{\mu_k^{\beta}}{\sum_{i} \mu_i^{\beta}},
+
+    where :math:`\beta \in [0, 1]`. The parameter :math:`\beta` controls how
+    often each eigenvector is jumped along relative to the others.  Setting
+    :math:`\beta` to 1 means that the principal components will be drawn more
+    often, proportionate to the relative size of the component. However, doing
+    so can lead to the proposal jumping too often along that direction ---
+    yielding lines in the posterior and large autocorrelation lengths --- if
+    one component is much larger than the others. For this reason, using
+    :math:`\beta = 0` is generally safer, although shorter autocorrelation
+    lengths can be achieved with non-zero values, depending on the topology of
+    the likelihood. If the estimated eigenvectors do point along the principal
+    components of the likelihood, changing :math:`\beta` will not affect the
+    acceptance ratio, only the autocorrelation length.
+
+    References
+    ----------
+    .. [#ateig] Andrieu, Christophe & Thoms, Johannes. (2008).
+        A tutorial on adaptive MCMC. Statistics and Computing.
+        18. 10.1007/s11222-008-9110-y.
     """
 
     name = 'eigenvector'
     symmetric = True
-    _shuffle_rate = None
 
-    def __init__(self, parameters, cov=None, shuffle_rate=0.33, minfac=0.,
+    def __init__(self, parameters, cov=None, betamix=0., lmbda=1., minfac=0.,
                  jump_interval=1, jump_interval_duration=None):
         self.parameters = parameters
         self.ndim = len(self.parameters)
-        self.shuffle_rate = shuffle_rate
         self.set_jump_interval(jump_interval, jump_interval_duration)
         # set up needed parameters
         self._cov = None
@@ -79,6 +121,10 @@ class Eigenvector(BaseProposal):
         self.cov = cov
         # used for picking which direction to hop along
         self._dims = numpy.arange(self.ndim)
+        self._betamix = None
+        self.betamix = betamix
+        self._lmbda = None
+        self.lmbda = lmbda
 
     @BaseProposal.bit_generator.setter
     def bit_generator(self, bit_generator):
@@ -169,7 +215,8 @@ class Eigenvector(BaseProposal):
 
     @property
     def minfac(self):
-        """Factor of the smallest non-zero eigenvalue to use for zero values.
+        """Factor of the smallest non-zero eigenvalue to use for eigenvalues
+        that are zero.
         """
         return self._minfac
 
@@ -191,58 +238,69 @@ class Eigenvector(BaseProposal):
         self._eigvects = eigvects
 
     @property
-    def shuffle_rate(self):
-        return self._shuffle_rate
+    def betamix(self):
+        r"""Controls the probability that an eigenvector is used for a jump
+        (:math:`\beta` in the Notes). Must be between [0, 1].
+        """
+        return self._betamix
 
-    @shuffle_rate.setter
-    def shuffle_rate(self, rate):
-        if not 0.0 <= rate <= 1.0:
-            raise ValueError("Shuffle rate  must be in range [0, 1].")
-        self._shuffle_rate = rate
+    @betamix.setter
+    def betamix(self, betamix):
+        if not 0.0 <= betamix <= 1.0:
+            raise ValueError("betamix must be in [0, 1]")
+        self._betamix = betamix
+
+    @property
+    def lmbda(self):
+        r"""Scale factor to apply to the eigenvalues when producing a jump
+        (:math:`\lambda` in the Notes). Must be > 0.
+        """
+        return self._lmbda
+
+    @lmbda.setter
+    def lmbda(self, lmbda):
+        if lmbda <= 0:
+            raise ValueError("lmbda must be > 0")
+        self._lmbda = lmbda
 
     @property
     def state(self):
         return {'nsteps': self._nsteps,
                 'random_state': self.random_state,
                 'cov': self._cov,
+                'betamix': self.betamix,
+                'lmbda': self.lmbda,
                 'ind': self._ind}
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
         self.cov = state['cov']
+        self.betamix = state['betamix']
+        self.lmbda = state['lmbda']
         self._ind = state['ind']
 
     @property
     def _jump_eigenvector(self):
         """Picks along which eigenvector to jump."""
-        # replace any zeros with the minimum
-        probs = self.eigvals / self.eigvals.sum()
-        dims = self._dims
-        # with shuffle_rate probability randomly shuffle the probabilities
-        if self.random_generator.uniform() < self.shuffle_rate:
-            # make sure we don't shuffle any 0 probabilities
-            isz = probs == 0.
-            if isz.any():
-                mask = ~isz
-                probs = probs[mask]
-                dims = dims[mask]
-            self.random_generator.shuffle(probs)
-        return self.random_generator.choice(dims, p=probs)
+        if self.betamix == 0.:
+            # don't bother calculating
+            probs = None
+        else:
+            probs = self.eigvals**self.betamix / (
+                self.eigvals**self.betamix).sum()
+        return self.random_generator.choice(self._dims, p=probs)
 
     def _jump(self, fromx):
         self._ind = self._jump_eigenvector
         # scale of the 1D jump
         self._dx = self.random_generator.normal(
-            scale=self.eigvals[self._ind]**0.5)
+            scale=(self.lmbda*self.eigvals[self._ind])**0.5)
         return {p: fromx[p] + self._dx * self.eigvects[i, self._ind]
                 for i, p in enumerate(self.parameters)}
 
     def _logpdf(self, xi, givenx):
         return norm.logpdf(self._dx, loc=0, scale=self.eigvals[self._ind])
-
-    def _update(self, chain):
-        pass
 
 
 class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
