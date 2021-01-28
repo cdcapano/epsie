@@ -347,31 +347,6 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self.adaptation_duration = adaptation_duration
         self._decay_const = adaptation_duration**(-0.6)
         self.start_step = start_step
-        self._log_lambda = 0.0
-        # initialize mu to be zero
-        self._mu = numpy.zeros(self.ndim)
-        self._unique_steps = 1
-        self._lastx = None
-        self._lastind = None
-
-    def recursive_covariance(self, chain):
-        """Recursively updates the covariance given the latest observation.
-        Weights all sampled points uniformly.
-        """
-        x = numpy.array([chain.current_position[p]
-                         for p in self.parameters])
-        # only update if we have a new point and the last ind was different
-        if (x != self._lastx).any() and self._lastind != self._ind:
-            self._unique_steps += 1
-            N = self._unique_steps
-            dx = (x - self._mu).reshape(-1, 1)
-            self._cov = (N - 1) / N \
-                * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
-            self._mu = (N * self._mu + x) / (N + 1)
-            self._lastx = x
-            self._lastind = self._ind
-            # update the minfac
-            self.minfac = (1./N)**0.5
 
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
@@ -380,43 +355,16 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """
         dk = self.nsteps - self.start_step + 1
         if 1 < dk < self.adaptation_duration:
-            # recursively update the covariance
-            self.recursive_covariance(chain)
-            # update eigenvalues and eigenvectors
-            self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
             dk = dk**(-0.6) - self._decay_const
             # Update of the global scaling
             ar = chain.acceptance['acceptance_ratio'][-1]
-            self._log_lambda += dk * (ar - self.target_rate)
-            # Rescale the eigenvalues
-            self.eigvals *= numpy.exp(self._log_lambda)
-
-    @property
-    def state(self):
-        return {'nsteps': self._nsteps,
-                'random_state': self.random_state,
-                'mu': self._mu,
-                'cov': self._cov,
-                'ind': self._ind,
-                'unique_steps': self._unique_steps,
-                'log_lambda': self._log_lambda}
-
-    def set_state(self, state):
-        self._nsteps = state['nsteps']
-        self.random_state = state['random_state']
-        self._mu = state['mu']
-        self._cov = state['cov']
-        self._log_lambda = state['log_lambda']
-        self._unique_steps = state['unique_steps']
-        if self._cov is not None:
-            self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
-            self.eigvals *= numpy.exp(self._log_lambda)
-        self._ind = state['ind']
+            # rescale lambda
+            self.lmbda *= numpy.exp(dk * (ar - self.target_rate))
 
 
 class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
-    r""" Uses jumps along eigenvectors with adaptive scales.
+    r"""Uses jumps along eigenvectors with adaptive scales.
 
     See :py:class:`AdaptiveEigenvectorSupport` for details on the adaptation
     algorithm.
@@ -454,23 +402,23 @@ class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
     symmetric = True
 
     def __init__(self, parameters, adaptation_duration, cov0=None,
-                 target_rate=0.234, shuffle_rate=0.33, minfac=0., start_step=1,
-                 jump_interval=1):
+                 target_rate=0.234, start_step=1, **kwargs):
         # set the parameters, initialize the covariance matrix
         super().__init__(
-            parameters=parameters, cov=cov0, shuffle_rate=shuffle_rate,
-            minfac=minfac,
-            jump_interval=jump_interval,
-            jump_interval_duration=adaptation_duration)
+            parameters, cov=cov0, **kwargs)
         # set up the adaptation parameters
         self.setup_adaptation(adaptation_duration, start_step, target_rate)
 
 
-class ATAdaptiveEigenvector(BaseProposal):
-    """Uses the :py:class:`~normal.ATAdativeNormal` with the
-    :py:class:`Eigenvector` proposal.
+class Adaptive2Eigenvector(BaseProposal):
+    """Simultaneously adapts both the covariance used to estimate eigenvectors,
+    and the eigenvalue scaling for producing jumps.
+
+    The :py:class:`~normal.ATAdativeNormal` proposal is used to adapt the
+    covariance, while the :py:class:`AdaptiveEigenvector` proposal is used to
+    adapt the scaling of the resultant eigenvalues.
     """
-    name = "at_adaptive_eigenvector"
+    name = "adaptive2_eigenvector"
     symmetric = True
     _switch_ratio = None
 
@@ -478,16 +426,21 @@ class ATAdaptiveEigenvector(BaseProposal):
                  jump_interval=1, jump_interval_duration=None, **kwargs):
         self.parameters = parameters
         self.adaptation_duration = adaptation_duration
-        self.switch_ratio = switch_ratio
         self.set_jump_interval(jump_interval, jump_interval_duration)
+        self.switch_ratio = switch_ratio
         # figure out which kwargs to pass to the ATAdaptiveNormal proposal
         # and which to pass to the Eigenvector
         sig = inspect.signature(ATAdaptiveNormal)
         possible_akwargs = set([arg for arg, spec in sig.parameters.items()
                                 if spec.default is not spec.empty])
-        sig = inspect.signature(Eigenvector)
+        sig = inspect.signature(AdaptiveEigenvector)
         possible_ekwargs = set([arg for arg, spec in sig.parameters.items()
-                                if spec.default is not spec.empty])
+                                if spec.default is not spec.empty
+                                and spec.kind != spec.VAR_KEYWORD])
+        sig = inspect.signature(Eigenvector)
+        possible_ekwargs |= set([arg for arg, spec in sig.parameters.items()
+                                 if spec.default is not spec.empty
+                                and spec.kind != spec.VAR_KEYWORD])
         akwargs = {arg: kwargs[arg] for arg in possible_akwargs
                    if arg in kwargs}
         ekwargs = {arg: kwargs[arg] for arg in possible_ekwargs
@@ -503,7 +456,10 @@ class ATAdaptiveEigenvector(BaseProposal):
                        / sum(self.switch_ratio))
         self._adaptivep = ATAdaptiveNormal(parameters, adaptdur,
                                            **akwargs)
-        self._eigenvecp = Eigenvector(parameters, **ekwargs)
+        # parameters for adapting the eigenvector proposal
+        adaptdur = int(adaptation_duration * self.switch_ratio[1]
+                       / sum(self.switch_ratio))
+        self._eigenvecp = AdaptiveEigenvector(parameters, adaptdur, **ekwargs)
         # ensure both proposals are using the same bit generator as this; the
         # following will just create a new bit generator using a random seed;
         # this may be changed later if the bit generator is set
@@ -532,6 +488,11 @@ class ATAdaptiveEigenvector(BaseProposal):
 
     @switch_ratio.setter
     def switch_ratio(self, switch_ratio):
+        if self.nsteps > 0:
+            raise ValueError("cannot set switch ratio after the proposal has "
+                             "been used, as this affects the adaptation "
+                             "duration and decay factors of the "
+                             "ATAdaptiveNormal and Eigenvector adaptation")
         if isinstance(switch_ratio, tuple):
             a, e = map(int, switch_ratio)
         elif switch_ratio == 0:
@@ -631,7 +592,6 @@ class ATAdaptiveEigenvector(BaseProposal):
     @property
     def state(self):
         state = {'random_state': self.random_state,
-                 'switch_ratio': self.switch_ratio,
                  'eigenactive': self._eigenactive,
                  'active_steps': self._active_steps,
                  'nsteps': self.nsteps,
@@ -643,7 +603,6 @@ class ATAdaptiveEigenvector(BaseProposal):
 
     def set_state(state):
         self.random_state = state['random_state']
-        self.switch_ratio = switch_ratio
         self._eigenactive = state['eigenactive']
         self._active_steps = state['active_steps']
         self.nsteps = state['nsteps']
