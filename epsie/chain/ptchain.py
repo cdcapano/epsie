@@ -56,6 +56,9 @@ class ParallelTemperedChain(BaseChain):
     adaptive_annealer : object, optional
         Adaptive annealing that adjusts the temperature levels during runtime.
         By default `None`, meaning no annealing.
+    reset_proposals : bool, optional
+        Whether to reset proposals' adaptation after each swap. By default
+        no reset.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
         Use the given random bit generator for generating random variates. If
         an int or None is provided, a generator will be created instead using
@@ -87,7 +90,8 @@ class ParallelTemperedChain(BaseChain):
     """
 
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
-                 adaptive_annealer=None, bit_generator=None, chain_id=0):
+                 adaptive_annealer=None, reset_proposals=False,
+                 bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
         # store the temp
@@ -101,6 +105,7 @@ class ParallelTemperedChain(BaseChain):
             # note that pass by reference is required here if setting
             # Tmax=infty
             adaptive_annealer.setup_annealing(self.betas)
+        self._reset_proposals = reset_proposals
 
         if self.ntemps > 1:
             # we pass ntemps=ntemps-1 here because there will be ntemps-1
@@ -277,6 +282,11 @@ class ParallelTemperedChain(BaseChain):
     def ntemps(self):
         """Returns the number of temperatures used by the chain."""
         return len(self.betas)
+
+    @property
+    def reset_proposals(self):
+        """Whether to reset proposals' adaptation after each swap."""
+        return self._reset_proposals
 
     def _concatenate_dicts(self, attr):
         """Concatenates dictionary attributes over all of the temperatures.
@@ -569,10 +579,16 @@ class ParallelTemperedChain(BaseChain):
                 chain._active_props = new_active[tk]
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
+            # Reset adaptation for swapped proposals
+            if self.reset_adaptation and tk != swap_index[tk]:
+                chain._reset_proposals()
+
+
         self._temperature_acceptance[ii//self.swap_interval] = {
             'acceptance_ratio': ars}
         self._temperature_swaps[ii//self.swap_interval] = {
             'swap_index': swap_index}
+
         # for adaptive PT adjust the temperature leves
         if self.adaptive_annealer is not None:
             self.adaptive_annealer(self)

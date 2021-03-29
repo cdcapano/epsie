@@ -414,6 +414,15 @@ class Chain(BaseChain):
         self._lastclear = self._iteration
         return self
 
+    def _reset_proposals(self):
+        """Reset the chain's adaptive proposals to the initial values."""
+        for proposal in self.proposal_dist.proposals:
+            # non-adaptive proposals will yield an attribute error
+            try:
+                proposal.reset_adaptation()
+            except AttributeError:
+                pass
+
     def __getitem__(self, index):
         """Returns all of the chain data at the requested index."""
         index = (-1)**(index < 0) * (index % len(self))
