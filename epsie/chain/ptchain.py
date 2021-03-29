@@ -533,7 +533,7 @@ class ParallelTemperedChain(BaseChain):
                 ar = 1.
                 swap = True
             else:
-                ar = numpy.exp(dbetas[tj]*(loglj - loglk))
+                ar = numpy.exp(logar)
                 u = self.random_generator.uniform()
                 swap = u <= ar
             if swap:
