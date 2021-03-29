@@ -580,7 +580,7 @@ class ParallelTemperedChain(BaseChain):
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
             # Reset adaptation for swapped proposals
-            if self.reset_adaptation and tk != swap_index[tk]:
+            if self.reset_proposals and tk != swap_index[tk]:
                 chain._reset_proposals()
 
 

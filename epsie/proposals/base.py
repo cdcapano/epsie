@@ -448,7 +448,7 @@ class BaseAdaptiveSupport(ABC):
             raise NotImplementedError("Proposal '{}' does not support "
                                       "resetting the adaptation."
                                       .format(self.name))
-        self.start_step += self.nsteps
+        self.start_step = self.nsteps
         for attr, val in self._initial_proposal_params.items():
             setattr(self, attr, val)
 

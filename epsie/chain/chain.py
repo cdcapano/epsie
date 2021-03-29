@@ -419,7 +419,7 @@ class Chain(BaseChain):
         for proposal in self.proposal_dist.proposals:
             # non-adaptive proposals will yield an attribute error
             try:
-                proposal.reset_adaptation()
+                proposal._reset_adaptation()
             except AttributeError:
                 pass
 
