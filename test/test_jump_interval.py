@@ -35,8 +35,7 @@ def _setup_proposal(proposal_name, jump_interval, params):
         return Normal(params, jump_interval=jump_interval,
                       jump_interval_duration=duration)
     elif proposal_name == 'eigenvector':
-        return Eigenvector(params, stability_duration=STABILITY_DURATION,
-                           jump_interval=jump_interval,
+        return Eigenvector(params, jump_interval=jump_interval,
                            jump_interval_duration=duration)
     elif proposal_name == 'bounded_normal':
         bounds = {'x0': (-20, 20), 'x1': (-40, 40)}

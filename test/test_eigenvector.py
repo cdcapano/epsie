@@ -29,7 +29,6 @@ from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
-STABILITY_DURATION = 70
 ADAPTATION_DURATION = 32
 SWAP_INTERVAL = 1
 
@@ -38,10 +37,9 @@ def _setup_proposal(model, proposal_name, params=None):
     if params is None:
         params = model.params
     if proposal_name == 'eigenvector':
-        return Eigenvector(params, STABILITY_DURATION)
+        return Eigenvector(params)
     elif proposal_name == 'adaptive_eigenvector':
-        return AdaptiveEigenvector(params, STABILITY_DURATION,
-                                   ADAPTATION_DURATION)
+        return AdaptiveEigenvector(params, ADAPTATION_DURATION)
     else:
         return -1
 
@@ -65,9 +63,7 @@ def _test_scale_changes(nprocs, proposal, model):
     """
     # we'll just use the PTSampler default setup from the ptsampler tests
     sampler = _create_sampler(model, nprocs, proposals=[proposal])
-    # run the sampler through its stabilisation phase
-    sampler.run(STABILITY_DURATION)
-
+    # get the initial eigenvalues
     initial_eigvals = numpy.zeros((sampler.nchains, sampler.ntemps,
                                   len(proposal.parameters)))
     for ii, chain in enumerate(sampler.chains):
@@ -83,7 +79,7 @@ def _test_scale_changes(nprocs, proposal, model):
             thisprop = subchain.proposal_dist.proposals[0]
             current_eigvals[ii, jj, :] = thisprop._eigvals
     assert (initial_eigvals != current_eigvals).all()
-    # vea adaptive proposals shut the adaptation after the adaption duration
+    # adaptive proposals shut the adaptation after the adaption duration
     if proposal.name.startswith('adaptive'):
         # now run past the adaptation duration; since we have gone past it, the
         # standard deviations should no longer change
@@ -104,16 +100,14 @@ def _test_scale_changes(nprocs, proposal, model):
 @pytest.mark.parametrize('proposal_name', ['eigenvector',
                                            'adaptive_eigenvector'])
 def test_chains(nprocs, proposal_name):
-    """Runs the PTSampler ``test_chains`` test using the adaptive normal
-    proposal.
+    """Runs the PTSampler ``test_chains`` test.
     """
     model = Model()
     # we'll just use the adaptive normal for one of the params, to test
     # that using mixed proposals works
     proposal = _setup_proposal(model, proposal_name,
                                params=[list(model.params)[0]])
-    _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal],
-                 init_iters=STABILITY_DURATION-2)
+    _test_chains(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -124,8 +118,7 @@ def test_checkpointing(nprocs, proposal_name):
     """
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
-    _test_checkpointing(Model, nprocs, proposals=[proposal],
-                        init_iters=STABILITY_DURATION-2)
+    _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -136,8 +129,7 @@ def test_seed(nprocs, proposal_name):
     """
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
-    _test_seed(Model, nprocs, proposals=[proposal],
-               init_iters=STABILITY_DURATION-2)
+    _test_seed(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -149,5 +141,4 @@ def test_clear_memory(nprocs, proposal_name):
     """
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
-    _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal],
-                       init_iters=STABILITY_DURATION-2)
+    _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])

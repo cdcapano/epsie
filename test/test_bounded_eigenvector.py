@@ -30,7 +30,6 @@ from test_ptsampler import test_seed as _test_seed
 from test_ptsampler import test_clear_memory as _test_clear_memory
 
 
-STABILITY_DURATION = 64
 ADAPTATION_DURATION = 16
 SWAP_INTERVAL = 1
 
@@ -39,10 +38,10 @@ def _setup_proposal(model, proposal_name, boundaries, params=None):
     if params is None:
         params = model.params
     if proposal_name == 'bounded_eigenvector':
-        return BoundedEigenvector(params, boundaries, STABILITY_DURATION)
+        return BoundedEigenvector(params, boundaries)
     elif proposal_name == 'adaptive_bounded_eigenvector':
         return AdaptiveBoundedEigenvector(
-            params, boundaries, STABILITY_DURATION, ADAPTATION_DURATION)
+            params, boundaries, ADAPTATION_DURATION)
     else:
         raise KeyError("unrecognized proposal name {}".format(proposal_name))
 
@@ -63,9 +62,9 @@ def test_jumps_in_bounds(proposal_name, xmin, xmax):
     # create the proposal and the sampler
     proposal = _setup_proposal(model, proposal_name, bounds)
     sampler = _create_sampler(model, nprocs=1, proposals=[proposal])
-    # Run the sampler through its stability and adaptation phase
+    # Run the sampler through its adaptation phase
     # This will throw an exception in case any suggested points out of bounds
-    sampler.run(STABILITY_DURATION + ADAPTATION_DURATION)
+    sampler.run(ADAPTATION_DURATION)
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_eigenvector',
@@ -77,8 +76,7 @@ def test_checkpointing(proposal_name, nprocs):
     """
     model = Model()
     proposal = _setup_proposal(model, proposal_name, model.prior_bounds)
-    _test_checkpointing(Model, nprocs, proposals=[proposal],
-                        init_iters=STABILITY_DURATION)
+    _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_eigenvector',
@@ -89,8 +87,7 @@ def test_seed(proposal_name, nprocs):
     """
     model = Model()
     proposal = _setup_proposal(model, proposal_name, model.prior_bounds)
-    _test_seed(Model, nprocs, proposals=[proposal],
-               init_iters=STABILITY_DURATION)
+    _test_seed(Model, nprocs, proposals=[proposal])
 
 
 @pytest.mark.parametrize('proposal_name', ['bounded_eigenvector',
@@ -102,5 +99,4 @@ def test_clear_memory(proposal_name, nprocs):
     """
     model = Model()
     proposal = _setup_proposal(model, proposal_name, model.prior_bounds)
-    _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal],
-                       init_iters=STABILITY_DURATION)
+    _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])

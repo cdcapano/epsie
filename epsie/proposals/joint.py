@@ -19,7 +19,7 @@ from .base import BaseProposal
 
 
 class JointProposal(BaseProposal):
-    """A collection of jump proposals for multiple parameters.
+    r"""A collection of jump proposals for multiple parameters.
 
     Parameters
     ----------
