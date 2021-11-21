@@ -31,3 +31,7 @@ create their own jump proposals.
 
 For more information, see the documentation at:
 https://cdcapano.github.io/epsie
+
+Attribution
+-----------
+If you use EPSIE in your work, please cite DOI 10.5281/zenodo.5717225 for the latest version, or the DOI specific to the release you used. Authorship, citation format, and DOI for all versions are available at `Zenodo <https://doi.org/10.5281/zenodo.5717225>`_.
