@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>epsie.proposals.nested_transdimensional &mdash; EPSIE 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+      <li>epsie.proposals.nested_transdimensional</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for epsie.proposals.nested_transdimensional</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2020 Richard Stiskalek, Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.  #</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BaseProposal</span>
+
+
+<div class="viewcode-block" id="NestedTransdimensional"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.nested_transdimensional.NestedTransdimensional">[docs]</a><span class="k">class</span> <span class="nc">NestedTransdimensional</span><span class="p">(</span><span class="n">BaseProposal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Nested transdimensional proposal.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    model_proposal : proposal</span>
+<span class="sd">        The model hopping proposals. This must be a discrete, bounded proposal.</span>
+<span class="sd">    proposals : list of proposals</span>
+<span class="sd">        The transdimensional proposals that are being turned on/off.</span>
+<span class="sd">    birth_distributions: list of objects</span>
+<span class="sd">        Objects that match transdimensional proposals and are used to birth</span>
+<span class="sd">        new samples and evaluate their proposal probability. Must use structure</span>
+<span class="sd">        as given in the example.</span>
+<span class="sd">    bit_generator : BIT_GENERATOR or int, optional</span>
+<span class="sd">        The random bit generator to use, or an integer/None. If the latter, a</span>
+<span class="sd">        bit generator will be created using</span>
+<span class="sd">        :py:func:`epsie.create_bit_generator`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    proposals: list of proposals</span>
+<span class="sd">        The constituent in-model proposals.</span>
+<span class="sd">    model_proposal: epsie.proposals.discrete.BoundedDiscrete</span>
+<span class="sd">        The model hopping proposal</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;nested_transdimensional&#39;</span>
+    <span class="n">transdimensional</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">model_proposal</span><span class="p">,</span> <span class="n">proposals</span><span class="p">,</span>
+                 <span class="n">birth_distributions</span><span class="p">,</span> <span class="n">bit_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_proposal</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_generator</span> <span class="o">=</span> <span class="n">bit_generator</span>
+        <span class="c1"># store the proposals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_proposals</span><span class="p">(</span><span class="n">model_proposal</span><span class="p">,</span> <span class="n">proposals</span><span class="p">)</span>
+        <span class="c1"># store the birth distributions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_births</span><span class="p">(</span><span class="n">birth_distributions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_jump_interval</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_proposals</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">model_proposal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_proposal</span>
+
+<div class="viewcode-block" id="NestedTransdimensional.setup_proposals"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.nested_transdimensional.NestedTransdimensional.setup_proposals">[docs]</a>    <span class="k">def</span> <span class="nf">setup_proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_proposal</span><span class="p">,</span> <span class="n">proposals</span><span class="p">):</span>
+        <span class="c1"># let all proposals share the same random generator</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">proposals</span><span class="p">:</span>
+            <span class="n">prop</span><span class="o">.</span><span class="n">bit_generator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_generator</span>
+            <span class="c1"># check the proposal parameters</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">par</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Proposal parameters </span><span class="si">{}</span><span class="s2"> not found &quot;</span>
+                                 <span class="s2">&quot; in `parameters`.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="c1"># check the model proposal</span>
+        <span class="n">model_proposal</span><span class="o">.</span><span class="n">bit_generator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_generator</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model jump proposal should have single param&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_proposal</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model jump proposal parameter </span><span class="si">{}</span><span class="s2"> not found in &quot;</span>
+                             <span class="s2">&quot;`parameters`.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                 <span class="n">model_proposal</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proposals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">proposals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_proposal</span> <span class="o">=</span> <span class="n">model_proposal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_symmetric</span> <span class="o">=</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">symmetric</span> <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">proposals</span><span class="p">)</span> <span class="ow">and</span>
+                           <span class="n">model_proposal</span><span class="o">.</span><span class="n">symmetric</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NestedTransdimensional.setup_births"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.nested_transdimensional.NestedTransdimensional.setup_births">[docs]</a>    <span class="k">def</span> <span class="nf">setup_births</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">birth_distributions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Matches birth distributions to proposals. Note that order of</span>
+<span class="sd">        parameters matters&quot;&quot;&quot;</span>
+        <span class="c1"># check all transdimensional proposals have their birth dists</span>
+        <span class="c1"># and match the birth distribution to the given proposal. Also ensure</span>
+        <span class="c1"># that no transdimensional proposal has more than a single birth dist</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+            <span class="n">matched</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">birth_distributions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+                    <span class="n">dist</span><span class="o">.</span><span class="n">bit_generator</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">bit_generator</span>
+                    <span class="n">prop</span><span class="o">.</span><span class="n">birth_distribution</span> <span class="o">=</span> <span class="n">dist</span>
+                    <span class="n">matched</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">matched</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameters </span><span class="si">{}</span><span class="s2"> miss `birth dist`. Note &quot;</span>
+                                 <span class="s2">&quot;that order matters&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">matched</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameters </span><span class="si">{}</span><span class="s2"> have multiple&quot;</span>
+                                 <span class="s2">&quot;`birth dists`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetric</span>
+
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="n">lp</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="c1"># logpdf on the model jump</span>
+        <span class="n">lp</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">logpdf</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span> <span class="n">xi</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]},</span>
+                                         <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span> <span class="n">givenx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]})</span>
+        <span class="c1"># logpdf on the transdimensional moves</span>
+        <span class="n">current_state</span> <span class="o">=</span> <span class="n">givenx</span><span class="p">[</span><span class="s1">&#39;_state&#39;</span><span class="p">]</span>
+        <span class="n">proposed_state</span> <span class="o">=</span> <span class="n">xi</span><span class="p">[</span><span class="s1">&#39;_state&#39;</span><span class="p">]</span>
+        <span class="n">dk</span> <span class="o">=</span> <span class="n">xi</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">givenx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dk</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">current_state</span><span class="p">),</span>
+                                     <span class="n">proposed_state</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">[</span><span class="n">mask</span><span class="p">]:</span>
+                <span class="n">lp</span> <span class="o">+=</span> <span class="n">prop</span><span class="o">.</span><span class="n">birth_distribution</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span>
+                    <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">})</span>
+        <span class="c1"># logpdf on transdimensional moves that were only updated</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">current_state</span><span class="p">,</span>
+                                                     <span class="n">proposed_state</span><span class="p">)]:</span>
+            <span class="n">lp</span> <span class="o">+=</span> <span class="n">prop</span><span class="o">.</span><span class="n">logpdf</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">},</span>
+                              <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">lp</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="c1"># check that proposal has been stepped in at least twice in a row</span>
+        <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">iteration</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+                <span class="n">current</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">positions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">previous</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">start_position</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">previous</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">positions</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+                <span class="n">pars</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span>
+                <span class="n">condition1</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">previous</span><span class="p">[</span><span class="n">p</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pars</span><span class="p">)</span>
+                <span class="n">condition2</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">current</span><span class="p">[</span><span class="n">p</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pars</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">condition1</span> <span class="ow">and</span> <span class="n">condition2</span><span class="p">:</span>
+                    <span class="n">prop</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="n">current_state</span> <span class="o">=</span> <span class="n">fromx</span><span class="p">[</span><span class="s1">&#39;_state&#39;</span><span class="p">]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">fromx</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">jump</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span> <span class="n">fromx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]}))</span>
+
+        <span class="n">dk</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span> <span class="o">-</span> <span class="n">fromx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dk</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dk</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">indx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">current_state</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">dk</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">indx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">current_state</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># randomly pick which proposals will be turned on/off</span>
+            <span class="n">proposed_state</span> <span class="o">=</span> <span class="n">current_state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">indx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">dk</span><span class="p">),</span>
+                                                <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+            <span class="n">proposed_state</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">proposed_state</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+            <span class="c1"># create the boolean mask for which proposals are being flipped</span>
+            <span class="k">if</span> <span class="n">dk</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">bd_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">current_state</span><span class="p">),</span>
+                                            <span class="n">proposed_state</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bd_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">current_state</span><span class="p">,</span>
+                                            <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">proposed_state</span><span class="p">))</span>
+            <span class="c1"># update the out dictionary</span>
+            <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">[</span><span class="n">bd_mask</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">dk</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">birth_distribution</span><span class="o">.</span><span class="n">birth</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">dk</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">proposed_state</span> <span class="o">=</span> <span class="n">current_state</span>
+        <span class="c1"># do an update move on all proposals that are not nans/just activated</span>
+        <span class="n">update_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">current_state</span><span class="p">,</span> <span class="n">proposed_state</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">[</span><span class="n">update_mask</span><span class="p">]:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">jump</span><span class="p">({</span><span class="n">p</span><span class="p">:</span> <span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">}))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_state&#39;</span><span class="p">:</span> <span class="n">proposed_state</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># get all of the proposals state</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">birth_state</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span> <span class="n">prop</span><span class="o">.</span><span class="n">state</span><span class="p">})</span>
+            <span class="c1"># Get the random states of birth dists</span>
+            <span class="n">birth_state</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span> <span class="n">prop</span><span class="o">.</span><span class="n">birth_distribution</span><span class="o">.</span><span class="n">state</span><span class="p">})</span>
+
+        <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_births&#39;</span><span class="p">:</span> <span class="n">birth_state</span><span class="p">})</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">frozenset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">state</span><span class="p">})</span>
+        <span class="c1"># add the global random state</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<div class="viewcode-block" id="NestedTransdimensional.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.nested_transdimensional.NestedTransdimensional.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="c1"># set each proposals&#39; state, birth dist&#39;s state and proposal counters</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+            <span class="n">prop</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">)])</span>
+            <span class="n">prop</span><span class="o">.</span><span class="n">birth_distribution</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">&#39;_births&#39;</span><span class="p">][</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">parameters</span><span class="p">)])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_proposal</span><span class="o">.</span><span class="n">parameters</span><span class="p">)])</span>
+        <span class="c1"># set the state of the random number generator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: 1.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+          
+          <dd><a href="../latest/index.html">latest</a></dd>
+          
+        
+           <strong> 
+          <dd><a href="">1.0</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

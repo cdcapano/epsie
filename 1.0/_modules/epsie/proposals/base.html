@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>epsie.proposals.base &mdash; EPSIE 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+      <li>epsie.proposals.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for epsie.proposals.base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2019  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">Generator</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="kn">import</span> <span class="nn">epsie</span>
+
+
+<div class="viewcode-block" id="BaseRandom"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseRandom">[docs]</a><span class="k">class</span> <span class="nc">BaseRandom</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for handling random number generation for proposals</span>
+<span class="sd">    ans birth distributions.</span>
+
+<span class="sd">    All proposals must inherit from this class, as it handles random number</span>
+<span class="sd">    generation.</span>
+
+<span class="sd">    .. warning ::</span>
+<span class="sd">        All proposals must use the random number generator provided by this</span>
+<span class="sd">        class (see the ``random_generator`` attribute) for creating random</span>
+<span class="sd">        numbers. **Do not attempt to use scipy/numpy&#39;s random number</span>
+<span class="sd">        generator.** Use of any other generator may result in chains not being</span>
+<span class="sd">        independent of each other when run in a parallel environment.</span>
+
+<span class="sd">    In addition to the abstract methods/properties, all samplers must set</span>
+<span class="sd">    a ``parameters`` attribute. This is a list of the names of the parameters</span>
+<span class="sd">    the proposal produces jumps and births for.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bit_generator</span>
+<span class="sd">    random_generator</span>
+<span class="sd">    random_state</span>
+<span class="sd">    parameters</span>
+<span class="sd">    state</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_parameters</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bit_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The random bit generator instance being used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bit_generator</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bit_generator</span> <span class="o">=</span> <span class="n">epsie</span><span class="o">.</span><span class="n">create_bit_generator</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bit_generator</span>
+
+    <span class="nd">@bit_generator</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">bit_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bit_generator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the random bit generator.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bit_generator : :py:class:`epsie.BIT_GENERATOR`, int, or None</span>
+<span class="sd">            Either the bit generator to use or an integer/None. If the latter,</span>
+<span class="sd">            a generator will be created by passing ``bit_generator`` as the</span>
+<span class="sd">            ``seed`` argument to :py:func:`epsie.create_bit_generator`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bit_generator</span><span class="p">,</span> <span class="n">epsie</span><span class="o">.</span><span class="n">BIT_GENERATOR</span><span class="p">):</span>
+            <span class="n">bit_generator</span> <span class="o">=</span> <span class="n">epsie</span><span class="o">.</span><span class="n">create_bit_generator</span><span class="p">(</span><span class="n">bit_generator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bit_generator</span> <span class="o">=</span> <span class="n">bit_generator</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">random_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The random number generator.</span>
+
+<span class="sd">        This is an instance of :py:class:`numpy.random.Generator` that is</span>
+<span class="sd">        derived from the bit generator. It provides methods to create random</span>
+<span class="sd">        draws from various distributions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Generator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bit_generator</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The current state of the random bit generator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_generator</span><span class="o">.</span><span class="n">state</span>
+
+    <span class="nd">@random_state</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">random_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the state of bit_generator.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state : dict</span>
+<span class="sd">            Dictionary giving the state to set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_generator</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all information needed to produce a deterministic jump.</span>
+<span class="sd">        The information returned by this property should be everything needed</span>
+<span class="sd">        such that if you pass it to set_state, you will get the same proposal</span>
+<span class="sd">        on the next call of jump.</span>
+<span class="sd">        The information should be returned as a dictionary. At the very least,</span>
+<span class="sd">        this should include the current state of the proposal&#39;s</span>
+<span class="sd">        ``random_state``. For adaptive proposals, this may also include the</span>
+<span class="sd">        buffer used to adjust the proposal distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BaseRandom.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseRandom.set_state">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set all information needed to produce a deterministic jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sorted tuple of the parameters that proposals are produced for.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;no parameters set&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
+
+    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the parameters.</span>
+
+<span class="sd">        The parameters are stored as a tuple.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameters : (list of) str</span>
+<span class="sd">            The names of the parameters. This may either be a list of strings,</span>
+<span class="sd">            or (for a single parameter), a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseProposal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseProposal">[docs]</a><span class="k">class</span> <span class="nc">BaseProposal</span><span class="p">(</span><span class="n">BaseRandom</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for all proposal classes.</span>
+
+<span class="sd">    All proposals must inherit from this class, as it lays out all of the</span>
+<span class="sd">    functions/attributes that a sampler will try to access.</span>
+
+<span class="sd">    In addition to the abstract methods/properties, all samplers must set</span>
+<span class="sd">    a ``parameters`` attribute. This is a list of the names of the parameters</span>
+<span class="sd">    the proposal produces jumps for.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    symmetric</span>
+<span class="sd">    state</span>
+<span class="sd">    nsteps</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_nsteps</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_jump_interval</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_burnin_duration</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_jump_interval_duration</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nsteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns number of update iterations with this proposal.</span>
+
+<span class="sd">        While for a standard adaptive MCMC this will match the length of the</span>
+<span class="sd">        chain for a transdimensional proposal it will differ.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">jump_interval</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">jump_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the jump interval for a proposal.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jump_interval</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">jump_interval_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of steps after which no more fast jumps are</span>
+<span class="sd">        performed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jump_interval_duration</span>
+
+<div class="viewcode-block" id="BaseProposal.set_jump_interval"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseProposal.set_jump_interval">[docs]</a>    <span class="k">def</span> <span class="nf">set_jump_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jump_interval</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the jump interval and the duration.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">jump_interval</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;``jump_interval`` must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jump_interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">jump_interval</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">jump_interval</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_jump_interval_duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For &#39;</span><span class="si">{}</span><span class="s2">&#39; must provide &quot;</span>
+                                 <span class="s2">&quot;``jump_interval_duration`` if jump interval &quot;</span>
+                                 <span class="s2">&quot;is not 1&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Boolean indicating whether the proposal distribution is symmetric.</span>
+
+<span class="sd">        A jump proposal is symmetric if the proposal probability</span>
+<span class="sd">        density has the property that :math:`p(x&#39;|x) = p(x|x&#39;)`,</span>
+<span class="sd">        where :math:`x` is the current position, :math:`x&#39;` is the proposed</span>
+<span class="sd">        position. In this, case, the Metropolis-Hastings ratio simplfies to</span>
+<span class="sd">        just the ratio of posterior values at the two points.</span>
+
+<span class="sd">        Note that an adaptive proposal may still be symmetric. Symmetry only</span>
+<span class="sd">        means that the current state of the proposal satisfies the above</span>
+<span class="sd">        condition; it does not necessarily mean that transitions between states</span>
+<span class="sd">        be symmetric.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_call_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decides whether to propose a unique jump with this proposal</span>
+<span class="sd">        or whether to copy the last position.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">jump_interval</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">dk</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jump_interval_duration</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">jump_interval</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="BaseProposal.jump"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseProposal.jump">[docs]</a>    <span class="k">def</span> <span class="nf">jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Depending on the current number of chain iterations and the</span>
+<span class="sd">        ``jump_interval`` either calls the ``_jump`` method to provide a</span>
+<span class="sd">        random sample or returns ``fromx``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_jump</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">fromx</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jump</span><span class="p">(</span><span class="n">fromx</span><span class="p">)</span></div>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This should provide random samples from the proposal distribution.</span>
+
+<span class="sd">        Samples should be returned as a dictionary mapping parameters to</span>
+<span class="sd">        the proposed jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BaseProposal.logpdf"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseProposal.logpdf">[docs]</a>    <span class="k">def</span> <span class="nf">logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Depending on the current number of chain iterations and the</span>
+<span class="sd">        ``jump_interval`` either calls the ``_logpdf`` method or returns 0.0</span>
+<span class="sd">        as the jump from ``givenx`` to ``xi`` was fully determinate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_jump</span><span class="p">():</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">)</span></div>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The log pdf of the proposal distribution at a point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xi : dict</span>
+<span class="sd">            Dictionary mapping parameter names to values to evaluate.</span>
+<span class="sd">        givenx : dict</span>
+<span class="sd">            Dictionary mapping parameter names to values of the point from</span>
+<span class="sd">            which ``xi`` is evaluated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float :</span>
+<span class="sd">            The log pdf of jumping from ``givenx`` to ``xi``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BaseProposal.pdf"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseProposal.pdf">[docs]</a>    <span class="k">def</span> <span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The pdf of the proposal at the given values.</span>
+
+<span class="sd">        This just expoentiates ``logpdf``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xi : dict</span>
+<span class="sd">            Dictionary mapping parameter names to values to evaluate.</span>
+<span class="sd">        givenx : dict, optional</span>
+<span class="sd">            Dictionary mapping parameter names to values of the point from</span>
+<span class="sd">            which ``xi`` is evaluated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float :</span>
+<span class="sd">            The pdf of jumping from ``givenx`` to ``xi``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BaseProposal.update"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseProposal.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Depending on the current number of chain iterations and the</span>
+<span class="sd">        ``jump_interval`` calls the ``_update`` method if the proposal</span>
+<span class="sd">        distribution was used to sample a new position.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_jump</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># self.nsteps is self._nsteps // self.jump_interval</span></div>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the state of the proposal distribution after a jump.</span>
+
+<span class="sd">        This method may optionally be implemented by a proposal. It is called</span>
+<span class="sd">        by the Markov chains just after a jump is evaluated. It can be used by,</span>
+<span class="sd">        e.g., adaptive jump proposals that change their state depending on</span>
+<span class="sd">        the history of the chain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BaseBirth"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseBirth">[docs]</a><span class="k">class</span> <span class="nc">BaseBirth</span><span class="p">(</span><span class="n">BaseRandom</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for all birth classes.</span>
+
+<span class="sd">    All birth distributions must inherit from this class, as it lays out all of</span>
+<span class="sd">    the functions/attributes that a sampler will try to access.</span>
+
+<span class="sd">    In addition to the abstract methods/properties, all samplers must set</span>
+<span class="sd">    a ``parameters`` attribute. This is a list of the names of the parameters</span>
+<span class="sd">    the proposal produces jumps for.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    symmetric</span>
+<span class="sd">    state</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">birth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This should provide random samples from the birth distribution.</span>
+
+<span class="sd">        Samples should be returned as a dictionary mapping parameters to</span>
+<span class="sd">        the proposed birth.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BaseBirth.logpdf"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseBirth.logpdf">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The log pdf of the birth distribution at a point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xi : dict</span>
+<span class="sd">            Dictionary mapping parameter names to values to evaluate.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float :</span>
+<span class="sd">            The log pdf of a birth at ``xi``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseBirth.pdf"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseBirth.pdf">[docs]</a>    <span class="k">def</span> <span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The pdf of the birth proposal at the given values.</span>
+
+<span class="sd">        This just expoentiates ``logpdf``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xi : dict</span>
+<span class="sd">            Dictionary mapping parameter names to values to evaluate.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float :</span>
+<span class="sd">            The pdf of a birth at ``xi``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BaseBirth.update"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseBirth.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the state of the birth distribution after a jump.</span>
+
+<span class="sd">        This method may optionally be implemented by a birth. It is called</span>
+<span class="sd">        after a birth is evaluated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="BaseAdaptiveSupport"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.base.BaseAdaptiveSupport">[docs]</a><span class="k">class</span> <span class="nc">BaseAdaptiveSupport</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for all proposal classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_start_step</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_adaptation_duration</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_target_rate</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The iteration that the adaption begins.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_step</span>
+
+    <span class="nd">@start_step</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">start_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the start iteration, making sure it is &gt;= 1.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">start_step</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;start_step must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_step</span> <span class="o">=</span> <span class="n">start_step</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">adaptation_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The adaptation duration used.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adaptation_duration</span>
+
+    <span class="nd">@adaptation_duration</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">adaptation_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the adaptation duration to the given value, making sure it is</span>
+<span class="sd">        larger than 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">adaptation_duration</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;adaptation duration must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adaptation_duration</span> <span class="o">=</span> <span class="n">adaptation_duration</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">target_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Target acceptance ratio.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_rate</span>
+
+    <span class="nd">@target_rate</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">target_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_rate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the target rate, making sure its more than 0 and less than 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">target_rate</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target acceptance rate must be in range (0, 1)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the proposal distribution and prepares the proposal for the</span>
+<span class="sd">        next jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: 1.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+          
+          <dd><a href="../latest/index.html">latest</a></dd>
+          
+        
+           <strong> 
+          <dd><a href="">1.0</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

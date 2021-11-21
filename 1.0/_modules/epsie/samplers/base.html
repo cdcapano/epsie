@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>epsie.samplers.base &mdash; EPSIE 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+      <li>epsie.samplers.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for epsie.samplers.base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2019  Collin Capano</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="sd">&quot;&quot;&quot;Base class and functions for samplers.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="kn">from</span> <span class="nn">epsie</span> <span class="kn">import</span> <span class="p">(</span><span class="n">create_seed</span><span class="p">,</span> <span class="n">dump_state</span><span class="p">,</span> <span class="n">load_state</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">epsie.proposals</span> <span class="kn">import</span> <span class="n">Normal</span>
+
+
+<div class="viewcode-block" id="BaseSampler"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler">[docs]</a><span class="k">class</span> <span class="nc">BaseSampler</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for samplers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_parameters</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_proposals</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_chains</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_seed</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_pool</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_map</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The sampled parameters as a tuple.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
+
+    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of the proposals used for the sampled parameters.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_proposals</span>
+
+<div class="viewcode-block" id="BaseSampler.set_proposals"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler.set_proposals">[docs]</a>    <span class="k">def</span> <span class="nf">set_proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proposals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_proposal</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">default_proposal_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the proposals for all parameters.</span>
+
+<span class="sd">        If no proposals are given for one or more parameters, the default</span>
+<span class="sd">        proposal will be used for them.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        proposals : list, optional</span>
+<span class="sd">            A list of :py:class:`proposals.BaseProposal` instances. If none</span>
+<span class="sd">            provided, will use the ``default_proposal`` for all parameters.</span>
+<span class="sd">        default_proposal : proposals.BaseProposal type class, optional</span>
+<span class="sd">            The default proposal class to use for parameters that are not</span>
+<span class="sd">            specified in ``proposals``. Default (None) is to use</span>
+<span class="sd">            :py:class:`proposals.Normal`.</span>
+<span class="sd">        default_proposal_args : dict, optional</span>
+<span class="sd">            Dictionary of keyword arguments to pass to the default proposal</span>
+<span class="sd">            when initializing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">proposals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">proposals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">proposals</span> <span class="o">=</span> <span class="n">proposals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># create default proposal instances for the other parameters</span>
+        <span class="k">if</span> <span class="n">default_proposal</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">default_proposal</span> <span class="o">=</span> <span class="n">Normal</span>
+        <span class="k">if</span> <span class="n">default_proposal_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">default_proposal_args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">proposals</span><span class="p">:</span>
+            <span class="n">given_params</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">proposals</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">given_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">missing_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">-</span> <span class="n">given_params</span>
+        <span class="k">if</span> <span class="n">missing_params</span><span class="p">:</span>
+            <span class="n">proposals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">default_proposal</span><span class="p">(</span><span class="n">missing_params</span><span class="p">,</span>
+                                              <span class="o">**</span><span class="n">default_proposal_args</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proposals</span> <span class="o">=</span> <span class="n">proposals</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The model used.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span>
+
+    <span class="nd">@model</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">chains</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of the chains used.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chains</span>
+
+    <span class="nd">@chains</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chains</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chains</span> <span class="o">=</span> <span class="n">chains</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The seed used for the random bit generator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span>
+
+    <span class="nd">@seed</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the seed. If the given seed is None, will create one.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="n">create_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="n">seed</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The pool being used for parallelization.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span>
+
+    <span class="nd">@pool</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pool</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="o">=</span> <span class="n">pool</span>
+        <span class="c1"># set the map function</span>
+        <span class="k">if</span> <span class="n">pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">map_func</span> <span class="o">=</span> <span class="nb">map</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">map_func</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="n">map_func</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nchains</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The number of chains being used.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">niterations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The number of iterations the chains have been run for.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># all of the chains should be at the same iteration, so just use the</span>
+        <span class="c1"># first one</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">iteration</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_concatenate_dicts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Concatenates dictionary attributes over all of the chains.</span>
+
+<span class="sd">        This is a convenience function used by properties such as</span>
+<span class="sd">        ``current_positions`` to gather all of the dictionary attributes from</span>
+<span class="sd">        the chains.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        attr : str</span>
+<span class="sd">            The name of the attribute to get from the chains. The attribute</span>
+<span class="sd">            is assumed to return a dictionary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict :</span>
+<span class="sd">            Dictionary mapping parameters to arrays.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_concatenate_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Concatenates the given attribute over all of the chains.</span>
+
+<span class="sd">        This is a convenience function used by properties such as ``positions``</span>
+<span class="sd">        to gather all of the array attributes from the chains.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        attr : str</span>
+<span class="sd">            The name of the attribute to get from the chains. The attribute</span>
+<span class="sd">            is assumed to return a (structred) array.</span>
+<span class="sd">        item : str or array index, optional</span>
+<span class="sd">            Get a particular item from the (structred) array from each chain</span>
+<span class="sd">            before concatenating.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array :</span>
+<span class="sd">            The returned array sould have ``nchains x niterations`` as the last</span>
+<span class="sd">            two dimensions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The start position of the chains.</span>
+
+<span class="sd">        Will raise a ``ValueError`` is ``set_start`` hasn&#39;t been run.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict :</span>
+<span class="sd">            Dictionary mapping parameters to arrays with shape ``nchains``</span>
+<span class="sd">            giving the starting position of each chain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_dicts</span><span class="p">(</span><span class="s1">&#39;start_position&#39;</span><span class="p">)</span>
+
+    <span class="nd">@start_position</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">start_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the starting position of all of the chains.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : dict</span>
+<span class="sd">            Dictionary mapping parameter names to arrays of values. The arrays</span>
+<span class="sd">            must have shape ``[ntemps x] nchains``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">):</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">start_position</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">positions</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span>
+                                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">}</span>
+
+<div class="viewcode-block" id="BaseSampler.run"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">niterations</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evolves all of the chains by niterations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        niterations : int</span>
+<span class="sd">            The number of iterations to evolve the chains for.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># extend the scratch space for the chains</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">scratchlen</span> <span class="o">+=</span> <span class="nb">max</span><span class="p">(</span><span class="n">niterations</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">scratchlen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># construct arguments for passing to the pool</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">([</span><span class="n">niterations</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">)</span>
+        <span class="c1"># pylint: disable=locally-disabled, not-callable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chains</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span><span class="n">_evolve_chain</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BaseSampler.clear"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clears all of the chains.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lastclear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The iteration that the last clear occurred at.&quot;&quot;&quot;</span>
+        <span class="c1"># all of the chains should of been cleared at the same time, so just</span>
+        <span class="c1"># use the first one</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lastclear</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of positions from all of the chains.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_arrays</span><span class="p">(</span><span class="s1">&#39;positions&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The current position of the chains.</span>
+
+<span class="sd">        This will default to the start position if the chains haven&#39;t been</span>
+<span class="sd">        run yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_dicts</span><span class="p">(</span><span class="s1">&#39;current_position&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of stats from all of the chains.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_arrays</span><span class="p">(</span><span class="s1">&#39;stats&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The current stats of the chains.</span>
+
+<span class="sd">        This will default to the stats of the start positions if the chains</span>
+<span class="sd">        haven&#39;t been run yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_dicts</span><span class="p">(</span><span class="s1">&#39;current_stats&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">blobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of all of the blobs from all of the chains.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_arrays</span><span class="p">(</span><span class="s1">&#39;blobs&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">blobs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">current_blobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The current blob data.</span>
+
+<span class="sd">        This will default to the blob data of the start positions if the</span>
+<span class="sd">        chains haven&#39;t been run yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_dicts</span><span class="p">(</span><span class="s1">&#39;current_blob&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">blobs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">acceptance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The history of all acceptance stats from all of the chains.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concatenate_arrays</span><span class="p">(</span><span class="s1">&#39;acceptance&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The state of all of the chains.</span>
+
+<span class="sd">        Returns a dictionary mapping chain ids to their states.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">chain</span><span class="o">.</span><span class="n">chain_id</span><span class="p">:</span> <span class="n">chain</span><span class="o">.</span><span class="n">state</span> <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">}</span>
+
+<div class="viewcode-block" id="BaseSampler.set_state"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the state of the all of the chains.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state : dict</span>
+<span class="sd">            Dictionary mapping chain id to the state to set the chain to. See</span>
+<span class="sd">            :py:func:`chain.Chain.set_state` for details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">):</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="BaseSampler.checkpoint"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler.checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsetname</span><span class="o">=</span><span class="s1">&#39;sampler_state&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the sampler&#39;s state to an HDF file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fp : :py:class:h5py.File</span>
+<span class="sd">            Open file handler to an hdf5 file. The file handler must have</span>
+<span class="sd">            write permission.</span>
+<span class="sd">        path : str, optional</span>
+<span class="sd">            What group to write the state to in the hdf file. Default is the</span>
+<span class="sd">            top-level.</span>
+<span class="sd">        dsetname : str, optional</span>
+<span class="sd">            The name of dataset to store the state to. Default is</span>
+<span class="sd">            &quot;sampler_state&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dump_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">dsetname</span><span class="o">=</span><span class="n">dsetname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseSampler.set_state_from_checkpoint"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.base.BaseSampler.set_state_from_checkpoint">[docs]</a>    <span class="k">def</span> <span class="nf">set_state_from_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads a state from an HDF file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fp : :py:class:h5py.File</span>
+<span class="sd">            Open file handler to an hdf5 file.</span>
+<span class="sd">        path : str, optional</span>
+<span class="sd">            What group to store the file to in the hdf file. Default is the</span>
+<span class="sd">            top-level (&#39;/&#39;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">load_state</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">))</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_evolve_chain</span><span class="p">(</span><span class="n">niterations_chain</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evolves a chain for some number of iterations.</span>
+
+<span class="sd">    This is used by ``Sampler.run`` to evolve a collection of chains in a</span>
+<span class="sd">    parallel environment. This is not a staticmethod of ``Sampler`` because</span>
+<span class="sd">    such functions need to be picklable when using python&#39;s multiprocessing</span>
+<span class="sd">    pool.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    niterations_chain : tuple of int, chain</span>
+<span class="sd">        The number of iterations to run on the given chain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">niterations</span><span class="p">,</span> <span class="n">chain</span> <span class="o">=</span> <span class="n">niterations_chain</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">niterations</span><span class="p">):</span>
+        <span class="n">chain</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">chain</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: 1.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+          
+          <dd><a href="../latest/index.html">latest</a></dd>
+          
+        
+           <strong> 
+          <dd><a href="">1.0</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

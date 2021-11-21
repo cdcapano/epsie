@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;no title&gt; &mdash; EPSIE 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> EPSIE
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epsie.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EPSIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>&lt;no title&gt;</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/cdcapano/epsie/blob/master/docs/proposal_list.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.Normal" title="epsie.proposals.normal.Normal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Normal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.eigenvector.Eigenvector" title="epsie.proposals.eigenvector.Eigenvector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Eigenvector</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_eigenvector.BoundedEigenvector" title="epsie.proposals.bounded_eigenvector.BoundedEigenvector"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedEigenvector</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.SSAdaptiveNormal" title="epsie.proposals.normal.SSAdaptiveNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.AdaptiveNormal" title="epsie.proposals.normal.AdaptiveNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.BoundedNormal" title="epsie.proposals.bounded_normal.BoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.SSAdaptiveBoundedNormal" title="epsie.proposals.bounded_normal.SSAdaptiveBoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveBoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.AdaptiveBoundedNormal" title="epsie.proposals.bounded_normal.AdaptiveBoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveBoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.Angular" title="epsie.proposals.angular.Angular"><code class="xref py py-class docutils literal notranslate"><span class="pre">Angular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.SSAdaptiveAngular" title="epsie.proposals.angular.SSAdaptiveAngular"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveAngular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.AdaptiveAngular" title="epsie.proposals.angular.AdaptiveAngular"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveAngular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.NormalDiscrete" title="epsie.proposals.discrete.NormalDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">NormalDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.SSAdaptiveNormalDiscrete" title="epsie.proposals.discrete.SSAdaptiveNormalDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveNormalDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.AdaptiveNormalDiscrete" title="epsie.proposals.discrete.AdaptiveNormalDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveNormalDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.BoundedDiscrete" title="epsie.proposals.discrete.BoundedDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoundedDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.SSAdaptiveBoundedDiscrete" title="epsie.proposals.discrete.SSAdaptiveBoundedDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">SSAdaptiveBoundedDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.discrete.AdaptiveBoundedDiscrete" title="epsie.proposals.discrete.AdaptiveBoundedDiscrete"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveBoundedDiscrete</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.nested_transdimensional.NestedTransdimensional" title="epsie.proposals.nested_transdimensional.NestedTransdimensional"><code class="xref py py-class docutils literal notranslate"><span class="pre">NestedTransdimensional</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.normal.ATAdaptiveNormal" title="epsie.proposals.normal.ATAdaptiveNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATAdaptiveNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.bounded_normal.ATAdaptiveBoundedNormal" title="epsie.proposals.bounded_normal.ATAdaptiveBoundedNormal"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATAdaptiveBoundedNormal</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.angular.ATAdaptiveAngular" title="epsie.proposals.angular.ATAdaptiveAngular"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATAdaptiveAngular</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvector" title="epsie.proposals.eigenvector.AdaptiveEigenvector"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveEigenvector</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.solid_angle.IsotropicSolidAngle" title="epsie.proposals.solid_angle.IsotropicSolidAngle"><code class="xref py py-class docutils literal notranslate"><span class="pre">IsotropicSolidAngle</span></code></a></p></li>
+<li><p><a class="reference internal" href="epsie.proposals.html#epsie.proposals.solid_angle.AdaptiveIsotropicSolidAngle" title="epsie.proposals.solid_angle.AdaptiveIsotropicSolidAngle"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaptiveIsotropicSolidAngle</span></code></a></p></li>
+</ul>
+</div></blockquote>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: 1.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+          
+          <dd><a href="../latest/index.html">latest</a></dd>
+          
+        
+           <strong> 
+          <dd><a href="">1.0</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

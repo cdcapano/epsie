@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>epsie.proposals.normal &mdash; EPSIE 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> EPSIE
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../parallelization.html">Parallelization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../proposals.html">Proposals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../epsie.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/01-chain.html">Using a chain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_angular.html">The Angular proposal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">EPSIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../epsie.html">epsie</a> &raquo;</li>
+      <li>epsie.proposals.normal</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for epsie.proposals.normal</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2020 Collin Capano, Richard Stiskalek</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c1"># under the terms of the GNU General Public License as published by the</span>
+<span class="c1"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c1"># option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c1"># Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along</span>
+<span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BaseProposal</span><span class="p">,</span> <span class="n">BaseAdaptiveSupport</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Normal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.Normal">[docs]</a><span class="k">class</span> <span class="nc">Normal</span><span class="p">(</span><span class="n">BaseProposal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uses a normal distribution with a fixed variance for proposals.</span>
+
+<span class="sd">    This proposal may handle one or more parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters to produce proposals for.</span>
+<span class="sd">    cov : array, optional</span>
+<span class="sd">        The covariance matrix of the parameters. May provide either a single</span>
+<span class="sd">        float, a 1D array with length ``ndim``, or an ``ndim x ndim`` array,</span>
+<span class="sd">        where ``ndim`` = the number of parameters given. If a single float or</span>
+<span class="sd">        a 1D array is given, will use a diagonal covariance matrix (i.e., all</span>
+<span class="sd">        parameters are independent of each other). Default (None) is to use</span>
+<span class="sd">        unit variance for all parameters.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cov : numpy.ndarray</span>
+<span class="sd">        The covariance matrix being used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;normal&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_jump_interval</span><span class="p">(</span><span class="n">jump_interval</span><span class="p">,</span> <span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cov</span> <span class="o">=</span> <span class="n">cov</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">isdiagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Whether or not the parameters are independent of each other.</span>
+
+<span class="sd">        If True (the parameters are independent), then a normal distribution</span>
+<span class="sd">        will be used for proposals. Otherwise, a multivariate normal is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The covariance matrix used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="n">cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span>
+        <span class="k">return</span> <span class="n">cov</span>
+
+    <span class="k">def</span> <span class="nf">_ensurearray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Boiler-plate function for setting covariance or standard deviation.</span>
+
+<span class="sd">        This ensures that the given value is an array with the same length as</span>
+<span class="sd">        the number of parameters. If ``None`` is passed for the value, the</span>
+<span class="sd">        default value will be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="c1"># make sure val is atleast 1D array</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="c1"># make sure the dimensionality makes sense</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">val</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+             <span class="n">val</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must provide a value for every parameter&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@cov</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cov</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the covariance matrix and the isdiagonal attribute.</span>
+
+<span class="sd">        If a diagonal covariance, the standard deviation (`std`) attribute is</span>
+<span class="sd">        also set.</span>
+
+<span class="sd">        If a single float or a 1D array is given, will use a diagonal</span>
+<span class="sd">        covariance matrix (i.e., all parameters are independent of each other).</span>
+<span class="sd">        Default (None) is to use unit variance for all parameters.</span>
+
+<span class="sd">        Raises a ``ValueError`` if the dimensionality of the given array</span>
+<span class="sd">        isn&#39;t ndim x ndim.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># make sure we have an array, filling in default as necessary</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensurearray</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
+        <span class="c1"># if cov is a 1D array, means diagonal covariance</span>
+        <span class="k">if</span> <span class="n">cov</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># check if off-diagonal terms are all zero, if so, just store</span>
+            <span class="c1"># the diagonals</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">cov</span><span class="p">[</span><span class="o">~</span><span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span><span class="p">:</span>
+                <span class="n">cov</span> <span class="o">=</span> <span class="n">cov</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">cov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span><span class="p">:</span>
+            <span class="c1"># for diagonal, we&#39;ll store the std instead</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">cov</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">cov</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The standard deviation.</span>
+
+<span class="sd">        Raises a ``ValueError`` if the covariance matrix is not diagonal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;standard deviation is undefined for &quot;</span>
+                             <span class="s2">&quot;multivariate normal distribution with a &quot;</span>
+                             <span class="s2">&quot;non-diagonal covariance matrix&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span>
+
+    <span class="nd">@std</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the standard deviation of each parameter.</span>
+
+<span class="sd">        Setting this means that all parameters are independent.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># make sure we have an array, filling in default as necessary</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensurearray</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">std</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">}</span>
+
+<div class="viewcode-block" id="Normal.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.Normal.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_jump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fromx</span><span class="p">):</span>
+        <span class="c1"># the normal RVS is much faster than the multivariate one, so use it</span>
+        <span class="c1"># if we can</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="n">newpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">fromx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">newpt</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="p">[</span><span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="p">[</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="n">logp</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logp</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span>
+                                                    <span class="n">allow_singular</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logp</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                     Veitch et al. adaptive proposal</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="AdaptiveSupport"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveSupport">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveSupport</span><span class="p">(</span><span class="n">BaseAdaptiveSupport</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Utility class for adding adaptive variance support to a proposal.</span>
+
+<span class="sd">    The adaptation algorithm is based on Eqs. 35 and 36 of Veitch et al. [1]_.</span>
+<span class="sd">    The with of the proposal at each step is based on the width of the prior</span>
+<span class="sd">    and whether or not the previous proposal was accepted or not. See Notes</span>
+<span class="sd">    for more details.</span>
+
+<span class="sd">    This is only meant to be used in conjuction with proposals that have</span>
+<span class="sd">    independent parameters, each with their own standard deviation.</span>
+<span class="sd">    Specifically, the propsal must have an ``isdiagonal`` attribute and an</span>
+<span class="sd">    ``_std`` attribute.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For a given parameter, the standard deviation of the :math:`k^{\rm th}`</span>
+<span class="sd">    iteration is given by [1]_:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \sigma_k = \sigma_{k-1} + \alpha_{k-1}</span>
+<span class="sd">            \left[\left(k - k_0\right)^{-\beta} - 0.1\right]\frac{\Delta}{10},</span>
+
+<span class="sd">    where :math:`\alpha_{k-1} = 1 - \xi` if the previous iteration was</span>
+<span class="sd">    accpeted and :math:`\alpha_{k-1} = -\xi` if the previous iteration was</span>
+<span class="sd">    rejected. Here, :math:`\xi` is the target acceptance rate, :math:`\Delta`</span>
+<span class="sd">    is the prior width, :math:`\beta` is the adaptation decay, and :math:`k_0`</span>
+<span class="sd">    gives the iteration after which the adaptation begins. The initial standard</span>
+<span class="sd">    deviation :math:`\sigma_0` to use is a free parameter. The default in this</span>
+<span class="sd">    function is to use :math:`\sigma_0 = (1-\xi)0.09\Delta`.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] J. Veitch et al., &quot;Parameter estimation for compact binaries with</span>
+<span class="sd">        ground-based gravitational-wave observations using the LALInference</span>
+<span class="sd">        software library, &quot; Phys. Rev. D91 042003 (2015),</span>
+<span class="sd">        arXiv:1409.7215 [gr-qc].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_prior_widths</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_deltas</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="AdaptiveSupport.setup_adaptation"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveSupport.setup_adaptation">[docs]</a>    <span class="k">def</span> <span class="nf">setup_adaptation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prior_widths</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                         <span class="n">adaptation_decay</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="n">target_rate</span><span class="o">=</span><span class="mf">0.234</span><span class="p">,</span> <span class="n">initial_std</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sets up the adaptation parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prior_widths : dict</span>
+<span class="sd">            Dictionary mapping parameter names to values giving the width of</span>
+<span class="sd">            each parameter&#39;s prior. The values may be floats, or any object</span>
+<span class="sd">            that has an ``__abs__`` method that will return a float.</span>
+<span class="sd">        adaptation_duration : int</span>
+<span class="sd">            The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">            more adaptation will be done once a chain exceeds this value.</span>
+<span class="sd">        adaptation_decay : int, optional</span>
+<span class="sd">            The decay rate to use for the adaptation size (:math:`beta` in the</span>
+<span class="sd">            equation in the notes). If not provided, will use</span>
+<span class="sd">            :math:`1/\log_10(T)`, where :math:`T` is the adaptation duration.</span>
+<span class="sd">        start_step : int, optional</span>
+<span class="sd">            The proposal step to start doing the adaptation (:math:`k_0+1` in</span>
+<span class="sd">            the equation below). Must be greater than zero. Default is 1.</span>
+<span class="sd">        target_rate : float, optional</span>
+<span class="sd">            The target acceptance rate. Default is 0.234.</span>
+<span class="sd">        initial_std : array, optional</span>
+<span class="sd">            The initial standard deviation to use. Default is to use</span>
+<span class="sd">            `(1 - target_rate)*0.09*prior_widths`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check that a diagonal covariance was provided</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only independent variables are supported &quot;</span>
+                             <span class="s2">&quot;(all off-diagonal terms in the covariance &quot;</span>
+                             <span class="s2">&quot;must be zero)&quot;</span><span class="p">)</span>
+        <span class="c1"># figure out initial variance to use</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_widths</span> <span class="o">=</span> <span class="n">prior_widths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span> <span class="o">=</span> <span class="n">adaptation_duration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">start_step</span>
+        <span class="k">if</span> <span class="n">adaptation_decay</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">adaptation_decay</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_decay</span> <span class="o">=</span> <span class="n">adaptation_decay</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+        <span class="k">if</span> <span class="n">initial_std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">initial_std</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">)</span><span class="o">*</span><span class="mf">0.09</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">deltas</span>
+        <span class="c1"># set the covariance to the initial</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">initial_std</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">prior_widths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The width of the prior used for each parameter.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prior_widths</span>
+
+    <span class="nd">@prior_widths</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">prior_widths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prior_widths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the prior widths, making sure that widths are provided for</span>
+<span class="sd">        each parameter in ``parameters``.</span>
+
+<span class="sd">        Also sets the deltas attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prior_widths</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">prior_widths</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+                                  <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must provide prior widths for every parameter&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deltas</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_widths</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">deltas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The prior widths, as a numpy array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deltas</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the adaptation based on whether the last jump was accepted.</span>
+
+<span class="sd">        This prepares the proposal for the next jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">dk</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span><span class="p">:</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="n">dk</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">adaptation_decay</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.1</span>
+            <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">acceptance</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;accepted&#39;</span><span class="p">]:</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span>
+            <span class="n">dsigmas</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">dk</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">deltas</span><span class="o">/</span><span class="mf">10.</span>
+            <span class="c1"># ensure we don&#39;t go negative</span>
+            <span class="n">sigmas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span>
+            <span class="n">newsigmas</span> <span class="o">=</span> <span class="n">sigmas</span> <span class="o">+</span> <span class="n">dsigmas</span>
+            <span class="n">lzidx</span> <span class="o">=</span> <span class="n">newsigmas</span> <span class="o">&lt;</span> <span class="mi">0</span>
+            <span class="n">newsigmas</span><span class="p">[</span><span class="n">lzidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigmas</span><span class="p">[</span><span class="n">lzidx</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">newsigmas</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+                <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">,</span>
+                <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">}</span>
+
+<div class="viewcode-block" id="AdaptiveSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="AdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveNormal</span><span class="p">(</span><span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Uses a normal distribution with adaptive variance for proposals.</span>
+
+<span class="sd">    See :py:class:`AdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    prior_widths : dict</span>
+<span class="sd">        Dictionary mapping parameter names to values giving the width of each</span>
+<span class="sd">        parameter&#39;s prior. The values may be floats, or any object that has</span>
+<span class="sd">        an ``__abs__`` method that will return a float.</span>
+<span class="sd">    adaptation_duration: int</span>
+<span class="sd">        The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">        more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">    start_step: int, optional</span>
+<span class="sd">        The proposal step index when adaptation phase begins.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;adaptive_normal&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">prior_widths</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                 <span class="n">start_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="n">prior_widths</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span>
+                              <span class="n">start_step</span><span class="o">=</span><span class="n">start_step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                   Sivia &amp; Skilling adaptive algorithm</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="SSAdaptiveSupport"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.SSAdaptiveSupport">[docs]</a><span class="k">class</span> <span class="nc">SSAdaptiveSupport</span><span class="p">(</span><span class="n">BaseAdaptiveSupport</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Utility class for adding adaptive variance support to a proposal.</span>
+
+<span class="sd">    The adaptation algorithm is based on a method in Sivia and Skilling [2]_.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    At each iteration :math:`k`, the variance is scaled by a factor</span>
+<span class="sd">    :math:`\gamma(k)`</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \gamma(k) = \alpha(k) \gamma(k-1),</span>
+
+<span class="sd">    where</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \alpha(k) = \begin{cases}</span>
+<span class="sd">            e^{1/N_a(k)} &amp;\textrm{ if } \frac{N_a(k)}{k} &gt; \xi,\\</span>
+<span class="sd">            e^{-1/(k-N_a(k))} &amp;\textrm{ if } \frac{N_a(k)}{k} &lt; \xi,\\</span>
+<span class="sd">            1 &amp;\textrm{ if } \frac{N_a(k)}{k} = \xi.</span>
+<span class="sd">            \end{cases}</span>
+
+<span class="sd">    Here, :math:`N_a(k)` is the number of iterations that have been accepted to</span>
+<span class="sd">    this point (so that :math:`k-N_a(k)` is the number of rejections), and</span>
+<span class="sd">    :math:`\xi` is the target acceptance rate. The initial :math:`gamma` is</span>
+<span class="sd">    set to 1.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [2] Sivia D., Skilling J., &quot;Data Analysis: A Bayesian Tutorial,&quot;</span>
+<span class="sd">        Oxford Univ. Press, Oxford (2006)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_accepted</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">max_std</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SSAdaptiveSupport.setup_adaptation"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.SSAdaptiveSupport.setup_adaptation">[docs]</a>    <span class="k">def</span> <span class="nf">setup_adaptation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="mf">0.234</span><span class="p">,</span> <span class="n">max_cov</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sets up the adaptation parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target_rate : float, optional</span>
+<span class="sd">            The target acceptance rate. Default is 0.234.</span>
+<span class="sd">        max_cov : float, optional</span>
+<span class="sd">            The maximum value any element in the covariance matrix is allowed</span>
+<span class="sd">            to obtain. If an adapatation step would cause any element to exceed</span>
+<span class="sd">            this value, the covariance matrix will not be changed. Default</span>
+<span class="sd">            (None) means that no cap will be applied.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">max_cov</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_std</span> <span class="o">=</span> <span class="n">max_cov</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_std</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span> <span class="o">=</span> <span class="n">max_std</span></div>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the adaptation based on whether the last jump was accepted.</span>
+
+<span class="sd">        This prepares the proposal for the next jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">acceptance</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;accepted&#39;</span><span class="p">])</span>
+        <span class="n">n_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">/</span> <span class="n">n_iter</span>
+        <span class="k">if</span> <span class="n">rate</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">:</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rate</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">:</span>
+            <span class="n">n_rejected</span> <span class="o">=</span> <span class="n">n_iter</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">n_rejected</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">**</span><span class="mf">0.5</span>
+            <span class="c1"># check that we won&#39;t go beyond the max specified</span>
+            <span class="n">max_std</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">max_std</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">*=</span> <span class="n">alpha</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># check that we won&#39;t go beyond the max specified</span>
+            <span class="n">max_cov</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">max_cov</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span><span class="o">**</span><span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">*=</span> <span class="n">alpha</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+                 <span class="s1">&#39;n_accepted&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span><span class="p">,</span>
+                 <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<div class="viewcode-block" id="SSAdaptiveSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.SSAdaptiveSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;n_accepted&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="SSAdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.SSAdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">SSAdaptiveNormal</span><span class="p">(</span><span class="n">SSAdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Uses a normal distribution with adaptive variance for proposals.</span>
+
+<span class="sd">    See :py:class:`SSAdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``jump_interval_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    jump_interval_duration : int, optional</span>
+<span class="sd">        The number of proposals steps during which values of ``jump_interval``</span>
+<span class="sd">        other than 1 are used. After this elapses the proposal is called on</span>
+<span class="sd">        each iteration.</span>
+<span class="sd">    \**kwargs :</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`SSAdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;ss_adaptive_normal&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">jump_interval_duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">jump_interval_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+<span class="c1">#                   Andrieu &amp; Thoms  adaptive algorithm</span>
+<span class="c1">#</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1">#</span>
+
+
+<div class="viewcode-block" id="ATAdaptiveSupport"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.ATAdaptiveSupport">[docs]</a><span class="k">class</span> <span class="nc">ATAdaptiveSupport</span><span class="p">(</span><span class="n">BaseAdaptiveSupport</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Utility class for adding ATAdaptiveNormal proposal support.</span>
+
+<span class="sd">    The adaptation algorithm is based on Algorithm 4 and 6 in [1].</span>
+
+<span class="sd">    See [1] for details.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    For the vanishing decay we use</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \gamma_{g+1} = \left(g - g_{0}\right)^{-0.6} - C,</span>
+
+<span class="sd">    where :math: `g_{0}` is the iteration at which adaptation starts,</span>
+<span class="sd">    by default :math: `g_{0}=1` and :math: `C` is a positive constant</span>
+<span class="sd">    ensuring that when the adaptation phase ends the vanishing decay tends to</span>
+<span class="sd">    zero.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] Andrieu, Christophe &amp; Thoms, Johannes. (2008).</span>
+<span class="sd">    A tutorial on adaptive MCMC. Statistics and Computing.</span>
+<span class="sd">    18. 10.1007/s11222-008-9110-y.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_target_rate</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_start_step</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_decay_const</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_adaptation_duration</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ATAdaptiveSupport.setup_adaptation"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.ATAdaptiveSupport.setup_adaptation">[docs]</a>    <span class="k">def</span> <span class="nf">setup_adaptation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="n">diagonal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">componentwise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">start_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sets up the adaptation parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        adaptation_duration: int</span>
+<span class="sd">            The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">            more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">        diagonal : bool, optional</span>
+<span class="sd">            Whether to train off-diagonal elements of the proposal covariance.</span>
+<span class="sd">            By default set to False; off-diagonal elements are being trained.</span>
+<span class="sd">        componentwise : bool, optional</span>
+<span class="sd">            Whether to include a componentwise scaling of the parameters</span>
+<span class="sd">            (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).</span>
+<span class="sd">            Componentwise scaling `ndim` times more expensive than global</span>
+<span class="sd">            scaling.</span>
+<span class="sd">        start_step : int, optional</span>
+<span class="sd">            The proposal step when the adaptation phase begins.</span>
+<span class="sd">        target_rate: float, optional</span>
+<span class="sd">            Target acceptance ratio. By default 0.234 and 0.48 for</span>
+<span class="sd">            componentwise scaling.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">start_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span> <span class="o">=</span> <span class="n">adaptation_duration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span> <span class="o">=</span> <span class="n">componentwise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="n">diagonal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span> <span class="o">=</span> <span class="p">(</span><span class="n">adaptation_duration</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>  <span class="c1"># initial mean</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="o">**</span><span class="mf">0.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>  <span class="c1"># inital covariance</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+        <span class="c1"># set target rate (componentwise target rate scales differently)</span>
+        <span class="k">if</span> <span class="n">target_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="mf">0.234</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="mf">0.48</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span></div>
+
+    <span class="k">def</span> <span class="nf">_componentwise_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">dk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Componentwise scaling. Does virtual moves along each axis</span>
+<span class="sd">        one at a time.&quot;&quot;&quot;</span>
+        <span class="n">current_logl</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">current_stats</span><span class="p">[</span><span class="s1">&#39;logl&#39;</span><span class="p">]</span>
+        <span class="n">current_logp</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">current_stats</span><span class="p">[</span><span class="s1">&#39;logp&#39;</span><span class="p">]</span>
+        <span class="n">current_position</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">current_position</span>
+        <span class="n">proposed_position</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">proposed_position</span>
+        <span class="n">dlog_lambda</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">)</span>
+
+        <span class="c1"># Make a virtual jump along every componentwise axis</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="n">virtual_move</span> <span class="o">=</span> <span class="n">current_position</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">virtual_move</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">proposed_position</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+            <span class="c1"># evaluate this move</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">virtual_move</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">_hasblobs</span><span class="p">:</span>
+                <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="c1"># if proposed translation goes out of bounds force eject</span>
+            <span class="k">if</span> <span class="n">logp</span> <span class="o">==</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+                <span class="n">ar</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">__</span><span class="p">,</span> <span class="n">ar</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">_acceptance_ratio</span><span class="p">(</span><span class="n">logp</span><span class="p">,</span> <span class="n">logl</span><span class="p">,</span> <span class="n">virtual_move</span><span class="p">,</span>
+                                                 <span class="n">current_logp</span><span class="p">,</span> <span class="n">current_logl</span><span class="p">,</span>
+                                                 <span class="n">current_position</span><span class="p">)</span>
+            <span class="c1"># update the component</span>
+            <span class="n">dlog_lambda</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dk</span> <span class="o">*</span> <span class="p">(</span><span class="n">ar</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dlog_lambda</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the adaptation based on whether the last jump was accepted.</span>
+<span class="sd">        This prepares the proposal for the next jump.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">dk</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span><span class="p">:</span>
+            <span class="n">dk</span> <span class="o">=</span> <span class="n">dk</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span>
+            <span class="n">newpt</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">chain</span><span class="o">.</span><span class="n">current_position</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                                 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+            <span class="c1"># Update of the global scaling</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span><span class="p">:</span>
+                <span class="n">ar</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">acceptance</span><span class="p">[</span><span class="s1">&#39;acceptance_ratio&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">+=</span> <span class="n">dk</span> <span class="o">*</span> <span class="p">(</span><span class="n">ar</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_componentwise_scaling</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">dk</span><span class="p">)</span>
+            <span class="c1"># Update the first moment</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">newpt</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">+=</span> <span class="n">dk</span> <span class="o">*</span> <span class="n">df</span>
+            <span class="c1"># Update the second moment</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">+=</span> <span class="n">dk</span> <span class="o">*</span> <span class="p">(</span><span class="n">df</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">)</span>
+                                       <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">+=</span> <span class="n">dk</span> <span class="o">*</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                                        <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Lambda</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+                        <span class="n">numpy</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Lambda</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">),</span> <span class="n">Lambda</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+                 <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">,</span>
+                 <span class="s1">&#39;log_lambda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">,</span>
+                 <span class="s1">&#39;unit_cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">,</span>
+                 <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+<div class="viewcode-block" id="ATAdaptiveSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.ATAdaptiveSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;log_lambda&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;unit_cov&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="ATAdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.ATAdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">ATAdaptiveNormal</span><span class="p">(</span><span class="n">ATAdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Uses a normal distribution with adaptive covariance for proposals.</span>
+
+<span class="sd">    See :py:class:`ATAdaptiveSupport` for details on the adaptation algorithm.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters: (list of) str</span>
+<span class="sd">        The names of the parameters.</span>
+<span class="sd">    adaptation_duration : int</span>
+<span class="sd">        The number of proposal steps over which to apply the adaptation. No</span>
+<span class="sd">        more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">    diagonal : bool, optional</span>
+<span class="sd">        Whether to train off-diagonal elements of the proposal covariance.</span>
+<span class="sd">        By default set to False; off-diagonal elements are being trained.</span>
+<span class="sd">    componentwise : bool, optional</span>
+<span class="sd">        Whether to include a componentwise scaling of the parameters</span>
+<span class="sd">        (algorithm 6 in [1]). By default set to False (algorithm 4 in [1]).</span>
+<span class="sd">        Componentwise scaling `ndim` times more expensive than global</span>
+<span class="sd">        scaling.</span>
+<span class="sd">    start_step: int, optional</span>
+<span class="sd">        The proposal step index when adaptation phase begins.</span>
+<span class="sd">    target_rate: float, optional</span>
+<span class="sd">        Target acceptance ratio. By default 0.234 and 0.48 for componentwise</span>
+<span class="sd">        scaling.</span>
+<span class="sd">    jump_interval : int, optional</span>
+<span class="sd">        The jump interval of the proposal, the proposal only gets called every</span>
+<span class="sd">        jump interval-th time. After ``adaptation_duration`` number of</span>
+<span class="sd">        proposal steps elapses the proposal will again be called on every</span>
+<span class="sd">        chain iteration. By default ``jump_interval`` = 1.</span>
+<span class="sd">    \**kwargs:</span>
+<span class="sd">        All other keyword arguments are passed to</span>
+<span class="sd">        :py:func:`AdaptiveSupport.setup_adaptation`. See that function for</span>
+<span class="sd">        details.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;at_adaptive_normal&#39;</span>
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">adaptation_duration</span><span class="p">,</span> <span class="n">diagonal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">componentwise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">start_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">jump_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># set the parameters, initialize the covariance matrix</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="p">,</span> <span class="n">jump_interval</span><span class="o">=</span><span class="n">jump_interval</span><span class="p">,</span>
+            <span class="n">jump_interval_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">)</span>
+        <span class="c1"># set up the adaptation parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_adaptation</span><span class="p">(</span><span class="n">adaptation_duration</span><span class="o">=</span><span class="n">adaptation_duration</span><span class="p">,</span>
+                              <span class="n">diagonal</span><span class="o">=</span><span class="n">diagonal</span><span class="p">,</span> <span class="n">componentwise</span><span class="o">=</span><span class="n">componentwise</span><span class="p">,</span>
+                              <span class="n">start_step</span><span class="o">=</span><span class="n">start_step</span><span class="p">,</span> <span class="n">target_rate</span><span class="o">=</span><span class="n">target_rate</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
+
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book">&nbsp; &nbsp;</span>
+      Version: 1.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        
+          
+          <dd><a href="../latest/index.html">latest</a></dd>
+          
+        
+           <strong> 
+          <dd><a href="">1.0</a></dd>
+           </strong> 
+        
+      </dl>
+      
+      
+    </div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
