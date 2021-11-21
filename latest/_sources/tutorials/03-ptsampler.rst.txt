@@ -8,7 +8,7 @@ distribution with mean :math:`\bar{x} = 2, \bar{y} = 5` and variance
 over :math:`x \in [-20, 20)`, :math:`y \in [-40, 40)`.
 
 We will sample the space with 12 chains, each of which has 3
-tempertures. We will use Python's multiprocessing to parallelize running
+tempertures. We will use Python’s multiprocessing to parallelize running
 over 4 cores. We then demonstrate how to checkpoint the sampler to an
 hdf5 file, as well as how to resume a sampler from the file.
 
@@ -26,12 +26,12 @@ hdf5 file, as well as how to resume a sampler from the file.
 Create the model to sample
 --------------------------
 
-***Note:*** Below we create a class with several functions to draw
-samples from the prior and to evaluate the log posterior. This isn't
-strictly necessary. The only thing the Sampler really requires is a
-function that it can pass keyword arguments to and get back a tuple of
-(log likelihood, log prior). However, setting things up as a class will
-make it convenient to, e.g., draw random samples from the prior for the
+**Note:** Below we create a class with several functions to draw samples
+from the prior and to evaluate the log posterior. This isn’t strictly
+necessary. The only thing the Sampler really requires is a function that
+it can pass keyword arguments to and get back a tuple of (log
+likelihood, log prior). However, setting things up as a class will make
+it convenient to, e.g., draw random samples from the prior for the
 starting positiions, as well as plot the model later on.
 
 .. code:: ipython3
@@ -82,7 +82,7 @@ Setup and run the sampler
 -------------------------
 
 Create a pool of 4 parallel processes, then initialize the sampler using
-the model we created above. We'll swap temperatures every 4 iterations.
+the model we created above. We’ll swap temperatures every 4 iterations.
 
 .. code:: ipython3
 
@@ -97,13 +97,13 @@ the model we created above. We'll swap temperatures every 4 iterations.
                                       swap_interval=swap_interval, pool=pool)
 
 Now set the starting positions of the chains by drawing random variates
-from the model's prior.
+from the model’s prior.
 
 .. code:: ipython3
 
     sampler.start_position = model.prior_rvs(size=nchains*ntemps, shape=(ntemps, nchains))
 
-Let's run it!
+Let’s run it!
 ~~~~~~~~~~~~~
 
 This will evolve each chain in the collection by 256 steps. This is
@@ -189,7 +189,7 @@ accepted with ``sampler.acceptance``:
     and shape: (3, 12, 256)
 
 
-If the model returned "blobs" (i.e., the model returns a dictionary
+If the model returned “blobs” (i.e., the model returns a dictionary
 along with the logl and logp), then we can also access those using
 ``sampler.blobs``. Similar to ``positions``, this would also be a
 dictionary of arrays with keys given by the names in the dictionary the
@@ -235,18 +235,18 @@ The individual chains can be accessed using the ``.chains`` attribute:
 Resume from a state
 -------------------
 
-We can checkpoint the sampler's state to an HDF5 file, which can be
+We can checkpoint the sampler’s state to an HDF5 file, which can be
 loaded later to resume the sampler as if it had run continuously. To
-demonstrate this, we'll checkpoint the current state of the sampler,
-then run the sampler for another set of iterations. We'll then create a
-new sampler, and set it's state by loading the checkpoint file. Running
+demonstrate this, we’ll checkpoint the current state of the sampler,
+then run the sampler for another set of iterations. We’ll then create a
+new sampler, and set it’s state by loading the checkpoint file. Running
 the same sampler for the same number of iterations should produce the
 same results.
 
-*Note:* Since we will be reading/writing from an HDF5 file, we'll need
+*Note:* Since we will be reading/writing from an HDF5 file, we’ll need
 ``h5py`` installed. This is not one of the required packages for epsie,
-so if you don't have it, uncomment the next line to install it. If you
-don't wish to use this functionality, or prefer to save checkpoints
+so if you don’t have it, uncomment the next line to install it. If you
+don’t wish to use this functionality, or prefer to save checkpoints
 using pickle or some other file format, you do not need to use HDF5.
 
 .. code:: ipython3
@@ -348,8 +348,8 @@ had been done. This is useful for keeping memory usage down: you can
 dump results to a file after some number of iterations, clear, then
 continue.
 
-To demonstrate this, we'll clear ``sampler2``, then run both ``sampler``
-and ``sampler2`` for another 512 iterations. We'll then compare the
+To demonstrate this, we’ll clear ``sampler2``, then run both ``sampler``
+and ``sampler2`` for another 512 iterations. We’ll then compare the
 current results; they should be the same.
 
 .. code:: ipython3
@@ -387,7 +387,7 @@ current results; they should be the same.
 Plot acceptance rates
 ---------------------
 
-We'll plot the acceptance rate for each chain, which we define here as
+We’ll plot the acceptance rate for each chain, which we define here as
 the number of times a proposal was accepted divided by the total number
 of iterations.
 
@@ -441,7 +441,7 @@ distribution had a variance of 2 in the y parameter. To get a rate
 closer to 0.23, we can use an ``AdaptiveNormal`` proposal distribution.
 See the ``test_adaptive_normal.ipynb`` notebook for more.
 
-Let's also plot the average acceptance ratio. This should be
+Let’s also plot the average acceptance ratio. This should be
 approximately the same as the acceptance rate.
 
 .. code:: ipython3
@@ -564,7 +564,7 @@ up one level.
 
 We see that the first and second level are swapping on nearly every
 iteration, but coldest barely swaps at all. This suggests that our
-temperature ladder spacing was too large. Let's check the acceptance
+temperature ladder spacing was too large. Let’s check the acceptance
 ratios.
 
 .. code:: ipython3
@@ -597,8 +597,8 @@ ratios.
 Plot the posterior
 ------------------
 
-Let's create a scatter plot of the posterior. For this, we'll need to
-throw out some earlier samples for the burn-in period; we'll just assume
+Let’s create a scatter plot of the posterior. For this, we’ll need to
+throw out some earlier samples for the burn-in period; we’ll just assume
 the first-half of the chains were burn in. We also need to calculate the
 autocorrelation length of the chains in order to get independent
 samples.
@@ -648,7 +648,7 @@ For parallel tempered chains, we take the ACL for a given chain as the
 maximum ACL over all of the temperatures of that chain. Usually, the
 longest ACL comes from the coldest chain (from which we get the
 posterior). Since the chains are completely independent of each other,
-we can calculate the ACL separately for each chain. However, if you'd
+we can calculate the ACL separately for each chain. However, if you’d
 like to be more conservative, you can also just take the max over all of
 the chains.
 
@@ -739,7 +739,7 @@ the chains.
     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAroAAAILCAYAAAAHaz/JAAAgAElEQVR4nO3df2xV93n48WPqXPMrIU2VUCAEVQWvW4CoWtKFL6K0StSGLeqWSKkyhvZTBLRNkTbStEn4IWWMbuMbpSAtSRdT/qEQhWnDgCegKq6SAF29KpNQTCdMCOBom0lrrDQElODn+0e/djD4Ccf2fc55Ps95v6QjrXfX9nPvfc4974CxMwEAAAACysoeAAAAALBA6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidAFAABASIQuAAAAQiJ0AQAAEBKhCwAAgJAIXQAAAIRE6AIAACAkQhcAAAAhEboAAAAIidA1cvHiReno6JBTp05Jd3c3BwcHBwcHB4fJcerUKeno6JCLFy+WnT/uELpGOjo6JMsyDg4ODg4ODo5Cjo6OjrLzxx1C18ipU6cGl67s/9Lj4ODg4ODgiHsM/OHaqVOnys4fdwhdI93d3ZJlmXR3d5c9CgAACIzm0BG6Rlg6AABQBJpDR+gaYekAAEARaA4doWuEpQMAAEWgOXSErhGWDgAAFIHm0BG6RvIsXX9/v/T09Mjp06flrbfeCn+cPn1aenp6pL+/v8BXAgCA2AhdHaFr5FpL19/fL2fOnJHOzk7p6uqSkydPlh6ilsfJkyelq6tLOjs75cyZM8QuAAB1QujqCF0j11q6np4e6ezslHfeeafgycr1zjvvSGdnp/T09JQ9CgAAIRC6OkLXyLWW7vTp09LV1VXwVD50dXXJ6dOnyx4DAIAQCF0doWvkWks38Nf5VTTwbRoAAGDsCF0doWskT+hWNfaq/NgBAKg3QldH6BohdHVVfuwAANQboasjdI2MNnTX7DoqDz1/uJRjza6j1k/Lxz52AAAwcoSujtA1MtrQfej5wzJ37b7CI3fgaxaB0AUAoH4IXR2ha2QsoVtUcJb1dQldAADqh9DVEbpGqhK6vb29MmPGDHn44YeH3P4Hf/AHMmPGDOnt7b3qYwhdAADqh9DVEbpGqhK6IiL79++XhoYGefnll0VEZOfOnZJlmezfv3/Y+xO6wBjsXSWy5T7fx95VZT9LQKUQujpC10iVQldE5M///M/lU5/6lLz++uvyqU99SlauXKnel9AFxmDLfSIbbi0/ZrVjYDYAhSF0dYSukaqF7nvvvSdz5syRpqYm+exnPyu//OUv1fsSusAYDASlV97nAwIidHWErpGqha6IyGOPPSZZlsnTTz/9sfcjdIEx8B6S3ucDAiJ0dYSukaqF7uuvvy7XXXedfP7zn5frr7/+Y3+9MaELjIH3kPQ+HxAQoasjdI1UKXQvXLggc+fOlS9/+cvy/vvvy7x58+RLX/qS9Pf3D3t/QhcYA+8h6X0+ICBCV0foGqlS6D7++ONy/fXXDz6e//zP/5TrrrtOvvOd7wx7f0IXGAPvIel9PiAgQldH6Bqpym9Ge+2112TcuHHS0tIy5Pb169fLhAkT5L/+679yP3YAOXgPSe/zAQERujpC18hoQ3fNrqOFR+7AsWbXUeun5WMfO4AcvIek9/mAgAhdHaFrZLShWwVVfuzAmHkPSe/zAQERujpC1wihq6vyYwfGzHtIep8PCIjQ1RG6RghdXZUfOzBm3kPS+3xAQISujtA1QujqqvzYgTHzHpLe5wMCInR1hK4RQldX5ccOjJn3kPQ+HxAQoasjdI0QuroqP3ZgzLyHpPf5gIAIXR2ha4TQ1VX5sQNj5j0kvc8HBETo6ghdI4SursqPHRgz7yHpfT4gIEJXR+gaIXR1VX7swJh5D0nv8wEBEbo6QtcIoaur8mMHxsx7SHqfDwiI0NURukZGHbp7V310oSj62LvK+Fm5xmMHcG3eQ9L7fEBAhK6O0DUy6tDdcp/IhluLj9yBr1kAQhcYA+8h6X0+ICBCV0foGhlT6JZxkRjl121tbZWGhgZ58803h9z+3//939LY2Cjbtm276mMIXWAMvIek9/mAgAhdHaFrpCqh++GHH8q0adNkzZo1Q27/+7//e5kyZYqcP3/+qo8hdIEx8B6S3ucDAiJ0dYSukaqErojIE088IbfddptcunRp8LbPfe5zsnLlymHvT+gCY+A9JL3PBwRE6OoqFbpbt26VLMuuOr797W8PuV9LS4vMmTNHmpqaZP78+bJnz54Rf60qhW5XV5c0NDTIgQMHRETkyJEjkmWZ/OQnPxn2/oQuMAbeQ9L7fEBAhK6ukqH7gx/8QI4cOTJ4vP3224P32bFjhzQ0NMjq1avl4MGDsmLFCmlsbJQjR46M6GtVKXRFRL785S/Lww8/LCIijzzyiNx+++3qfQldYAy8h6T3+YCACF1dJUO3t7dXvU9zc7MsXbp0yG0LFiyQJUuWjOhrVS10v//978v48ePl7bfflilTpsgzzzyj3pfQBcbAe0h6nw8IiNDVEbqXOXHihGRZJq2trUNu37Rpk9RqNblw4ULur1W10L1w4YLcdNNNsmjRIrnuuuukp6dHvS+hC4yB95D0Ph8QEKGrq2To3nLLLfKJT3xCZs+eLc8++6z09/eLiEhbW5tkWSbHjx8f8nEHDhyQLMvk2LFjub9W1UJXROTRRx+VLMvk937v9z72foQuMAbeQ9L7fEBAhK6uUqG7b98+efrpp2X//v2yb98+eeSRRwa/H1dEZNu2bZJlmZw9e3bIx3V0dEiWZXLo0CH1c/f19Ul3d/fgMfAxVfqFEe3t7ZJlmezevftj70foAmPgPSS9zwcEROjqKhW6w3nkkUdk/Pjx8stf/nJMobtu3bphf6JDlX4F8BNPPCHTpk2TDz744GPvR+gCY+A9JL3PBwRE6OoqH7oD35bw7//+72P61oW6/Ylugn72s5/Jv/7rv8oNN9wgf/M3f3PN+0d67EDhvIek9/mAgAhdHaH7/yP2Jz/5yeA/Rrvyr943b94stVpNLl68mPvzjvp7dBO0ePFiGT9+vDz44IPD/ia0K0V67EDhvIek9/mAgAhdXeVDd/ny5YPfuiDyqx8vtmzZsiH3WbhwYXE/XqwCqvzYgTHzHpLe5wMCInR1lQrdBx54QDZs2CBtbW3S1tYmf/ZnfyZZlsnatWsH77N9+3ZpaGiQtWvXSnt7u6xcuVIaGxvl8OHDI/pahK6uyo8dGDPvIel9PiAgQldXqdB98skn5dd+7ddk4sSJ0tTUJHfccYc8//zzV92vpaVFZs+eLbVaTebNm2f2K4BPnjw54s8bwcmTJwldYLS8h6T3+YCACF1dpUK3SNdautOnT0tXV1fBU/nQ1dUlp0+fLnsMIE3eQ9L7fEBAhK6O0DVyraXr6emRzs5OeeeddwqerFzvvPOOdHZ2fuxvTgPwMbyHpPf5gIAIXR2ha+RaS9ff3y9nzpyRzs5O6erqGvzr/KjHyZMnpaurSzo7O+XMmTODv40OwAh5D0nv8wEBEbo6QtdInqXr7++Xnp4eOX36dOkhWsRx+vRp6enpIXKBsfAekt7nAwIidHWErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDR+gaYekAmPAekt7nAwKiOXSErhGWDoAJ7yHpfT4gIJpDV9nQfffdd2XGjBmSZZm8/vrrQ/5/LS0tMmfOHGlqapL58+fLnj17Rvz5WToAJryHpPf5gIBoDl1lQ/fxxx+XqVOnXhW6O3bskIaGBlm9erUcPHhQVqxYIY2NjXLkyJERfX6WDoAJ7yHpfT4gIJpDV8nQPXbsmEyaNEleeOGFq0K3ublZli5dOuT+CxYskCVLlozoa7B0AEx4D0nv8wEB0Ry6SobuvffeK6tWrZL29vYhoXvixAnJskxaW1uH3H/Tpk1Sq9XkwoULub8GSwfAhPeQ9D4fEBDNoatc6O7cuVOmTp0qfX19V4VuW1ubZFkmx48fH/IxBw4ckCzL5NixY7m/DksHwIT3kPQ+HxAQzaGrVOi+9957MnPmTNmyZYuIyFWhu23bNsmyTM6ePTvk4zo6OiTLMjl06JD6ufv6+qS7u3vwGPgYlg5AXXkPSe/zAQERurpKhe4TTzwhd955p/T394tIfUN33bp1kmXZVQdLB6CuvIek9/mAgAhdXWVC96233pJarSZtbW3S29srvb29smfPHsmyTF555RV59913x/StC/yJLoBCeA9J7/MBARG6usqE7sCf3mrH4sWLB/8x2u7du4d87ObNm6VWq8nFixdzfz2WDoAJ7yHpfT4gIJpDV5nQ7e3tlfb29iHHs88+K1mWyYsvvjj47QvNzc2ybNmyIR+7cOFCfrwYAB+8h6T3+YCAaA5dZUJ3OFd+j66IyPbt26WhoUHWrl0r7e3tsnLlSmlsbJTDhw+P6HOzdABMeA9J7/MBAdEcOkJX+RXAs2fPllqtJvPmzeNXAAPww3tIep8PCIjm0FU6dC2xdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdABMeA9J7/MBAdEcOkLXCEsHwIT3kPQ+HxAQzaEjdI2wdMhrza6j8tDzh82ONbuOlv0QUU/eQ9L7fEBANIeO0DXC0iGvh54/LHPX7jOJ3IHPi0C8h6T3+YCAaA4doWuEpUNeA1Ga2udGSbyHpPf5gIBoDh2ha4SlQ16ELkbEe0h6nw8IiObQEbpGWDrkRehiRLyHpPf5gIBoDh2ha4SlQ16ELkbEe0h6nw8IiObQEbpGWDrkRehiRLyHpPf5gIBoDh2ha4SlQ17WoWv1Ex340WUl8R6S3ucDAqI5dISuEZYOeVmGruXP6OVHl5XEe0h6nw8IiObQEbpGWDrkleq3F6Q6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0BG6Rlg65JVqMKY6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0BG6Rlg65JVqMKY6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0BG6Rlg65JVqMKY6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0BG6Rlg65JVqMKY6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0BG6Rlg65JVqMKY6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0BG6Rlg65JVqMKY6d/K8h6T3+YCAaA4doWuEpUNeqQZjqnMnz3tIep8PCIjm0FUqdHfu3CkLFiyQm266SZqamqS5uVmefvppuXDhwpD7tbS0yJw5c6SpqUnmz58ve/bsGfHXYumQV6rBmOrcyfMekt7nAwKiOXSVCt0XXnhBnnrqKfmXf/kXOXjwoPzd3/2djB8/XlasWDF4nx07dkhDQ4OsXr1aDh48KCtWrJDGxkY5cuTIiL4WS4e8Ug3GVOdOnveQ9D4fEBDNoatU6A7nySeflMmTJ8ulS5dERKS5uVmWLl065D4LFiyQJUuWjOjzsnTIK9VgTHXu5HkPSe/zAQHRHLrKh+4zzzwjTU1N8uGHH8qJEyckyzJpbW0dcp9NmzZJrVa76lscPg5Lh7xSDcZU506e95D0Ph8QEM2hq2Tofvjhh3L+/Hl57bXXZNasWfJXf/VXIiLS1tYmWZbJ8ePHh9z/wIEDkmWZHDt2LPfXYOmQV6rBmOrcyfMekt7nAwKiOXSVDN2mpibJskyyLJM//MM/HPy2hW3btkmWZXL27Nkh9+/o6JAsy+TQoUPq5+zr65Pu7u7BY+BjWDpcS6rBmOrcyfMekt7nAwIidHWVDN2f/vSn8uqrr8rmzZvl5ptvlj/5kz8RkbGF7rp16wbj+fKDpcO1pBqMqc6dPO8h6X0+ICBCV1fJ0L1ca2urZFkm//Ef/zGmb13gT3QxWqkGY6pzJ897SHqfDwiI0NVVPnTPnDkjWZbJjh07Bv8x2u7du4fcZ/PmzVKr1eTixYu5Py9Lh7xSDcZU506e95D0Ph8QEM2hq3zovvTSS5Jlmfz4xz8WkV/9eLFly5YNuc/ChQv58WIwk2owpjp38ryHpPf5gIBoDl2lQverX/2qbNy4Uf7t3/5NDhw4IOvXr5cpU6bIV77ylcH7bN++XRoaGmTt2rXS3t4uK1eulMbGRjl8eGQXdJYOeaUajKnOnTzvIel9PiAgmkNXqdBdvXq1zJ07VyZNmiQ33HCD3HHHHbJx40Z5//33h9yvpaVFZs+eLbVaTebNm8evAIapVIMx1bmT5z0kvc8HBERz6CoVukVi6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6S3ucDAqI5dISuEZYOeaUajKnOnTzvIel9PiAgmkNH6Bph6ZBXqsGY6tzJ8x6SW+4T2XDrR3N6O/auKvsZAuqO5tARukZYOuSVajCmOnfyvIfu3lXlx6x2DAQ4EAzNoSN0jbB0yCvVYEx17uR5D13PeO4QFM2hI3SNsHTIK9VgTHXu5BFro8dzh6BoDh2ha4SlQ16pBmOqcyePWBs9njsERXPoCF0jLB3ySjUYU507ecTa6PHcISiaQ0foGmHpkFeqwZjq3Mkj1kaP5w5B0Rw6QtcIS4e8Ug3GVOdOHrE2ejx3CIrm0BG6Rlg65JVqMKY6d/KItdHjuUNQNIeO0DXC0iGvVIMx1bmTR6yNHs8dgqI5dISuEZYOeaUajKnOnTxibfR47hAUzaEjdI2wdMgr1WBMde7kEWujx3OHoGgOHaFrhKVDXqkGY6pzJ49YGz2eOwRFc+gIXSMsHfJKNRhTnTt5xNro8dwhKJpDR+gaYemQV6rBmOrcySPWRo/nDkHRHDpC1whLh7xSDcZU504esTZ6PHcIiubQEbpGWDrklWowpjp38oi10eO5Q1A0h47QNcLSIa9UgzHVuZNHrI0ezx2Cojl0hK4Rlg55pRqMqc6dPGJt9HjuEBTNoSN0jbB0yCvVYEx17uQRa6PHc4egaA4doWuEpUNeqQZjqnMnj1gbPZ47BEVz6AhdIywd8ko1GFOdO3nE2ujx3CEomkNH6Bph6ZBXqsGY6tzJI9ZGj+cOQdEcukqF7ssvvyxf+9rXZMaMGTJx4kS54447ZOvWrdLf3z/kfi0tLTJnzhxpamqS+fPny549e0b8tVg65JVqMKY6d/KItdHjuUNQNIeuUqF79913y8MPPywvvfSS/PCHP5RvfetbMm7cOFm/fv3gfXbs2CENDQ2yevVqOXjwoKxYsUIaGxvlyJEjI/paLB3ySjUYU507ecTa6PHcISiaQ1ep0D179uxVty1fvlw++clPDv7v5uZmWbp06ZD7LFiwQJYsWTKir8XSIa9UgzHVuZNHrI0ezx2Cojl0lQrd4Tz33HOSZZmcP39eTpw4IVmWSWtr65D7bNq0SWq1mly4cCH352XpkFeqwZjq3Mkj1kaP5w5B0Ry6yofu0qVLZdasWSIi0tbWJlmWyfHjx4fc58CBA5JlmRw7diz352XpkFeqwZjq3Mkj1kaP5w5B0Ry6Sofuq6++KuPGjZPNmzeLiMi2bdsky7KrvsWho6NDsiyTQ4cOqZ+rr69Puru7B4+Bj2HpcC2pBuNDzx+WuWv3Dc5fz2PNrqPlPri9qz6KIm/HhluJtdEidBEUoaurbOieOXNGpk+fLvfcc49cunRJRMYWuuvWrZMsy646WDpcS6qhu2bXUZPIHYjnUl0elB6PvavKfX5SRegiKEJXV8nQ7e3tlblz58q8efPk3Llzg7eP5VsX+BNdjFaqoWvFxfNBEMXE64qgCF1d5UL3/PnzsnDhQvem/x0AABaDSURBVJk5c+ZVCzHwj9F279495PbNmzdLrVaTixcv5v46LB3ychF2jrh4PgiimHhdERTNoatU6H7wwQdy//33y0033SRvvPHGsPdpbm6WZcuWDblt4cKF/HgxmHERdo64eD4Ioph4XREUzaGrVOguX75csiyTZ555Ro4cOTLkGPjRYdu3b5eGhgZZu3attLe3y8qVK6WxsVEOHx7ZhZelQ14uws4RF88HQRQTryuCojl0lQrdWbNmDfsPxrIsk5MnTw7er6WlRWbPni21Wk3mzZvHrwCGKRdh54iL54MgionXFUHRHLpKhW6RWLpYrH7CgJufMuAIoQszvK4IiubQEbpGWLpYLH9mrIufG+sIoQszvK4IiubQEbpGWLpYXMRXRbh4rgmimHhdERTNoSN0jbB0sbiIr4pw8VwTRDHxuiIomkNH6Bph6WJxEV8V4eK5Johi4nVFUDSHjtA1wtLF4iK+KsLFc00QxcTriqBoDh2ha4Sli8VFfFWEi+eaIIqJ1xVB0Rw6QtcISxeLi/iKZO+qj6LjiuON9f9H3lj/f9T/fyHHhlsJoogIXQRFc+gIXSMsXSyEbp1dHpMeQ3fLfb+KccRC6CIomkNH6Bph6WIhdOvsY4KD5xpmCF0ERXPoCF0jLF0sxFedEbooA6GLoGgOHaFrhKWLhfiqM0IXZSB0ERTNoSN0jbB0sRBfdUboogyELoKiOXSErhGWLhbiq84IXZSB0EVQNIeO0DXC0sVCfNUZoYsyELoIiubQEbpGWLpYiK86I3RRBkIXQdEcOkLXCEsXC/FVZ4QuykDoIiiaQ0foGmHpYiG+6ozQRRkIXQRFc+gIXSMsXSzEV50RuigDoYugaA4doWuEpYuF+KozQhdlIHQRFM2hI3SNsHSxEF91RuiiDIQugqI5dISuEZYuFuKrzghdlIHQRVA0h47QNcLSxUJ81RmhizIQugiK5tARukZYuliIrzojdFEGQhdB0Rw6QtcISxcL8VVnhC7KQOgiKJpDR+gaYeliIb7qjNBFGQhdBEVz6AhdIyxdLMRXnRG6KAOhi6BoDh2ha4Sli4X4qjNCF2UgdBEUzaEjdI2wdLEQX3VG6KIMhC6Cojl0hK4Rli4W4qvOrhG6c9fuG3zO632s2XW04AcLN7bcJ7Lh1o/2j2Pkx95VZb+KGAbNoSN0jbB0sRC6dfYxobtm11GzyB0IaFTU3lXlh2LKx8B/JMAdmkNH6Bph6WIhdOvsY0LXEq8jMAYlnbe4NppDR+gaYeliIZDqjNAF0kPoukVz6AhdIyxdLARSnRG6QHoIXbdoDh2ha4Sli4VAqjNCF0gPoesWzaEjdI2wdLEQSHVG6ALpIXTdojl0hK4Rli4WAqnOCF0gPYSuWzSHjtA1wtLFQiDVGaELpIfQdYvm0BG6Rli6WAikOiN0gfQQum7RHDpC1whLFwuBVGeELpAeQtctmkNH6Bph6WIhkOqM0AXSQ+i6RXPoCF0jLF0sBFKdEbpAeghdt2gOHaFrhKWLhUCqM0IXSA+h6xbNoSN0jbB0xVuz6+hgyNT7mLt2H4FUT4QukB5C1y2aQ0foGmHpind5kFoca3YdLfshxkHoAukhdN2iOXSErhGWrnhETEIIXSA9hK5bNIeO0DXC0hWPiEkIoQukh9B1i+bQEbpGWLriETEJIXSB9BC6btEcOkLXCEtXPCImIYQukB5C1y2aQ0foGmHpikfEJITQBdJD6LpFc+gIXSMsXfGImIQQukB6CF23aA4doWuEpSseEZMQQhdID6HrFs2hI3SNsHTFI2ISQugC6SF03aI5dISuEZaueERMQghdID2Erls0h47QNcLSFY+ISQihC6SH0HWL5tARukZYuuIRMQkhdIH0ELpu0Rw6QtcIS1c8IiYhhC6QHkLXLZpDR+gaYemKR8QkpMTQnbt23+Cu1PtYs+to4Y8JKAyh6xbNoSN0jbB0xSN0E1LSBXPNrqNmkTsQ0EBYhK5bNIeuUqF7/PhxeeSRR2TevHkybtw4Wbx48bD3a2lpkTlz5khTU5PMnz9f9uzZM+KvxdIVj9BNSMALJvuH8AKet1HQHLpKhe6uXbtk5syZ8tBDD0lzc/Owobtjxw5paGiQ1atXy8GDB2XFihXS2NgoR44cGdHXYumKR2gkJOAFk/1DeAHP2yhoDl2lQvfSpUuD//fv/u7vDhu6zc3NsnTp0iG3LViwQJYsWTKir8XSFY/QSEjACyb7h/ACnrdR0By6SoXu5YYL3RMnTkiWZdLa2jrk9k2bNkmtVpMLFy7k/vwsXfEIjYQEvGCyfwgv4HkbBc2hI3Qv09bWJlmWyfHjx4fcfuDAAcmyTI4dO5b787N0xSM0EhLwgsn+IbyA520UNIeO0L3Mtm3bJMsyOXv27JDbOzo6JMsyOXTokPr5+vr6pLu7e/AY+BiWrjiERkICXjDZP4QX8LyNgtDVEbqXGUvorlu3TrIsu+pg6YpDaCQk4AWT/UN4Ac/bKAhdHaF7mbF86wJ/ols+QiMhAS+Y7B/CC3jeRkHo6gjdywz8Y7Tdu3cPuX3z5s1Sq9Xk4sWLuT8/S1c8QiMhAS+Y7B/CC3jeRkFz6AjdKzQ3N8uyZcuG3LZw4UJ+vFgCCI2EBLxgsn8IL+B5GwXNoatU6L733nuyc+dO2blzp9x1113yG7/xG4P/u6enR0REtm/fLg0NDbJ27Vppb2+XlStXSmNjoxw+PLILGEtXPEIjIQEvmOwfwgt43kZBc+gqFbonT54c9h+MZVkm7e3tg/draWmR2bNnS61Wk3nz5vErgBNBaCQk4AWT/UN4Ac/bKGgOXaVCt0gsXfEIjYQEvGCyfwgv4HkbBc2hI3SNsHTFIzQSEvCCyf4hvIDnbRQ0h47QNcLSFY/QSEjACyb7h/ACnrdR0Bw6QtcIS1c8QiMhAS+Y7B/CC3jeRkFz6AhdIyxd8QiNhAS8YLJ/CC/geRsFzaEjdI2wdMUjNBIS8ILJ/iG8gOdtFDSHjtA1wtIVj9BISMALJvuH8AKet1HQHDpC1whLVzxCIyEBL5jsH8ILeN5GQXPoCF0jLN3w1uw6OhgE9T7mrt1HaKQi4AWT0EV4Ac/bKGgOHaFrhKUb3uVBanGs2XW07IeIPAJeMAldhBfwvI2C5tARukZYuuERAxCRkBdMdhvhBTxvo6A5dISuEZZueMQARCTkBZPdRngBz9soaA4doWuEpRseMQARCXnBZLcRXsDzNgqaQ0foGmHphkcMQERCXjDZbYQX8LyNgubQEbpGWLrhEQMQkZAXTHYb4QU8b6OgOXSErhGWbnjEQIH2rvrowuTt2HBruAsmu43wCF23aA4doWuEpRseMVCgy4PS47F3VdnPUF2x2wiP0HWL5tARukZYuuERAwXiolQodhvh8Z7iFs2hI3SNsHTDIwYKxEWpUOw2wuM9xS2aQ0foGmHphkcMFIiLUqHYbYTHe4pbNIeO0DXC0g2PGCgQF6VCsdsIj/cUt2gOHaFrhKUbHjFQIC5KhWK3ER7vKW7RHDpC1whLNzxioEBclArFbiM83lPcojl0hK4Rlm54xECBuCgVit1GeLynuEVz6AhdIyzd8IiBAnFRKhS7jfB4T3GL5tARukZYuuERAwXiolQodhvh8Z7iFs2hI3SNsHTDIwYKxEWpUOw2wuM9xS2aQ0foGmHphkcMFIiLUqHYbYTHe4pbNIeO0DXC0g2PGCgQF6VCsdsIj/cUt2gOHaFrJPWlW7Pr6OCFu57H3LX7iIGicFEqFKGL8HhPcSv15rBE6BpJfekuj9J6H2t2HS374VUDF6VCEboIj/cUt1JvDkuErpHUl46LdgBclArFOYPweE9xK/XmsEToGkl96bhoB8BFqVCcMwiP9xS3Um8OS4SukdSXjot2AFyUCsU5g/B4T3Er9eawROgaSX3puGgHwEWpUJwzCI/3FLdSbw5LhK6R1JeOi3YAXJQKxTmD8HhPcSv15rBE6BpJfem4aAfARalQnDMIb8t9Ihtu/ei9xduxd1XZz1BpUm8OS4SukdSXjot2AIRuoThnEN7eVeXHrHYMBHhFpd4clghdI6kvHRftAAjdQnHOACWq+Ptd6s1hidA1kvrScdEOoOJv/EXjnAFKVPH3u9SbwxKhayT1peOiHUDF3/iLxjkDlKji73epN4clQtdI6kvHRTuAir/xF41zBihRxd/vUm8OS4SukdSXjot2ABV/4y8a5wxQooq/36XeHJYIXSOpLx0X7QAq/sZfNM4ZoEQVf79LvTksEbpGUl86LtoBVPyNv2icM0CJKv5+l3pzWCJ0jaS+dFy0A6j4G3/ROGeAElX8/S715rBE6BpJfem4aAdQ8Tf+onHOACWq+Ptd6s1hidA1kvrScdEOoOJv/EXjnAFKVPH3u9SbwxKhayT1peOiHUDF3/iLxjkDlKji73epN4clQtdI6kvHRTuAir/xF41zBihRxd/vUm8OS4SukSKWbs2uo4MX13ofc9fu46J9LXtXffTm6vHYcGul3/iLRugCJSJ0CV0FoWukiKW7PEgtjjW7jprNHsLlMen12Luq7GepMghdoESELqGrIHSNFBW6XFhLVPE3VgzF+QiUqOLvx4SujtA1QuhWQMXfWDEU5yNQooq/HxO6OkLXCKFbARV/Y8VQnI9AiSr+fkzo6ghdI4RuBVT8jRVDcT4CJar4+zGhqyN0jRC6FVDxN1YMxfkIlKji78eEro7QNULoVkDF31gxFOcjUKKK/xQcQldH6BohdCuA0MVlOB+BElX855oTujpCdxjHjh2Te++9VyZOnChTp06Vb3zjG3Lx4sURfQ5CtwIIXVyG8xGAyvh6QejqCN0r/OIXv5Bp06bJF7/4Rdm3b59s2bJFpkyZIn/xF38xos9D6FYAoYvLcD4CUBG6pSF0r7BhwwaZPHmy/PznPx+87bvf/a584hOfkLfffjv35yF0K4DQxWU4HwGoCN3SELpXWLRokTzwwANDbuvt7ZWGhgbZunVr7s9D6FYAoYvLcD4CUBG6pSF0r3DzzTfLU089ddXt06dPl29+85u5Pw+hWwGELi7D+QhAReiWhtC9QmNjo2zcuPGq22+//XZZvny5+nF9fX3S3d09ePz4xz+WLMuko6NjyO31PO7/dqvc/+1Ws8/PcY3j/37pV0fZc3C4ODgfOTg41MP4etHR0SFZlsmpU6csEylJhO4VRhu669atkyzLODg4ODg4ODhKOTo6OiwTKUmE7hVG+60LV/6J7ptvvik/+tGP5NSpU+X/l2TBx8B/WVr+aTYHr0VqB6+Fn4PXws/Ba1Gf49SpU9LR0THiH4VaBYTuFRYtWiQPPvjgkNvOnTs34n+MVmXd3XyvkBe8Fn7wWvjBa+EHrwWsEbpX2LBhg1x//fXS29s7eNuLL7444h8vVmW8cfnBa+EHr4UfvBZ+8FrAGqF7hYFfGLF48WLZv3+/fO9735Mbb7xxxL8wosp44/KD18IPXgs/eC384LWANUJ3GJ2dnXLPPffIhAkT5JZbbpHHHnuM73sZgb6+Plm3bp309fWVPUrl8Vr4wWvhB6+FH7wWsEboAgAAICRCFwAAACERugAAAAiJ0AUAAEBIhC4AAABCInRRN8eOHZN7771XJk6cKFOnTpVvfOMb/LSKErz88svyta99TWbMmCETJ06UO+64Q7Zu3Sr9/f1lj1Z57777rsyYMUOyLJPXX3+97HEq58MPP5R/+Id/kObmZqnVajJ9+nRZsWJF2WNVUmtrq3zhC1+QyZMny6c//Wn5+te/Lm+++WbZYyEgQhd1MfDzh7/4xS/Kvn37ZMuWLTJlyhR+/nAJ7r77bnn44YflpZdekh/+8IfyrW99S8aNGyfr168ve7TKe/zxx2Xq1KmEbkn+6I/+SKZNmybPPfec/OhHP5Lvf//7smrVqrLHqpz29nYZN26c/PEf/7H84Ac/kJdeekmam5ulublZ3n///bLHQzCELupiw4YNMnnyZPn5z38+eNt3v/tdfqNcCc6ePXvVbcuXL5dPfvKTJUyDAceOHZNJkybJCy+8QOiWYP/+/dLY2ChvvPFG2aNU3ooVK+Qzn/nMkL9lOnjwoGRZJocPHy5xMkRE6KIuFi1aJA888MCQ23p7e6WhoUG2bt1azlAY9Nxzz0mWZXL+/PmyR6mse++9V1atWiXt7e2Ebgm+/vWvy1e+8pWyx4CI/Omf/qnMnz9/yG0//elPJcsyOXToUElTISpCF3Vx8803y1NPPXXV7dOnT5dvfvObJUyEyy1dulRmzZpV9hiVtXPnTpk6dar09fURuiW57bbb5C//8i/l0UcflRtuuEHGjx8vv/M7v8P3hZbglVdekcbGRvnHf/xHOXfunJw4cUK++tWvyp133imXLl0qezwEQ+iiLhobG2Xjxo1X3X777bfL8uXLS5gIA1599VUZN26cbN68uexRKum9996TmTNnypYtW0RECN2S1Go1mTx5stx9993S1tYmL7/8snz2s5+VX//1X5cPPvig7PEqZ/fu3TJ58mTJskyyLJPPf/7z8r//+79lj4WACF3UBaHr05kzZ2T69Olyzz338CclJXniiSfkzjvvHPx+REK3HNddd51MnDhxyPewD/x1+T//8z+XOFn1vPbaa3LjjTfKX//1X8vBgwdl586dMn/+fLnrrrvkwoULZY+HYAhd1AXfuuBPb2+vzJ07V+bNmyfnzp0re5xKeuutt6RWq0lbW5v09vZKb2+v7NmzR7Isk1deeUXefffdskesjFtuuUV+67d+66rbp0yZIk8//XQJE1XXb/7mb8pDDz005LYzZ85IQ0PD4N98APVC6KIuFi1aJA8++OCQ286dO8c/RivJ+fPnZeHChTJz5kzp7u4ue5zKGvjTW+1YvHhx2SNWxuLFi9XQ5UfvFWvChAnyt3/7t1fdfvPNN8uTTz5ZwkSIjNBFXWzYsEGuv/566e3tHbztxRdf5MeLleCDDz6Q+++/X2666SZ+lFLJent7pb29fcjx7LPPSpZl8uKLL/LtCwXauHGjTJgwQXp6egZv6+jokCzLZM+ePSVOVj2f+9znrvqDkbfeeksaGhrkn/7pn0qaClERuqiLgV8YsXjxYtm/f79873vfkxtvvJFfGFGC5cuXS5Zl8swzz8iRI0eGHHz/W/n4Ht1y9PX1yW233SZf+MIXpLW1VXbs2CGf+cxn5K677uK3BhbsO9/5jmRZJo8++ujgL4yYO3euTJs2TX7xi1+UPR6CIXRRN52dnXLPPffIhAkT5JZbbpHHHnuMXwFcglmzZql/VX7y5Mmyx6s8Qrc8XV1d8tu//dsyadIkmTJlivz+7/++/M///E/ZY1VOf3+/PP/88zJ//nyZNGmSfPrTn5YHHnhAfvazn5U9GgIidAEAABASoQsAAICQCF0AAACEROgCAAAgJEIXAAAAIRG6AAAACInQBQAAQEiELgAAAEIidAEAABASoQsAAICQCF0AAACEROgCAAAgJEIXAAAAIRG6AAAACInQBQAAQEiELgAAAEIidAEAABASoQsAAICQCF0AAACEROgCAAAgJEIXAAAAIRG6AAAACInQBQAAQEiELgAAAEIidAEAABASoQsAAICQCF0AAACEROgCAAAgJEIXAAAAIRG6AAAACInQBQAAQEiELgAAAEIidAEAABASoQsAAICQCF0AAACE9P8AWcz1W4cqxvsAAAAASUVORK5CYII=" width="639.8333333333334">
 
 
-Let's check the mean and variance of our estimated posterior. These
+Let’s check the mean and variance of our estimated posterior. These
 should be :math:`\bar{x} \approx 2, \sigma^2_{x} \approx 1` and
 :math:`\bar{y} \approx 5, \sigma^2_{y} \approx 2`:
 
@@ -759,12 +759,12 @@ should be :math:`\bar{x} \approx 2, \sigma^2_{x} \approx 1` and
 Create an animation of the results
 ----------------------------------
 
-To visualize the results, we'll create an animation showing how the
-chains evolved. We'll do this by plotting one point for each chain, with
+To visualize the results, we’ll create an animation showing how the
+chains evolved. We’ll do this by plotting one point for each chain, with
 each frame in the animation representing a single iteration.
 
-***Note: To keep file size down, the animation has not been created for
-the version of this notebook uploaded to the repository.***
+**Note: To keep file size down, the animation has not been created for
+the version of this notebook uploaded to the repository.**
 
 .. code:: ipython3
 

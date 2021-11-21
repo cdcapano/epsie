@@ -1,76 +1,38 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>epsie.samplers package &mdash; EPSIE 1.0.dev0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Using a chain" href="tutorials/01-chain.html" />
     <link rel="prev" title="epsie.proposals package" href="epsie.proposals.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> EPSIE
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 1.0.dev0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,19 +40,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parallelization.html">Parallelization</a></li>
@@ -113,128 +64,84 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/01-chain.html">Using a chain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/test_angular.html">The Angular proposal</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EPSIE</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="epsie.html">API Reference</a> &raquo;</li>
-        
       <li>epsie.samplers package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/cdcapano/epsie/blob/master/docs/epsie.samplers.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="epsie-samplers-package">
-<h1>epsie.samplers package<a class="headerlink" href="#epsie-samplers-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-epsie.samplers.base">
-<span id="epsie-samplers-base-module"></span><h2>epsie.samplers.base module<a class="headerlink" href="#module-epsie.samplers.base" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="epsie-samplers-package">
+<h1>epsie.samplers package<a class="headerlink" href="#epsie-samplers-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-epsie.samplers.base">
+<span id="epsie-samplers-base-module"></span><h2>epsie.samplers.base module<a class="headerlink" href="#module-epsie.samplers.base" title="Permalink to this headline"></a></h2>
 <p>Base class and functions for samplers.</p>
 <dl class="py class">
-<dt id="epsie.samplers.base.BaseSampler">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.samplers.base.</code><code class="sig-name descname">BaseSampler</code><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.samplers.base.</span></span><span class="sig-name descname"><span class="pre">BaseSampler</span></span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
 <p>Base class for samplers.</p>
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.acceptance">
-<em class="property">property </em><code class="sig-name descname">acceptance</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.acceptance" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.acceptance">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.acceptance" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all acceptance stats from all of the chains.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.blobs">
-<em class="property">property </em><code class="sig-name descname">blobs</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.blobs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.blobs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.blobs" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the blobs from all of the chains.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.chains">
-<em class="property">property </em><code class="sig-name descname">chains</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.chains" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.chains">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">chains</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.chains" title="Permalink to this definition"></a></dt>
 <dd><p>List of the chains used.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.checkpoint">
-<code class="sig-name descname">checkpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dsetname</span><span class="o">=</span><span class="default_value">'sampler_state'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.checkpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.checkpoint" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.checkpoint">
+<span class="sig-name descname"><span class="pre">checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsetname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sampler_state'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.checkpoint" title="Permalink to this definition"></a></dt>
 <dd><p>Save the sampler’s state to an HDF file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fp</strong> (<em>:py:class:h5py.File</em>) – Open file handler to an hdf5 file. The file handler must have
 write permission.</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – What group to write the state to in the hdf file. Default is the
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – What group to write the state to in the hdf file. Default is the
 top-level.</p></li>
-<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of dataset to store the state to. Default is
+<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The name of dataset to store the state to. Default is
 “sampler_state”.</p></li>
 </ul>
 </dd>
@@ -242,115 +149,115 @@ top-level.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.clear" title="Permalink to this definition"></a></dt>
 <dd><p>Clears all of the chains.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.current_blobs">
-<em class="property">property </em><code class="sig-name descname">current_blobs</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.current_blobs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.current_blobs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_blobs</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.current_blobs" title="Permalink to this definition"></a></dt>
 <dd><p>The current blob data.</p>
 <p>This will default to the blob data of the start positions if the
 chains haven’t been run yet.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.current_positions">
-<em class="property">property </em><code class="sig-name descname">current_positions</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.current_positions" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.current_positions">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_positions</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.current_positions" title="Permalink to this definition"></a></dt>
 <dd><p>The current position of the chains.</p>
 <p>This will default to the start position if the chains haven’t been
 run yet.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.current_stats">
-<em class="property">property </em><code class="sig-name descname">current_stats</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.current_stats" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.current_stats">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.current_stats" title="Permalink to this definition"></a></dt>
 <dd><p>The current stats of the chains.</p>
 <p>This will default to the stats of the start positions if the chains
 haven’t been run yet.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.lastclear">
-<em class="property">property </em><code class="sig-name descname">lastclear</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.lastclear" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.lastclear">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.lastclear" title="Permalink to this definition"></a></dt>
 <dd><p>The iteration that the last clear occurred at.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.model">
-<em class="property">property </em><code class="sig-name descname">model</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.model" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.model">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.model" title="Permalink to this definition"></a></dt>
 <dd><p>The model used.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.nchains">
-<em class="property">property </em><code class="sig-name descname">nchains</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.nchains" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.nchains">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nchains</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.nchains" title="Permalink to this definition"></a></dt>
 <dd><p>The number of chains being used.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.niterations">
-<em class="property">property </em><code class="sig-name descname">niterations</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.niterations" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.niterations">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">niterations</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.niterations" title="Permalink to this definition"></a></dt>
 <dd><p>The number of iterations the chains have been run for.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.parameters">
-<em class="property">property </em><code class="sig-name descname">parameters</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.parameters" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.parameters" title="Permalink to this definition"></a></dt>
 <dd><p>The sampled parameters as a tuple.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.pool">
-<em class="property">property </em><code class="sig-name descname">pool</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.pool" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.pool">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pool</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.pool" title="Permalink to this definition"></a></dt>
 <dd><p>The pool being used for parallelization.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.positions">
-<em class="property">property </em><code class="sig-name descname">positions</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.positions" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.positions">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.positions" title="Permalink to this definition"></a></dt>
 <dd><p>The history of positions from all of the chains.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.proposals">
-<em class="property">property </em><code class="sig-name descname">proposals</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.proposals" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.proposals">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">proposals</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.proposals" title="Permalink to this definition"></a></dt>
 <dd><p>List of the proposals used for the sampled parameters.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">niterations</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.run" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">niterations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.run" title="Permalink to this definition"></a></dt>
 <dd><p>Evolves all of the chains by niterations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>niterations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of iterations to evolve the chains for.</p>
+<dd class="field-odd"><p><strong>niterations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of iterations to evolve the chains for.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.seed">
-<em class="property">property </em><code class="sig-name descname">seed</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.seed" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.seed">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">seed</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.seed" title="Permalink to this definition"></a></dt>
 <dd><p>The seed used for the random bit generator.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.set_proposals">
-<code class="sig-name descname">set_proposals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">proposals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_proposal</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_proposal_args</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.set_proposals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.set_proposals" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.set_proposals">
+<span class="sig-name descname"><span class="pre">set_proposals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proposals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_proposal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_proposal_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.set_proposals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.set_proposals" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the proposals for all parameters.</p>
 <p>If no proposals are given for one or more parameters, the default
 proposal will be used for them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>proposals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><em>optional</em>) – A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">proposals.BaseProposal</span></code> instances. If none
+<li><p><strong>proposals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>, </em><em>optional</em>) – A list of <code class="xref py py-class docutils literal notranslate"><span class="pre">proposals.BaseProposal</span></code> instances. If none
 provided, will use the <code class="docutils literal notranslate"><span class="pre">default_proposal</span></code> for all parameters.</p></li>
 <li><p><strong>default_proposal</strong> (<em>proposals.BaseProposal type class</em><em>, </em><em>optional</em>) – The default proposal class to use for parameters that are not
 specified in <code class="docutils literal notranslate"><span class="pre">proposals</span></code>. Default (None) is to use
 <code class="xref py py-class docutils literal notranslate"><span class="pre">proposals.Normal</span></code>.</p></li>
-<li><p><strong>default_proposal_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of keyword arguments to pass to the default proposal
+<li><p><strong>default_proposal_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of keyword arguments to pass to the default proposal
 when initializing.</p></li>
 </ul>
 </dd>
@@ -358,35 +265,35 @@ when initializing.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.set_state">
-<code class="sig-name descname">set_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.set_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.set_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.set_state" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the state of the all of the chains.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary mapping chain id to the state to set the chain to. See
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary mapping chain id to the state to set the chain to. See
 <code class="xref py py-func docutils literal notranslate"><span class="pre">chain.Chain.set_state()</span></code> for details.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.set_state_from_checkpoint">
-<code class="sig-name descname">set_state_from_checkpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.set_state_from_checkpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.set_state_from_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.set_state_from_checkpoint">
+<span class="sig-name descname"><span class="pre">set_state_from_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/base.html#BaseSampler.set_state_from_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.base.BaseSampler.set_state_from_checkpoint" title="Permalink to this definition"></a></dt>
 <dd><p>Loads a state from an HDF file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fp</strong> (<em>:py:class:h5py.File</em>) – Open file handler to an hdf5 file.</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – What group to store the file to in the hdf file. Default is the
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – What group to store the file to in the hdf file. Default is the
 top-level (‘/’).</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.start_position">
-<em class="property">property </em><code class="sig-name descname">start_position</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.start_position" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.start_position">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.start_position" title="Permalink to this definition"></a></dt>
 <dd><p>The start position of the chains.</p>
 <p>Will raise a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> is <code class="docutils literal notranslate"><span class="pre">set_start</span></code> hasn’t been run.</p>
 <dl class="field-list simple">
@@ -395,46 +302,46 @@ top-level (‘/’).</p></li>
 giving the starting position of each chain.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.state">
-<em class="property">property </em><code class="sig-name descname">state</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.state" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.state">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.state" title="Permalink to this definition"></a></dt>
 <dd><p>The state of all of the chains.</p>
 <p>Returns a dictionary mapping chain ids to their states.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.base.BaseSampler.stats">
-<em class="property">property </em><code class="sig-name descname">stats</code><a class="headerlink" href="#epsie.samplers.base.BaseSampler.stats" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.base.BaseSampler.stats">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#epsie.samplers.base.BaseSampler.stats" title="Permalink to this definition"></a></dt>
 <dd><p>The history of stats from all of the chains.</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.samplers.mhsampler">
-<span id="epsie-samplers-mhsampler-module"></span><h2>epsie.samplers.mhsampler module<a class="headerlink" href="#module-epsie.samplers.mhsampler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-epsie.samplers.mhsampler">
+<span id="epsie-samplers-mhsampler-module"></span><h2>epsie.samplers.mhsampler module<a class="headerlink" href="#module-epsie.samplers.mhsampler" title="Permalink to this headline"></a></h2>
 <dl class="py class">
-<dt id="epsie.samplers.mhsampler.MetropolisHastingsSampler">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.samplers.mhsampler.</code><code class="sig-name descname">MetropolisHastingsSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">nchains</span></em>, <em class="sig-param"><span class="n">proposals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_proposal</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_proposal_args</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pool</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/mhsampler.html#MetropolisHastingsSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.mhsampler.MetropolisHastingsSampler" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.mhsampler.MetropolisHastingsSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.samplers.mhsampler.</span></span><span class="sig-name descname"><span class="pre">MetropolisHastingsSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nchains</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_proposal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_proposal_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/mhsampler.html#MetropolisHastingsSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.mhsampler.MetropolisHastingsSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#epsie.samplers.base.BaseSampler" title="epsie.samplers.base.BaseSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.samplers.base.BaseSampler</span></code></a></p>
 <p>A standard Metropolis-Hastings sampler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – Names of the parameters to sample.</p></li>
-<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – Model object.</p></li>
-<li><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of chains to create. Must be greater than zero.</p></li>
-<li><p><strong>proposals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><em>optional</em>) – List of proposals to use. Any parameters that do not have a proposal
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – Names of the parameters to sample.</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Model object.</p></li>
+<li><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of chains to create. Must be greater than zero.</p></li>
+<li><p><strong>proposals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>, </em><em>optional</em>) – List of proposals to use. Any parameters that do not have a proposal
 provided will use the <code class="docutils literal notranslate"><span class="pre">default_propsal</span></code>.</p></li>
 <li><p><strong>default_proposal</strong> (<em>an epsie.Proposal class</em><em>, </em><em>optional</em>) – The default proposal to use for parameters not in <code class="docutils literal notranslate"><span class="pre">proposals</span></code>.
 Default is <code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.proposals.Normal</span></code>.</p></li>
-<li><p><strong>default_proposal_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of arguments to pass to the default proposal.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Seed for the random number generator. If None provided, will create
+<li><p><strong>default_proposal_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of arguments to pass to the default proposal.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Seed for the random number generator. If None provided, will create
 one.</p></li>
 <li><p><strong>pool</strong> (<em>Pool object</em><em>, </em><em>optional</em>) – Specify a process pool to use for parallelization. Default is to use a
 single core.</p></li>
@@ -442,93 +349,93 @@ single core.</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="epsie.samplers.mhsampler.MetropolisHastingsSampler.create_chains">
-<code class="sig-name descname">create_chains</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nchains</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/mhsampler.html#MetropolisHastingsSampler.create_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.mhsampler.MetropolisHastingsSampler.create_chains" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.mhsampler.MetropolisHastingsSampler.create_chains">
+<span class="sig-name descname"><span class="pre">create_chains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nchains</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/mhsampler.html#MetropolisHastingsSampler.create_chains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.mhsampler.MetropolisHastingsSampler.create_chains" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">chain.Chain</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of Markov chains to create.</p>
+<dd class="field-odd"><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of Markov chains to create.</p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.samplers.ptsampler">
-<span id="epsie-samplers-ptsampler-module"></span><h2>epsie.samplers.ptsampler module<a class="headerlink" href="#module-epsie.samplers.ptsampler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-epsie.samplers.ptsampler">
+<span id="epsie-samplers-ptsampler-module"></span><h2>epsie.samplers.ptsampler module<a class="headerlink" href="#module-epsie.samplers.ptsampler" title="Permalink to this headline"></a></h2>
 <p>Classes for parallel tempered Markov chains.</p>
 <dl class="py class">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.samplers.ptsampler.</code><code class="sig-name descname">ParallelTemperedSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">nchains</span></em>, <em class="sig-param"><span class="n">betas</span></em>, <em class="sig-param"><span class="n">swap_interval</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">proposals</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">adaptive_annealer</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_proposal</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default_proposal_args</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pool</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/ptsampler.html#ParallelTemperedSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.samplers.ptsampler.</span></span><span class="sig-name descname"><span class="pre">ParallelTemperedSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nchains</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">betas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swap_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive_annealer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_proposal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_proposal_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/ptsampler.html#ParallelTemperedSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#epsie.samplers.base.BaseSampler" title="epsie.samplers.base.BaseSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.samplers.base.BaseSampler</span></code></a></p>
 <p>Evolves a collection of parallel tempered Markov chains.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – Names of the parameters to sample.</p></li>
-<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – Model object.</p></li>
-<li><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of chains to create per temperature. Must be greater than
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – Names of the parameters to sample.</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Model object.</p></li>
+<li><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of chains to create per temperature. Must be greater than
 zero.</p></li>
 <li><p><strong>betas</strong> (<em>numpy.ndarray of floats</em>) – The betas (= 1 / temperatures) to use. All betas must be between [0,1].
 Must provide at least one. If one is not included in the betas, a
 warning will be printed.</p></li>
-<li><p><strong>swap_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – How often to calculate temperature swaps. Default is 1 (= swap on every
+<li><p><strong>swap_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – How often to calculate temperature swaps. Default is 1 (= swap on every
 iteration).</p></li>
-<li><p><strong>proposals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><em>optional</em>) – List of proposals to use. Any parameters that do not have a proposal
+<li><p><strong>proposals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>, </em><em>optional</em>) – List of proposals to use. Any parameters that do not have a proposal
 provided will use the <code class="docutils literal notranslate"><span class="pre">default_propsal</span></code>.</p></li>
 <li><p><strong>default_proposal</strong> (<em>an epsie.Proposal class</em><em>, </em><em>optional</em>) – The default proposal to use for parameters not in <code class="docutils literal notranslate"><span class="pre">proposals</span></code>.
 Default is <code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.proposals.Normal</span></code>.</p></li>
-<li><p><strong>default_proposal_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of arguments to pass to the default proposal.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Seed for the random number generator. If None provided, will create
+<li><p><strong>default_proposal_args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of arguments to pass to the default proposal.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Seed for the random number generator. If None provided, will create
 one.</p></li>
 <li><p><strong>pool</strong> (<em>Pool object</em><em>, </em><em>optional</em>) – Specify a process pool to use for parallelization. Default is to use a
 single core.</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.betas">
-<em class="property">property </em><code class="sig-name descname">betas</code><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.betas" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.betas">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">betas</span></span><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.betas" title="Permalink to this definition"></a></dt>
 <dd><p>The betas used for each chain. Shape is (nchains, ntemps).
 If temperatures are being dynamically adjusted each chain will
 have a different set of temperatures.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.create_chains">
-<code class="sig-name descname">create_chains</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nchains</span></em>, <em class="sig-param"><span class="n">betas</span></em>, <em class="sig-param"><span class="n">swap_interval</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">adaptive_annealer</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/ptsampler.html#ParallelTemperedSampler.create_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.create_chains" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.create_chains">
+<span class="sig-name descname"><span class="pre">create_chains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nchains</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">betas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swap_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive_annealer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/samplers/ptsampler.html#ParallelTemperedSampler.create_chains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.create_chains" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">chain.ParallelTemperedChain</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of parallel tempered chains to create.</p></li>
+<li><p><strong>nchains</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of parallel tempered chains to create.</p></li>
 <li><p><strong>betas</strong> (<em>array</em>) – Array of inverse temperatures to use for each parallel tempered
 chain.</p></li>
-<li><p><strong>swap_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – How often to calculate temperature swaps. Default is 1 (= swap on
+<li><p><strong>swap_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – How often to calculate temperature swaps. Default is 1 (= swap on
 every iteration).</p></li>
-<li><p><strong>adaptive_annealer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a><em>, </em><em>optional</em>) – Adaptive anneler adjusting temperatures on the go.
+<li><p><strong>adaptive_annealer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a><em>, </em><em>optional</em>) – Adaptive anneler adjusting temperatures on the go.
 Default is <cite>None</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.ntemps">
-<em class="property">property </em><code class="sig-name descname">ntemps</code><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.ntemps" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.ntemps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ntemps</span></span><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.ntemps" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the number of temperatures used.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.swap_interval">
-<em class="property">property </em><code class="sig-name descname">swap_interval</code><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.swap_interval" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.swap_interval">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">swap_interval</span></span><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.swap_interval" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the swap interval used for parallel tempering.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_acceptance">
-<em class="property">property </em><code class="sig-name descname">temperature_acceptance</code><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_acceptance" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_acceptance">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_acceptance</span></span><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_acceptance" title="Permalink to this definition"></a></dt>
 <dd><p>The history of the temperature acceptance from all of the chains.</p>
 <p>If ntemps is 1, just returns None.</p>
 <div class="admonition note">
@@ -538,9 +445,9 @@ one field.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_swaps">
-<em class="property">property </em><code class="sig-name descname">temperature_swaps</code><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_swaps" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_swaps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_swaps</span></span><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.temperature_swaps" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all the temperature swaps from all of the chains.</p>
 <p>If ntemps is 1, just returns None.</p>
 <div class="admonition note">
@@ -550,53 +457,43 @@ one field.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.samplers.ptsampler.ParallelTemperedSampler.temperatures">
-<em class="property">property </em><code class="sig-name descname">temperatures</code><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.temperatures" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.samplers.ptsampler.ParallelTemperedSampler.temperatures">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperatures</span></span><a class="headerlink" href="#epsie.samplers.ptsampler.ParallelTemperedSampler.temperatures" title="Permalink to this definition"></a></dt>
 <dd><p>The temperatures used. Shape is (nchains, ntemps)</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.samplers">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-epsie.samplers" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-epsie.samplers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-epsie.samplers" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="tutorials/01-chain.html" class="btn btn-neutral float-right" title="Using a chain" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="epsie.proposals.html" class="btn btn-neutral float-left" title="epsie.proposals package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials/01-chain.html" class="btn btn-neutral float-right" title="Using a chain" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Collin D. Capano.
-
-    </p>
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
   <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
 
@@ -620,18 +517,11 @@ one field.</p>
       
     </div>
   </div>
-
-
-  <script type="text/javascript">
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

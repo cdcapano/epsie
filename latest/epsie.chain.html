@@ -1,76 +1,38 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>epsie.chain package &mdash; EPSIE 1.0.dev0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="epsie.proposals package" href="epsie.proposals.html" />
     <link rel="prev" title="API Reference" href="epsie.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> EPSIE
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 1.0.dev0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,19 +40,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parallelization.html">Parallelization</a></li>
@@ -114,309 +65,265 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/01-chain.html">Using a chain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/test_angular.html">The Angular proposal</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EPSIE</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="epsie.html">API Reference</a> &raquo;</li>
-        
       <li>epsie.chain package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/cdcapano/epsie/blob/master/docs/epsie.chain.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="epsie-chain-package">
-<h1>epsie.chain package<a class="headerlink" href="#epsie-chain-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-epsie.chain.base">
-<span id="epsie-chain-base-module"></span><h2>epsie.chain.base module<a class="headerlink" href="#module-epsie.chain.base" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="epsie-chain-package">
+<h1>epsie.chain package<a class="headerlink" href="#epsie-chain-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-epsie.chain.base">
+<span id="epsie-chain-base-module"></span><h2>epsie.chain.base module<a class="headerlink" href="#module-epsie.chain.base" title="Permalink to this headline"></a></h2>
 <p>Base class for Markov chains.</p>
 <dl class="py class">
-<dt id="epsie.chain.base.BaseChain">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.chain.base.</code><code class="sig-name descname">BaseChain</code><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.base.BaseChain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.chain.base.</span></span><span class="sig-name descname"><span class="pre">BaseChain</span></span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.base.BaseChain" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
 <p>Abstract base class for Markov chains.</p>
 <p>Provides standard functions for Chain and ParallelTemperedChain.</p>
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.parameters">
-<code class="sig-name descname">parameters</code><a class="headerlink" href="#epsie.chain.base.BaseChain.parameters" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.parameters" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.iteration">
-<code class="sig-name descname">iteration</code><a class="headerlink" href="#epsie.chain.base.BaseChain.iteration" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.iteration">
+<span class="sig-name descname"><span class="pre">iteration</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.iteration" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.lastclear">
-<code class="sig-name descname">lastclear</code><a class="headerlink" href="#epsie.chain.base.BaseChain.lastclear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.lastclear">
+<span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.lastclear" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.scratchlen">
-<code class="sig-name descname">scratchlen</code><a class="headerlink" href="#epsie.chain.base.BaseChain.scratchlen" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.scratchlen">
+<span class="sig-name descname"><span class="pre">scratchlen</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.scratchlen" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.positions">
-<code class="sig-name descname">positions</code><a class="headerlink" href="#epsie.chain.base.BaseChain.positions" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.positions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.stats">
-<code class="sig-name descname">stats</code><a class="headerlink" href="#epsie.chain.base.BaseChain.stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.stats">
+<span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.stats" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.acceptance">
-<code class="sig-name descname">acceptance</code><a class="headerlink" href="#epsie.chain.base.BaseChain.acceptance" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.acceptance">
+<span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.acceptance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.blobs">
-<code class="sig-name descname">blobs</code><a class="headerlink" href="#epsie.chain.base.BaseChain.blobs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.blobs">
+<span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.blobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.start_position">
-<code class="sig-name descname">start_position</code><a class="headerlink" href="#epsie.chain.base.BaseChain.start_position" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.start_position">
+<span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.start_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.stats0">
-<code class="sig-name descname">stats0</code><a class="headerlink" href="#epsie.chain.base.BaseChain.stats0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.stats0">
+<span class="sig-name descname"><span class="pre">stats0</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.stats0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.blob0">
-<code class="sig-name descname">blob0</code><a class="headerlink" href="#epsie.chain.base.BaseChain.blob0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.blob0">
+<span class="sig-name descname"><span class="pre">blob0</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.blob0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.current_position">
-<code class="sig-name descname">current_position</code><a class="headerlink" href="#epsie.chain.base.BaseChain.current_position" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.current_position">
+<span class="sig-name descname"><span class="pre">current_position</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.current_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.current_stats">
-<code class="sig-name descname">current_stats</code><a class="headerlink" href="#epsie.chain.base.BaseChain.current_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.current_stats">
+<span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.current_stats" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.current_blob">
-<code class="sig-name descname">current_blob</code><a class="headerlink" href="#epsie.chain.base.BaseChain.current_blob" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.current_blob">
+<span class="sig-name descname"><span class="pre">current_blob</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.current_blob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.bit_generator">
-<code class="sig-name descname">bit_generator</code><a class="headerlink" href="#epsie.chain.base.BaseChain.bit_generator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.bit_generator">
+<span class="sig-name descname"><span class="pre">bit_generator</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.bit_generator" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.random_state">
-<code class="sig-name descname">random_state</code><a class="headerlink" href="#epsie.chain.base.BaseChain.random_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.random_state">
+<span class="sig-name descname"><span class="pre">random_state</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.random_state" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.state">
-<code class="sig-name descname">state</code><a class="headerlink" href="#epsie.chain.base.BaseChain.state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.state">
+<span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.state" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.hasblobs">
-<code class="sig-name descname">hasblobs</code><a class="headerlink" href="#epsie.chain.base.BaseChain.hasblobs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.hasblobs">
+<span class="sig-name descname"><span class="pre">hasblobs</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.hasblobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.base.BaseChain.chain_id">
-<code class="sig-name descname">chain_id</code><a class="headerlink" href="#epsie.chain.base.BaseChain.chain_id" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.chain_id">
+<span class="sig-name descname"><span class="pre">chain_id</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.chain_id" title="Permalink to this definition"></a></dt>
 <dd><p>Integer identifying the chain. Default is 0.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id0">
-<em class="property">abstract property </em><code class="sig-name descname">acceptance</code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#id0" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of acceptance ratios and accepted booleans, as
 a structred array.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id1">
-<em class="property">abstract property </em><code class="sig-name descname">bit_generator</code><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id1">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bit_generator</span></span><a class="headerlink" href="#id1" title="Permalink to this definition"></a></dt>
 <dd><p>The random bit generator being used.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id2">
-<em class="property">abstract property </em><code class="sig-name descname">blob0</code><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id2">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blob0</span></span><a class="headerlink" href="#id2" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the blob data at the start position.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id3">
-<em class="property">abstract property </em><code class="sig-name descname">blobs</code><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id3">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#id3" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the blob data, as a structred array.</p>
 <p>If the model does not return blobs, this is just <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="id4">
-<code class="sig-name descname">chain_id</code><em class="property"> = 0</em><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">chain_id</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#id4" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.base.BaseChain.clear">
-<em class="property">abstract </em><code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.base.BaseChain.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.clear">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.base.BaseChain.clear" title="Permalink to this definition"></a></dt>
 <dd><p>Clears memory of the current chain, and sets start position to the
 current position.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id5">
-<em class="property">abstract property </em><code class="sig-name descname">current_blob</code><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id5">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_blob</span></span><a class="headerlink" href="#id5" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the blob data of the current position.</p>
 <p>If the model does not return blobs, just returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id6">
-<em class="property">abstract property </em><code class="sig-name descname">current_position</code><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id6">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_position</span></span><a class="headerlink" href="#id6" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the current position of the chain.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id7">
-<em class="property">abstract property </em><code class="sig-name descname">current_stats</code><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id7">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#id7" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary giving the log likelihood and log prior of the current
 position.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id8">
-<em class="property">abstract property </em><code class="sig-name descname">hasblobs</code><a class="headerlink" href="#id8" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id8">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hasblobs</span></span><a class="headerlink" href="#id8" title="Permalink to this definition"></a></dt>
 <dd><p>Whether the model returns blobs.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id9">
-<em class="property">abstract property </em><code class="sig-name descname">iteration</code><a class="headerlink" href="#id9" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id9">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iteration</span></span><a class="headerlink" href="#id9" title="Permalink to this definition"></a></dt>
 <dd><p>The number of times the chain has been stepped.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id10">
-<em class="property">abstract property </em><code class="sig-name descname">lastclear</code><a class="headerlink" href="#id10" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id10">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#id10" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the iteration of the last time the chain memory was cleared.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id11">
-<em class="property">property </em><code class="sig-name descname">parameters</code><a class="headerlink" href="#id11" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id11">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#id11" title="Permalink to this definition"></a></dt>
 <dd><p>The sampled parameters, as a tuple.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id12">
-<em class="property">abstract property </em><code class="sig-name descname">positions</code><a class="headerlink" href="#id12" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id12">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#id12" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the positions, as a structred array.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.base.BaseChain.random_generator">
-<em class="property">abstract property </em><code class="sig-name descname">random_generator</code><a class="headerlink" href="#epsie.chain.base.BaseChain.random_generator" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.random_generator">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_generator</span></span><a class="headerlink" href="#epsie.chain.base.BaseChain.random_generator" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the random number generator.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id13">
-<em class="property">abstract property </em><code class="sig-name descname">random_state</code><a class="headerlink" href="#id13" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id13">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_state</span></span><a class="headerlink" href="#id13" title="Permalink to this definition"></a></dt>
 <dd><p>The current state of the random bit generator.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id14">
-<em class="property">abstract property </em><code class="sig-name descname">scratchlen</code><a class="headerlink" href="#id14" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id14">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scratchlen</span></span><a class="headerlink" href="#id14" title="Permalink to this definition"></a></dt>
 <dd><p>The length of the scratch space used.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.base.BaseChain.set_state">
-<em class="property">abstract </em><code class="sig-name descname">set_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain.set_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.base.BaseChain.set_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.set_state">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.base.BaseChain.set_state" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the state of the chain using the given dict.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -425,53 +332,53 @@ current position with what is saved in the state.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary of state values.</p>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary of state values.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id15">
-<em class="property">abstract property </em><code class="sig-name descname">start_position</code><a class="headerlink" href="#id15" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id15">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#id15" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary mapping parameters to their start position.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id16">
-<em class="property">abstract property </em><code class="sig-name descname">state</code><a class="headerlink" href="#id16" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id16">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#id16" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current state of the chain.</p>
 <p>The state consists of everything needed such that setting a chain’s
 state using another’s state will result in identical results.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id17">
-<em class="property">abstract property </em><code class="sig-name descname">stats</code><a class="headerlink" href="#id17" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id17">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#id17" title="Permalink to this definition"></a></dt>
 <dd><p>The log likelihoods and log priors of the positions, as a structred
 array.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id18">
-<em class="property">abstract property </em><code class="sig-name descname">stats0</code><a class="headerlink" href="#id18" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id18">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats0</span></span><a class="headerlink" href="#id18" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the log likelihood and prior at the start position.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.base.BaseChain.step">
-<em class="property">abstract </em><code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.base.BaseChain.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.base.BaseChain.step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/base.html#BaseChain.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.base.BaseChain.step" title="Permalink to this definition"></a></dt>
 <dd><p>Evolves the chain by a single step.</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.chain.chain">
-<span id="epsie-chain-chain-module"></span><h2>epsie.chain.chain module<a class="headerlink" href="#module-epsie.chain.chain" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-epsie.chain.chain">
+<span id="epsie-chain-chain-module"></span><h2>epsie.chain.chain module<a class="headerlink" href="#module-epsie.chain.chain" title="Permalink to this headline"></a></h2>
 <p>Classes for individual Markov chains.</p>
 <dl class="py class">
-<dt id="epsie.chain.chain.Chain">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.chain.chain.</code><code class="sig-name descname">Chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">proposals</span></em>, <em class="sig-param"><span class="n">bit_generator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chain_id</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chain.Chain" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.chain.chain.</span></span><span class="sig-name descname"><span class="pre">Chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_generator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chain.Chain" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#epsie.chain.base.BaseChain" title="epsie.chain.base.BaseChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.chain.base.BaseChain</span></code></a></p>
 <p>A Markov chain.</p>
 <p>The chain requires a <code class="docutils literal notranslate"><span class="pre">model</span></code> to  be provided. This can be any object that
@@ -485,8 +392,8 @@ stored as <code class="docutils literal notranslate"><span class="pre">blob</spa
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – List of the parameter names to sample.</p></li>
-<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – Any object that can be called with keyword arguments that map parameter
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – List of the parameter names to sample.</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Any object that can be called with keyword arguments that map parameter
 names to values. When called, the object must a tuple of <code class="docutils literal notranslate"><span class="pre">logl,</span> <span class="pre">logp</span></code>
 where <code class="docutils literal notranslate"><span class="pre">logp</span></code> is the log prior and <code class="docutils literal notranslate"><span class="pre">logl</span></code> is the log likelihood at
 the given point. The model may optionally return a dictionary in
@@ -498,120 +405,120 @@ inherit from <code class="xref py py-class docutils literal notranslate"><span c
 <li><p><strong>bit_generator</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.BIT_GENERATOR</span></code> instance, optional) – Use the given random bit generator for generating random variates. If
 an int or None is provided, a generator will be created instead using
 <code class="docutils literal notranslate"><span class="pre">bit_generator</span></code> as a seed.</p></li>
-<li><p><strong>chain_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – An interger identifying which chain this is. Default is 0.</p></li>
-<li><p><strong>beta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – The inverse temperature of the chain. Default is 1.</p></li>
+<li><p><strong>chain_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – An interger identifying which chain this is. Default is 0.</p></li>
+<li><p><strong>beta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>optional</em>) – The inverse temperature of the chain. Default is 1.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.parameters">
-<code class="sig-name descname">parameters</code><a class="headerlink" href="#epsie.chain.chain.Chain.parameters" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.parameters" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.iteration">
-<code class="sig-name descname">iteration</code><a class="headerlink" href="#epsie.chain.chain.Chain.iteration" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.iteration">
+<span class="sig-name descname"><span class="pre">iteration</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.iteration" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.lastclear">
-<code class="sig-name descname">lastclear</code><a class="headerlink" href="#epsie.chain.chain.Chain.lastclear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.lastclear">
+<span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.lastclear" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.scratchlen">
-<code class="sig-name descname">scratchlen</code><a class="headerlink" href="#epsie.chain.chain.Chain.scratchlen" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.scratchlen">
+<span class="sig-name descname"><span class="pre">scratchlen</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.scratchlen" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.positions">
-<code class="sig-name descname">positions</code><a class="headerlink" href="#epsie.chain.chain.Chain.positions" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.positions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.stats">
-<code class="sig-name descname">stats</code><a class="headerlink" href="#epsie.chain.chain.Chain.stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.stats">
+<span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.stats" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.acceptance">
-<code class="sig-name descname">acceptance</code><a class="headerlink" href="#epsie.chain.chain.Chain.acceptance" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.acceptance">
+<span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.acceptance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.blobs">
-<code class="sig-name descname">blobs</code><a class="headerlink" href="#epsie.chain.chain.Chain.blobs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.blobs">
+<span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.blobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.start_position">
-<code class="sig-name descname">start_position</code><a class="headerlink" href="#epsie.chain.chain.Chain.start_position" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.start_position">
+<span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.start_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.stats0">
-<code class="sig-name descname">stats0</code><a class="headerlink" href="#epsie.chain.chain.Chain.stats0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.stats0">
+<span class="sig-name descname"><span class="pre">stats0</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.stats0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.blob0">
-<code class="sig-name descname">blob0</code><a class="headerlink" href="#epsie.chain.chain.Chain.blob0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.blob0">
+<span class="sig-name descname"><span class="pre">blob0</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.blob0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.current_position">
-<code class="sig-name descname">current_position</code><a class="headerlink" href="#epsie.chain.chain.Chain.current_position" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.current_position">
+<span class="sig-name descname"><span class="pre">current_position</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.current_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.current_stats">
-<code class="sig-name descname">current_stats</code><a class="headerlink" href="#epsie.chain.chain.Chain.current_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.current_stats">
+<span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.current_stats" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.current_blob">
-<code class="sig-name descname">current_blob</code><a class="headerlink" href="#epsie.chain.chain.Chain.current_blob" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.current_blob">
+<span class="sig-name descname"><span class="pre">current_blob</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.current_blob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.bit_generator">
-<code class="sig-name descname">bit_generator</code><a class="headerlink" href="#epsie.chain.chain.Chain.bit_generator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.bit_generator">
+<span class="sig-name descname"><span class="pre">bit_generator</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.bit_generator" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.random_state">
-<code class="sig-name descname">random_state</code><a class="headerlink" href="#epsie.chain.chain.Chain.random_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.random_state">
+<span class="sig-name descname"><span class="pre">random_state</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.random_state" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.state">
-<code class="sig-name descname">state</code><a class="headerlink" href="#epsie.chain.chain.Chain.state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.state">
+<span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.state" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.hasblobs">
-<code class="sig-name descname">hasblobs</code><a class="headerlink" href="#epsie.chain.chain.Chain.hasblobs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.hasblobs">
+<span class="sig-name descname"><span class="pre">hasblobs</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.hasblobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.transdimensional">
-<code class="sig-name descname">transdimensional</code><a class="headerlink" href="#epsie.chain.chain.Chain.transdimensional" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.transdimensional">
+<span class="sig-name descname"><span class="pre">transdimensional</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.transdimensional" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.chain_id">
-<code class="sig-name descname">chain_id</code><a class="headerlink" href="#epsie.chain.chain.Chain.chain_id" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.chain_id">
+<span class="sig-name descname"><span class="pre">chain_id</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.chain_id" title="Permalink to this definition"></a></dt>
 <dd><p>Integer identifying the chain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chain.Chain.proposal_dist">
-<code class="sig-name descname">proposal_dist</code><a class="headerlink" href="#epsie.chain.chain.Chain.proposal_dist" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.proposal_dist">
+<span class="sig-name descname"><span class="pre">proposal_dist</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.proposal_dist" title="Permalink to this definition"></a></dt>
 <dd><p>The joint proposal used for all parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -620,112 +527,112 @@ an int or None is provided, a generator will be created instead using
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id19">
-<em class="property">property </em><code class="sig-name descname">acceptance</code><a class="headerlink" href="#id19" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id19">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#id19" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of acceptance ratios and accepted booleans, as
 a structred array.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id20">
-<em class="property">property </em><code class="sig-name descname">bit_generator</code><a class="headerlink" href="#id20" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id20">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bit_generator</span></span><a class="headerlink" href="#id20" title="Permalink to this definition"></a></dt>
 <dd><p>The random bit generator being used.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id21">
-<em class="property">property </em><code class="sig-name descname">blob0</code><a class="headerlink" href="#id21" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id21">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blob0</span></span><a class="headerlink" href="#id21" title="Permalink to this definition"></a></dt>
 <dd><p>The blob data of the starting position, as a dictionary.</p>
 <p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if <code class="docutils literal notranslate"><span class="pre">set_start</span></code> has not been run yet.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id22">
-<em class="property">property </em><code class="sig-name descname">blobs</code><a class="headerlink" href="#id22" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id22">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#id22" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the blob data, as a structured array.</p>
 <p>If the model does not return blobs, this is just <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.chain.Chain.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chain.Chain.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chain.Chain.clear" title="Permalink to this definition"></a></dt>
 <dd><p>Clears memory of the current chain, and sets start position to the
 current position.</p>
 <p>New scratch space will be created with length equal to <code class="docutils literal notranslate"><span class="pre">scratch_len</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id23">
-<em class="property">property </em><code class="sig-name descname">current_blob</code><a class="headerlink" href="#id23" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id23">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_blob</span></span><a class="headerlink" href="#id23" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the blob data of the current position.</p>
 <p>If the model does not return blobs, just returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id24">
-<em class="property">property </em><code class="sig-name descname">current_position</code><a class="headerlink" href="#id24" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id24">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_position</span></span><a class="headerlink" href="#id24" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the current position of the chain.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id25">
-<em class="property">property </em><code class="sig-name descname">current_stats</code><a class="headerlink" href="#id25" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id25">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#id25" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary giving the log likelihood and log prior of the current
 position.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id26">
-<em class="property">property </em><code class="sig-name descname">hasblobs</code><a class="headerlink" href="#id26" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id26">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hasblobs</span></span><a class="headerlink" href="#id26" title="Permalink to this definition"></a></dt>
 <dd><p>Whether the model returns blobs.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id27">
-<em class="property">property </em><code class="sig-name descname">iteration</code><a class="headerlink" href="#id27" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id27">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iteration</span></span><a class="headerlink" href="#id27" title="Permalink to this definition"></a></dt>
 <dd><p>The number of times the chain has been stepped.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id28">
-<em class="property">property </em><code class="sig-name descname">lastclear</code><a class="headerlink" href="#id28" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id28">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#id28" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the iteration of the last time the chain memory was cleared.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id29">
-<em class="property">property </em><code class="sig-name descname">positions</code><a class="headerlink" href="#id29" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id29">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#id29" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the positions, as a structred array.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.chain.Chain.proposed_position">
-<em class="property">property </em><code class="sig-name descname">proposed_position</code><a class="headerlink" href="#epsie.chain.chain.Chain.proposed_position" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.proposed_position">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">proposed_position</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.proposed_position" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the current proposed position of the chain.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.chain.Chain.random_generator">
-<em class="property">property </em><code class="sig-name descname">random_generator</code><a class="headerlink" href="#epsie.chain.chain.Chain.random_generator" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.random_generator">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_generator</span></span><a class="headerlink" href="#epsie.chain.chain.Chain.random_generator" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the random number generator.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id30">
-<em class="property">property </em><code class="sig-name descname">random_state</code><a class="headerlink" href="#id30" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id30">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_state</span></span><a class="headerlink" href="#id30" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current state of the bit generator.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id31">
-<em class="property">property </em><code class="sig-name descname">scratchlen</code><a class="headerlink" href="#id31" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id31">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scratchlen</span></span><a class="headerlink" href="#id31" title="Permalink to this definition"></a></dt>
 <dd><p>The length of the scratch space used.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.chain.Chain.set_state">
-<code class="sig-name descname">set_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain.set_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chain.Chain.set_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chain.Chain.set_state" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the state of the chain using the given dict.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -734,57 +641,57 @@ current position with what is saved in the state.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary of state values.</p>
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary of state values.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id32">
-<em class="property">property </em><code class="sig-name descname">start_position</code><a class="headerlink" href="#id32" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id32">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#id32" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary mapping parameters to their start position.</p>
 <p>If the start position hasn’t been set, raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id33">
-<em class="property">property </em><code class="sig-name descname">state</code><a class="headerlink" href="#id33" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id33">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#id33" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current state of the chain.</p>
 <p>The state consists of everything needed such that setting a chain’s
 state using another’s state will result in identical results.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id34">
-<em class="property">property </em><code class="sig-name descname">stats</code><a class="headerlink" href="#id34" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id34">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#id34" title="Permalink to this definition"></a></dt>
 <dd><p>The log likelihoods and log priors of the positions, as a structured
 array.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id35">
-<em class="property">property </em><code class="sig-name descname">stats0</code><a class="headerlink" href="#id35" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id35">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats0</span></span><a class="headerlink" href="#id35" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the log likelihood and log prior at the start
 position.</p>
 <p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if the start position has not been set yet.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.chain.Chain.step">
-<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chain.Chain.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chain.Chain.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chain.html#Chain.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chain.Chain.step" title="Permalink to this definition"></a></dt>
 <dd><p>Evolves the chain by a single step.</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.chain.chaindata">
-<span id="epsie-chain-chaindata-module"></span><h2>epsie.chain.chaindata module<a class="headerlink" href="#module-epsie.chain.chaindata" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-epsie.chain.chaindata">
+<span id="epsie-chain-chaindata-module"></span><h2>epsie.chain.chaindata module<a class="headerlink" href="#module-epsie.chain.chaindata" title="Permalink to this headline"></a></h2>
 <p>Utilities for handling chain data.</p>
 <dl class="py class">
-<dt id="epsie.chain.chaindata.ChainData">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.chain.chaindata.</code><code class="sig-name descname">ChainData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">dtypes</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ntemps</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.chain.chaindata.</span></span><span class="sig-name descname"><span class="pre">ChainData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntemps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Handles reading and adding data to a chain.</p>
 <p>When initialized, a list of parameter names must be provided for which the
 data will be stored. Items may then be added by giving a dictionary mapping
@@ -812,38 +719,38 @@ operations and writing to disk.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>tuple of str</em>) – The names of the parameters to store data for.</p></li>
-<li><p><strong>dtypes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary mapping parameter names to types. Will default to using
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em> or </em><em>tuple of str</em>) – The names of the parameters to store data for.</p></li>
+<li><p><strong>dtypes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary mapping parameter names to types. Will default to using
 <code class="docutils literal notranslate"><span class="pre">float</span></code> for any parameters that are not provided.</p></li>
-<li><p><strong>ntemps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of temperatures used by the chain. Default is 1.</p></li>
+<li><p><strong>ntemps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of temperatures used by the chain. Default is 1.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="epsie.chain.chaindata.ChainData.parameters">
-<code class="sig-name descname">parameters</code><a class="headerlink" href="#epsie.chain.chaindata.ChainData.parameters" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#epsie.chain.chaindata.ChainData.parameters" title="Permalink to this definition"></a></dt>
 <dd><p>The names of the parameters that were given.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chaindata.ChainData.dtypes">
-<code class="sig-name descname">dtypes</code><a class="headerlink" href="#epsie.chain.chaindata.ChainData.dtypes" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.dtypes">
+<span class="sig-name descname"><span class="pre">dtypes</span></span><a class="headerlink" href="#epsie.chain.chaindata.ChainData.dtypes" title="Permalink to this definition"></a></dt>
 <dd><p>The data type used for each of the parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.chaindata.ChainData.data">
-<code class="sig-name descname">data</code><a class="headerlink" href="#epsie.chain.chaindata.ChainData.data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#epsie.chain.chaindata.ChainData.data" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Examples</p>
@@ -891,51 +798,51 @@ floats. Change ‘y’ to be ints instead:</p>
 </pre></div>
 </div>
 <dl class="py method">
-<dt id="epsie.chain.chaindata.ChainData.asdict">
-<code class="sig-name descname">asdict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.asdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.asdict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.asdict">
+<span class="sig-name descname"><span class="pre">asdict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.asdict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.asdict" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the data as a dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.9)"><em>slice</em></a><em>, </em><em>optional</em>) – Only get the elements indicated by the given slice before
+<dd class="field-odd"><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.10)"><em>slice</em></a><em>, </em><em>optional</em>) – Only get the elements indicated by the given slice before
 converting to a dictionary.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.chaindata.ChainData.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">newlen</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newlen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.clear" title="Permalink to this definition"></a></dt>
 <dd><p>Clears the memory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>newlen</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – If provided, will create new scratch space with the given length.</p>
+<dd class="field-odd"><p><strong>newlen</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – If provided, will create new scratch space with the given length.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id36">
-<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#id36" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id36">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#id36" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the saved data as a numpy structered array.</p>
 <p>If no data has been added yet, and an initial length was not specified,
 returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id37">
-<em class="property">property </em><code class="sig-name descname">dtypes</code><a class="headerlink" href="#id37" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id37">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dtypes</span></span><a class="headerlink" href="#id37" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary mapping parameter names to their data types.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.chaindata.ChainData.extend">
-<code class="sig-name descname">extend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.extend" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.extend">
+<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.extend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.extend" title="Permalink to this definition"></a></dt>
 <dd><p>Extends scratch space by n items.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.chaindata.ChainData.set_len">
-<code class="sig-name descname">set_len</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.set_len"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.set_len" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.ChainData.set_len">
+<span class="sig-name descname"><span class="pre">set_len</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#ChainData.set_len"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chaindata.ChainData.set_len" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the data length to <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 <p>If the data length is already &gt; <code class="docutils literal notranslate"><span class="pre">n</span></code>, a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> is raised.</p>
 </dd></dl>
@@ -943,12 +850,12 @@ returns <code class="docutils literal notranslate"><span class="pre">None</span>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.chain.chaindata.detect_dtypes">
-<code class="sig-prename descclassname">epsie.chain.chaindata.</code><code class="sig-name descname">detect_dtypes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#detect_dtypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.chaindata.detect_dtypes" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.chaindata.detect_dtypes">
+<span class="sig-prename descclassname"><span class="pre">epsie.chain.chaindata.</span></span><span class="sig-name descname"><span class="pre">detect_dtypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/chaindata.html#detect_dtypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.chaindata.detect_dtypes" title="Permalink to this definition"></a></dt>
 <dd><p>Convenience function to detect the dtype of some data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – Either a numpy structred array/void or a dictionary mapping parameter
+<dd class="field-odd"><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><em>numpy.ndarray</em></a>) – Either a numpy structred array/void or a dictionary mapping parameter
 names to some (arbitrary) values. The values may be either arrays or
 atomic data. If the former, the dtype will be taken from the array’s
 dtype.</p>
@@ -957,29 +864,29 @@ dtype.</p>
 <dd class="field-even"><p>Dictionary mapping the parameter names to types.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.chain.ptchain">
-<span id="epsie-chain-ptchain-module"></span><h2>epsie.chain.ptchain module<a class="headerlink" href="#module-epsie.chain.ptchain" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-epsie.chain.ptchain">
+<span id="epsie-chain-ptchain-module"></span><h2>epsie.chain.ptchain module<a class="headerlink" href="#module-epsie.chain.ptchain" title="Permalink to this headline"></a></h2>
 <p>Markov chains with parallel tempering.</p>
 <dl class="py class">
-<dt id="epsie.chain.ptchain.DynamicalAnnealer">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.chain.ptchain.</code><code class="sig-name descname">DynamicalAnnealer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tau</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">nu</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">Tmax_prior</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#DynamicalAnnealer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.DynamicalAnnealer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.DynamicalAnnealer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.chain.ptchain.</span></span><span class="sig-name descname"><span class="pre">DynamicalAnnealer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tmax_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#DynamicalAnnealer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.DynamicalAnnealer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class for dynamical parallel tempering.</p>
 <p>This is based on the algorithm described in [1].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tau</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Defines the swap iteration at which adjustments have been reduced to
+<li><p><strong>tau</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Defines the swap iteration at which adjustments have been reduced to
 half their initial amplitude ([1]). Default value is 1000.</p></li>
-<li><p><strong>nu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Defines the initial amplitude of adjustments ([1]).
+<li><p><strong>nu</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Defines the initial amplitude of adjustments ([1]).
 Default values is 10</p></li>
-<li><p><strong>Tmax_prior</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to set the hottest chain temperature to infinity. This only
+<li><p><strong>Tmax_prior</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to set the hottest chain temperature to infinity. This only
 rewrites the hottest chain temperature to be infty and keeps the other
 chains as they were. By default sets it to infinity.</p></li>
 </ul>
@@ -992,29 +899,29 @@ Monthly Notices of the Royal Astronomical Society, Volume 455,
 Issue 2, 11 January 2016, Pages 1919–1937,
 <a class="reference external" href="https://doi.org/10.1093/mnras/stv2422">https://doi.org/10.1093/mnras/stv2422</a></p>
 <dl class="py method">
-<dt id="epsie.chain.ptchain.DynamicalAnnealer.setup_annealing">
-<code class="sig-name descname">setup_annealing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">betas</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#DynamicalAnnealer.setup_annealing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.DynamicalAnnealer.setup_annealing" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.DynamicalAnnealer.setup_annealing">
+<span class="sig-name descname"><span class="pre">setup_annealing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">betas</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#DynamicalAnnealer.setup_annealing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.DynamicalAnnealer.setup_annealing" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the initial log diffs between temperature levels</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.ptchain.DynamicalAnnealer.setup_decay">
-<code class="sig-name descname">setup_decay</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tau</span></em>, <em class="sig-param"><span class="n">nu</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#DynamicalAnnealer.setup_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.DynamicalAnnealer.setup_decay" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.DynamicalAnnealer.setup_decay">
+<span class="sig-name descname"><span class="pre">setup_decay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tau</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#DynamicalAnnealer.setup_decay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.DynamicalAnnealer.setup_decay" title="Permalink to this definition"></a></dt>
 <dd><p>Set up constants for the vanishing decay</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain">
-<em class="property">class </em><code class="sig-prename descclassname">epsie.chain.ptchain.</code><code class="sig-name descname">ParallelTemperedChain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">proposals</span></em>, <em class="sig-param"><span class="n">betas</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">swap_interval</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">adaptive_annealer</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bit_generator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chain_id</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">epsie.chain.ptchain.</span></span><span class="sig-name descname"><span class="pre">ParallelTemperedChain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">betas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swap_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive_annealer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_generator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#epsie.chain.base.BaseChain" title="epsie.chain.base.BaseChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.chain.base.BaseChain</span></code></a></p>
 <p>A collection of parallel tempered Markov chains.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – List of the parameter names to sample.</p></li>
-<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – Any object that can be called with keyword arguments that map parameter
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – List of the parameter names to sample.</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Any object that can be called with keyword arguments that map parameter
 names to values. When called, the object must a tuple of <code class="docutils literal notranslate"><span class="pre">logl,</span> <span class="pre">logp</span></code>
 where <code class="docutils literal notranslate"><span class="pre">logp</span></code> is the log prior and <code class="docutils literal notranslate"><span class="pre">logl</span></code> is the log likelihood at
 the given point. The model may optionally return a dictionary in
@@ -1027,116 +934,116 @@ inherit from <code class="xref py py-class docutils literal notranslate"><span c
 temperature; i.e., only sample the prior) &lt;= beta &lt;= 1 (= coldest
 temperate; i.e., sample the standard posterior). Default is a single
 beta = 1.</p></li>
-<li><p><strong>swap_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – For a parallel tempered chain, how often to calculate temperature
+<li><p><strong>swap_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – For a parallel tempered chain, how often to calculate temperature
 swaps. Default is 1 (= swap on every iteration).</p></li>
-<li><p><strong>adaptive_annealer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a><em>, </em><em>optional</em>) – Adaptive annealing that adjusts the temperature levels during runtime.
+<li><p><strong>adaptive_annealer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a><em>, </em><em>optional</em>) – Adaptive annealing that adjusts the temperature levels during runtime.
 By default <cite>None</cite>, meaning no annealing.</p></li>
 <li><p><strong>bit_generator</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">epsie.BIT_GENERATOR</span></code> instance, optional) – Use the given random bit generator for generating random variates. If
 an int or None is provided, a generator will be created instead using
 <code class="docutils literal notranslate"><span class="pre">bit_generator</span></code> as a seed.</p></li>
-<li><p><strong>chain_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – An interger identifying which chain this is. Default is 0.</p></li>
+<li><p><strong>chain_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – An interger identifying which chain this is. Default is 0.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.iteration">
-<code class="sig-name descname">iteration</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.iteration" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.iteration">
+<span class="sig-name descname"><span class="pre">iteration</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.iteration" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.lastclear">
-<code class="sig-name descname">lastclear</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.lastclear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.lastclear">
+<span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.lastclear" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.scratchlen">
-<code class="sig-name descname">scratchlen</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.scratchlen" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.scratchlen">
+<span class="sig-name descname"><span class="pre">scratchlen</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.scratchlen" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.positions">
-<code class="sig-name descname">positions</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.positions" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.positions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.stats">
-<code class="sig-name descname">stats</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.stats">
+<span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.stats" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.acceptance">
-<code class="sig-name descname">acceptance</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.acceptance" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.acceptance">
+<span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.acceptance" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.blobs">
-<code class="sig-name descname">blobs</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.blobs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.blobs">
+<span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.blobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.start_position">
-<code class="sig-name descname">start_position</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.start_position" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.start_position">
+<span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.start_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.stats0">
-<code class="sig-name descname">stats0</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.stats0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.stats0">
+<span class="sig-name descname"><span class="pre">stats0</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.stats0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.blob0">
-<code class="sig-name descname">blob0</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.blob0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.blob0">
+<span class="sig-name descname"><span class="pre">blob0</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.blob0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.current_position">
-<code class="sig-name descname">current_position</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.current_position" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.current_position">
+<span class="sig-name descname"><span class="pre">current_position</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.current_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.current_stats">
-<code class="sig-name descname">current_stats</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.current_stats" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.current_stats">
+<span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.current_stats" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.current_blob">
-<code class="sig-name descname">current_blob</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.current_blob" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.current_blob">
+<span class="sig-name descname"><span class="pre">current_blob</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.current_blob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.bit_generator">
-<code class="sig-name descname">bit_generator</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.bit_generator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.bit_generator">
+<span class="sig-name descname"><span class="pre">bit_generator</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.bit_generator" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.random_state">
-<code class="sig-name descname">random_state</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.random_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.random_state">
+<span class="sig-name descname"><span class="pre">random_state</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.random_state" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.state">
-<code class="sig-name descname">state</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.state">
+<span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.state" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.hasblobs">
-<code class="sig-name descname">hasblobs</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.hasblobs" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.hasblobs">
+<span class="sig-name descname"><span class="pre">hasblobs</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.hasblobs" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.chain_id">
-<code class="sig-name descname">chain_id</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.chain_id" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.chain_id">
+<span class="sig-name descname"><span class="pre">chain_id</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.chain_id" title="Permalink to this definition"></a></dt>
 <dd><p>Integer identifying the chain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id38">
-<em class="property">property </em><code class="sig-name descname">acceptance</code><a class="headerlink" href="#id38" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id38">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">acceptance</span></span><a class="headerlink" href="#id38" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of acceptance ratios and accepted booleans,
 as a structred array.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, the returned array has shape
@@ -1144,21 +1051,21 @@ as a structred array.</p>
 <code class="docutils literal notranslate"><span class="pre">niterations</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.betas">
-<em class="property">property </em><code class="sig-name descname">betas</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.betas" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.betas">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">betas</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.betas" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the betas (=1 / temperatures) used by the chain.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id39">
-<em class="property">property </em><code class="sig-name descname">bit_generator</code><a class="headerlink" href="#id39" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id39">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bit_generator</span></span><a class="headerlink" href="#id39" title="Permalink to this definition"></a></dt>
 <dd><p>The random bit generator being used.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id40">
-<em class="property">property </em><code class="sig-name descname">blob0</code><a class="headerlink" href="#id40" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id40">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blob0</span></span><a class="headerlink" href="#id40" title="Permalink to this definition"></a></dt>
 <dd><p>The blob data of the starting position, as a dictionary.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">hasblobs</span></code> is False, just returns None. Otherwise,  the values of
 the returned dictionary are arrays of length <code class="docutils literal notranslate"><span class="pre">ntemps</span></code>, ordered by
@@ -1166,9 +1073,9 @@ increasing temperature.</p>
 <p>Raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if <code class="docutils literal notranslate"><span class="pre">set_start</span></code> has not been run yet.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id41">
-<em class="property">property </em><code class="sig-name descname">blobs</code><a class="headerlink" href="#id41" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id41">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">blobs</span></span><a class="headerlink" href="#id41" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the blob data, as a structured array.</p>
 <p>If the model does not return blobs, this is just <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, the returned array has shape
@@ -1177,87 +1084,87 @@ increasing temperature.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.clear" title="Permalink to this definition"></a></dt>
 <dd><p>Clears memory of the current chain, and sets start position to the
 current position.</p>
 <p>New scratch space will be created with length equal to <code class="docutils literal notranslate"><span class="pre">scratch_len</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id42">
-<em class="property">property </em><code class="sig-name descname">current_blob</code><a class="headerlink" href="#id42" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id42">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_blob</span></span><a class="headerlink" href="#id42" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the blob data of the current position.</p>
 <p>If the model does not return blobs, just returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id43">
-<em class="property">property </em><code class="sig-name descname">current_position</code><a class="headerlink" href="#id43" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id43">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_position</span></span><a class="headerlink" href="#id43" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the current position of the chain.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id44">
-<em class="property">property </em><code class="sig-name descname">current_stats</code><a class="headerlink" href="#id44" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id44">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_stats</span></span><a class="headerlink" href="#id44" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary giving the log likelihood and log prior of the current
 position.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id45">
-<em class="property">property </em><code class="sig-name descname">hasblobs</code><a class="headerlink" href="#id45" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id45">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hasblobs</span></span><a class="headerlink" href="#id45" title="Permalink to this definition"></a></dt>
 <dd><p>Whether the model returns blobs.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id46">
-<em class="property">property </em><code class="sig-name descname">iteration</code><a class="headerlink" href="#id46" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id46">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iteration</span></span><a class="headerlink" href="#id46" title="Permalink to this definition"></a></dt>
 <dd><p>The number of times the chain has been stepped.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id47">
-<em class="property">property </em><code class="sig-name descname">lastclear</code><a class="headerlink" href="#id47" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id47">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lastclear</span></span><a class="headerlink" href="#id47" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the iteration of the last time the chain memory was cleared.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.ntemps">
-<em class="property">property </em><code class="sig-name descname">ntemps</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.ntemps" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.ntemps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ntemps</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.ntemps" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the number of temperatures used by the chain.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id48">
-<em class="property">property </em><code class="sig-name descname">positions</code><a class="headerlink" href="#id48" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id48">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#id48" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the positions, as a structred array.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, the returned array has shape
 <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">x</span> <span class="pre">niterations</span></code>. Otherwise, the returned array has shape
 <code class="docutils literal notranslate"><span class="pre">niterations</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.random_generator">
-<em class="property">property </em><code class="sig-name descname">random_generator</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.random_generator" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.random_generator">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_generator</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.random_generator" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the random number generator.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id49">
-<em class="property">property </em><code class="sig-name descname">random_state</code><a class="headerlink" href="#id49" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id49">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_state</span></span><a class="headerlink" href="#id49" title="Permalink to this definition"></a></dt>
 <dd><p>The current state of the random bit generator.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id50">
-<em class="property">property </em><code class="sig-name descname">scratchlen</code><a class="headerlink" href="#id50" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id50">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scratchlen</span></span><a class="headerlink" href="#id50" title="Permalink to this definition"></a></dt>
 <dd><p>The length of the scratch space used.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.set_state">
-<code class="sig-name descname">set_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.set_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.set_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.set_state" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the state of the chain using the given dict.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -1266,22 +1173,22 @@ current position with what is saved in the state.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary of <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">-&gt;</span> <span class="pre">dict</span></code> mapping indices of the temperature
+<dd class="field-odd"><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary of <code class="docutils literal notranslate"><span class="pre">tk</span> <span class="pre">-&gt;</span> <span class="pre">dict</span></code> mapping indices of the temperature
 chains to the state they should be set to.</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id51">
-<em class="property">property </em><code class="sig-name descname">start_position</code><a class="headerlink" href="#id51" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id51">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start_position</span></span><a class="headerlink" href="#id51" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary mapping parameters to their start position.</p>
 <p>If the start position hasn’t been set, raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id52">
-<em class="property">property </em><code class="sig-name descname">state</code><a class="headerlink" href="#id52" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id52">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#id52" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the current state of the chain.</p>
 <p>The state consists of everything needed such that setting a chain’s
 state using another’s state will result in identical results.</p>
@@ -1291,23 +1198,23 @@ state using another’s state will result in identical results.</p>
 index of each temperature chain.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id53">
-<em class="property">property </em><code class="sig-name descname">stats</code><a class="headerlink" href="#id53" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id53">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats</span></span><a class="headerlink" href="#id53" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the stats, as a structred array.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, the returned array has shape
 <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">x</span> <span class="pre">niterations</span></code>. Otherwise, the returned array has shape
 <code class="docutils literal notranslate"><span class="pre">niterations</span></code>.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="id54">
-<em class="property">property </em><code class="sig-name descname">stats0</code><a class="headerlink" href="#id54" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="id54">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stats0</span></span><a class="headerlink" href="#id54" title="Permalink to this definition"></a></dt>
 <dd><p>Dictionary of the log likelihood and log prior at the start
 position.</p>
 <p>The values of the returned dictionary are arrays of length <code class="docutils literal notranslate"><span class="pre">ntemps</span></code>,
@@ -1316,22 +1223,22 @@ ordered by increasing temperature.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.step">
-<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.step" title="Permalink to this definition"></a></dt>
 <dd><p>Evolves all of the temperatures by one iteration.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.swap_temperatures">
-<code class="sig-name descname">swap_temperatures</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.swap_temperatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.swap_temperatures" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.swap_temperatures">
+<span class="sig-name descname"><span class="pre">swap_temperatures</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie/chain/ptchain.html#ParallelTemperedChain.swap_temperatures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.swap_temperatures" title="Permalink to this definition"></a></dt>
 <dd><p>Computes acceptance ratio between temperatures and swaps them.</p>
 <p>The positions, stats, and (if they exist) blobs are swapped. The
 acceptance is not swapped, however.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.temperature_acceptance">
-<em class="property">property </em><code class="sig-name descname">temperature_acceptance</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.temperature_acceptance" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.temperature_acceptance">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_acceptance</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.temperature_acceptance" title="Permalink to this definition"></a></dt>
 <dd><p>The history of the acceptance ratios between temperatures.</p>
 <p>The returned array has shape
 <code class="docutils literal notranslate"><span class="pre">ntemps-1</span> <span class="pre">x</span> <span class="pre">(niterations/swap_interval)</span></code> if <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>.
@@ -1343,9 +1250,9 @@ one field.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.temperature_swaps">
-<em class="property">property </em><code class="sig-name descname">temperature_swaps</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.temperature_swaps" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.temperature_swaps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_swaps</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.temperature_swaps" title="Permalink to this definition"></a></dt>
 <dd><p>The history of all of the temperature swaps.</p>
 <p>The returned array has shape <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">x</span> <span class="pre">(niterations/swap_interval)</span></code>
 if <code class="docutils literal notranslate"><span class="pre">ntemps</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>. Otherwise, returns None.</p>
@@ -1356,53 +1263,43 @@ one field.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="epsie.chain.ptchain.ParallelTemperedChain.temperatures">
-<em class="property">property </em><code class="sig-name descname">temperatures</code><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.temperatures" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="epsie.chain.ptchain.ParallelTemperedChain.temperatures">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperatures</span></span><a class="headerlink" href="#epsie.chain.ptchain.ParallelTemperedChain.temperatures" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the temperatures (= 1 / betas) used by the chain.</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-epsie.chain">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-epsie.chain" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-epsie.chain">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-epsie.chain" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="epsie.proposals.html" class="btn btn-neutral float-right" title="epsie.proposals package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="epsie.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="epsie.proposals.html" class="btn btn-neutral float-right" title="epsie.proposals package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Collin D. Capano.
-
-    </p>
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
   <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
 
@@ -1426,18 +1323,11 @@ one field.</p>
       
     </div>
   </div>
-
-
-  <script type="text/javascript">
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

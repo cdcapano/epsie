@@ -1,76 +1,39 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>API Reference &mdash; EPSIE 1.0.dev0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="epsie.chain package" href="epsie.chain.html" />
     <link rel="prev" title="Proposals" href="proposals.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> EPSIE
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 1.0.dev0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,19 +41,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parallelization.html">Parallelization</a></li>
@@ -106,87 +58,44 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/01-chain.html">Using a chain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/02-mhsampler.html">Example of creating and running a Metropolis-Hastings Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/03-ptsampler.html">Example of creating and running a Parallel Tempered Sampler</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/test_adaptive_normal.html">Use the Veitch et al. Adaptive Normal proposal with the Parallel Tempered Sampler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/test_angular.html">The Angular proposal</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/test_at_adaptive_normal.html">The AT Adaptive Normal proposal</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EPSIE</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>API Reference</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/cdcapano/epsie/blob/master/docs/epsie.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="api-reference">
-<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="epsie.chain.html">epsie.chain package</a><ul>
@@ -224,27 +133,27 @@
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="module-epsie">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-epsie" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-epsie">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-epsie" title="Permalink to this headline"></a></h2>
 <p>EPSIE is a toolkit for doing MCMCs using embarrasingly parallel Markov
 chains.</p>
 <dl class="py function">
-<dt id="epsie.array2dict">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">array2dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">array</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#array2dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.array2dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.array2dict">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">array2dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#array2dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.array2dict" title="Permalink to this definition"></a></dt>
 <dd><p>Converts a structured array into a dictionary.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.create_bit_generator">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">create_bit_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stream</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#create_bit_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.create_bit_generator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.create_bit_generator">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">create_bit_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#create_bit_generator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.create_bit_generator" title="Permalink to this definition"></a></dt>
 <dd><p>Creates an instance of a <code class="docutils literal notranslate"><span class="pre">BIT_GENERATOR</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The seed to use. If seed is None (the default), will create a seed
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The seed to use. If seed is None (the default), will create a seed
 using <a class="reference internal" href="#epsie.create_seed" title="epsie.create_seed"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_seed()</span></code></a>.</p></li>
-<li><p><strong>stream</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The stream to create the bit generator for. This allows multiple
+<li><p><strong>stream</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The stream to create the bit generator for. This allows multiple
 generators to exist with the same seed, but that produce different sets
 of random numbers. Default is 0.</p></li>
 </ul>
@@ -259,16 +168,16 @@ of random numbers. Default is 0.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.create_bit_generators">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">create_bit_generators</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ngenerators</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#create_bit_generators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.create_bit_generators" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.create_bit_generators">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">create_bit_generators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ngenerators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#create_bit_generators"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.create_bit_generators" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a collection of random bit generators.</p>
 <p>The bit generators are different streams with the same seed. They are all
 statistically independent of each other, while still being reproducable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ngenerators</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of generators to create. Must be <span class="math notranslate nohighlight">\(\geq\)</span> 1.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The seed to use. If none provided, will generate one using the system
+<li><p><strong>ngenerators</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of generators to create. Must be <span class="math notranslate nohighlight">\(\geq\)</span> 1.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The seed to use. If none provided, will generate one using the system
 entropy.</p></li>
 </ul>
 </dd>
@@ -276,41 +185,41 @@ entropy.</p></li>
 <dd class="field-even"><p>List of <code class="docutils literal notranslate"><span class="pre">BIT_GENERATOR</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.create_seed">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">create_seed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#create_seed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.create_seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a seed for a <a class="reference external" href="https://numpy.org/doc/stable/reference/random/bit_generators/generated/numpy.random.SeedSequence.html#numpy.random.SeedSequence" title="(in NumPy v1.19)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.SeedSequence</span></code></a>.</p>
+<dt class="sig sig-object py" id="epsie.create_seed">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">create_seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#create_seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.create_seed" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a seed for a <a class="reference external" href="https://numpy.org/doc/stable/reference/random/bit_generators/generated/numpy.random.SeedSequence.html#numpy.random.SeedSequence" title="(in NumPy v1.21)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.SeedSequence</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – If a seed is given, will just return it. Default is None, in which case
+<dd class="field-odd"><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – If a seed is given, will just return it. Default is None, in which case
 a seed is created.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A seed to use.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.dump_pickle_to_hdf">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">dump_pickle_to_hdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memfp</span></em>, <em class="sig-param"><span class="n">fp</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dsetname</span><span class="o">=</span><span class="default_value">'sampler_state'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#dump_pickle_to_hdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.dump_pickle_to_hdf" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.dump_pickle_to_hdf">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">dump_pickle_to_hdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memfp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsetname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sampler_state'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#dump_pickle_to_hdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.dump_pickle_to_hdf" title="Permalink to this definition"></a></dt>
 <dd><p>Dumps pickled data to an hdf5 file object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>memfp</strong> (<em>file object</em>) – Bytes stream of pickled data.</p></li>
-<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.h5py.org/en/latest/high/file.html#h5py.File" title="(in h5py v3.1)"><em>h5py.File</em></a>) – An open hdf5 file handler. Must have write capability enabled.</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The path (group name) to store the state dataset to. Default (None)
+<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.h5py.org/en/latest/high/file.html#h5py.File" title="(in h5py v3.6)"><em>h5py.File</em></a>) – An open hdf5 file handler. Must have write capability enabled.</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The path (group name) to store the state dataset to. Default (None)
 will result in the array being stored to the top level.</p></li>
-<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dataset to store the binary array to. Default is
+<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dataset to store the binary array to. Default is
 <code class="docutils literal notranslate"><span class="pre">sampler_state</span></code>.</p></li>
 </ul>
 </dd>
@@ -318,8 +227,8 @@ will result in the array being stored to the top level.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.dump_state">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">dump_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em>, <em class="sig-param"><span class="n">fp</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dsetname</span><span class="o">=</span><span class="default_value">'sampler_state'</span></em>, <em class="sig-param"><span class="n">protocol</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#dump_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.dump_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.dump_state">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">dump_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsetname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sampler_state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#dump_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.dump_state" title="Permalink to this definition"></a></dt>
 <dd><p>Dumps the given state to an hdf5 file handler.</p>
 <p>The state is stored as a raw binary array to <code class="docutils literal notranslate"><span class="pre">{path}/{dsetname}</span></code> in the
 given hdf5 file handler. If a dataset with the same name and path is
@@ -331,12 +240,12 @@ new state data.</p>
 <li><p><strong>state</strong> (<em>any picklable object</em>) – The sampler state to dump to file. Can be the object returned by
 any of the samplers’ <cite>.state</cite> attribute (a dictionary of dictionaries),
 or any picklable object.</p></li>
-<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.h5py.org/en/latest/high/file.html#h5py.File" title="(in h5py v3.1)"><em>h5py.File</em></a>) – An open hdf5 file handler. Must have write capability enabled.</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The path (group name) to store the state dataset to. Default (None)
+<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.h5py.org/en/latest/high/file.html#h5py.File" title="(in h5py v3.6)"><em>h5py.File</em></a>) – An open hdf5 file handler. Must have write capability enabled.</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The path (group name) to store the state dataset to. Default (None)
 will result in the array being stored to the top level.</p></li>
-<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dataset to store the binary array to. Default is
+<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dataset to store the binary array to. Default is
 <code class="docutils literal notranslate"><span class="pre">sampler_state</span></code>.</p></li>
-<li><p><strong>protocol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The protocol version to use for pickling. See the <a class="reference external" href="https://docs.python.org/3/library/pickle.html#module-pickle" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a>
+<li><p><strong>protocol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The protocol version to use for pickling. See the <a class="reference external" href="https://docs.python.org/3/library/pickle.html#module-pickle" title="(in Python v3.10)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pickle</span></code></a>
 module for more details.</p></li>
 </ul>
 </dd>
@@ -344,18 +253,18 @@ module for more details.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.load_state">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">load_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dsetname</span><span class="o">=</span><span class="default_value">'sampler_state'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#load_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.load_state" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.load_state">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">load_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsetname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sampler_state'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#load_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.load_state" title="Permalink to this definition"></a></dt>
 <dd><p>Loads a sampler state from the given hdf5 file object.</p>
 <p>The sampler state is expected to be stored as a raw bytes array which can
 be loaded by pickle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.h5py.org/en/latest/high/file.html#h5py.File" title="(in h5py v3.1)"><em>h5py.File</em></a>) – An open hdf5 file handler.</p></li>
-<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The path (group name) that the state data is stored to. Default (None)
+<li><p><strong>fp</strong> (<a class="reference external" href="https://docs.h5py.org/en/latest/high/file.html#h5py.File" title="(in h5py v3.6)"><em>h5py.File</em></a>) – An open hdf5 file handler.</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The path (group name) that the state data is stored to. Default (None)
 is to read from the top level.</p></li>
-<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dataset that the state data is stored to. Default is
+<li><p><strong>dsetname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dataset that the state data is stored to. Default is
 <code class="docutils literal notranslate"><span class="pre">sampler_state</span></code>.</p></li>
 </ul>
 </dd>
@@ -363,47 +272,37 @@ is to read from the top level.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="epsie.make_betas_ladder">
-<code class="sig-prename descclassname">epsie.</code><code class="sig-name descname">make_betas_ladder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ntemps</span></em>, <em class="sig-param"><span class="n">maxtemp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#make_betas_ladder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#epsie.make_betas_ladder" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="epsie.make_betas_ladder">
+<span class="sig-prename descclassname"><span class="pre">epsie.</span></span><span class="sig-name descname"><span class="pre">make_betas_ladder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ntemps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxtemp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/epsie.html#make_betas_ladder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#epsie.make_betas_ladder" title="Permalink to this definition"></a></dt>
 <dd><p>Makes a log spaced ladder of betas.</p>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="epsie.chain.html" class="btn btn-neutral float-right" title="epsie.chain package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="proposals.html" class="btn btn-neutral float-left" title="Proposals" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="epsie.chain.html" class="btn btn-neutral float-right" title="epsie.chain package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Collin D. Capano.
-
-    </p>
+    <p>&#169; Copyright 2020, Collin D. Capano.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
   <!-- Modified from https://tech.michaelaltfield.net/2020/07/23/sphinx-rtd-github-pages-2/ -->
 
@@ -427,18 +326,11 @@ is to read from the top level.</p></li>
       
     </div>
   </div>
-
-
-  <script type="text/javascript">
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
