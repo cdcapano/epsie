@@ -449,6 +449,13 @@ class BaseAdaptiveSupport(ABC):
                                       "resetting the adaptation."
                                       .format(self.name))
         self.start_step = self.nsteps
+
+        # Optionally reset also the eigenvector initial proposal
+        eigvect_init = self._initial_proposal_params.pop('eigvect_init', None)
+        if eigvect_init is not None:
+            for attr, val in eigvect_init.items():
+                setattr(self._initial_proposal, attr, val)
+        
         for attr, val in self._initial_proposal_params.items():
             setattr(self, attr, val)
 
