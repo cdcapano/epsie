@@ -467,9 +467,9 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         self._initial_proposal_params = {}
         # Cache the initial std/covariance
         if self.isdiagonal:
-            self._initial_proposal_params.update({'_std': self._std})
+            self._initial_proposal_params.update({'_std': self._std.copy()})
         else:
-            self._initial_proposal_params.update({'_cov': self._cov})
+            self._initial_proposal_params.update({'_cov': self._cov.copy()})
         
         self._initial_proposal_params.update({'n_accepted': 0})
 
