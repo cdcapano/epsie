@@ -464,13 +464,23 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         self.max_std = max_std
         self._update_proposal()
 
+        self._initial_proposal_params = {}
+        # Cache the initial std/covariance
+        if self.isdiagonal:
+            self._initial_proposal_params.update({'_std': self._std})
+        else:
+            self._initial_proposal_params.update({'_cov': self._cov})
+        
+        self._initial_proposal_params.update({'n_accepted': 0})
+
+
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
         This prepares the proposal for the next jump.
         """
         self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = self.nsteps + 1
+        n_iter = self.nsteps - (self.start_step - 1) + 1
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)
@@ -496,7 +506,8 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
     def state(self):
         state = {'random_state': self.random_state,
                  'n_accepted': self.n_accepted,
-                 'nsteps': self._nsteps}
+                 'nsteps': self._nsteps,
+                 'start_step': self.start_step}
         if self.isdiagonal:
             state.update({'std': self._std})
         else:
@@ -507,6 +518,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         self.random_state = state['random_state']
         self.n_accepted = state['n_accepted']
         self._nsteps = state['nsteps']
+        self.start_step = state['start_step']
         if self.isdiagonal:
             self._std = state['std']
         else:
