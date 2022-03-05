@@ -251,6 +251,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             Target acceptance rate. By default 0.234
         """
         self.target_rate = target_rate
+        self.start_step = 1
         self.adaptation_duration = adaptation_duration
         self._decay_const = adaptation_duration**(-0.6)
         self.start_step = start_step
@@ -270,15 +271,22 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
         self._mu = (N * self._mu + x) / (N + 1)
 
+        self._initial_proposal_params = {
+            '_cov': None,
+            '_mu': None,
+            '_log_lambda': 0.0,
+            'eigvect_init': self._initial_proposal._initial_proposal_params}
+
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - self.start_step + 1
-        if 1 < dk < self.adaptation_duration:
-            # recursively update the covariance
-            self.recursive_covariance(chain)
+        dk = self.nsteps - (self.start_step - 1) - self.stability_duration + 1
+        if self._call_initial_proposal:
+            self._stability_update(chain)
+        elif dk < self.adaptation_duration:
+            self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
@@ -296,7 +304,8 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
                 'mu': self._mu,
                 'cov': self._cov,
                 'ind': self._ind,
-                'log_lambda': self._log_lambda}
+                'log_lambda': self._log_lambda,
+                'start_step': self.start_step}
 
     def set_state(self, state):
         self._nsteps = state['nsteps']
@@ -308,6 +317,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             self.eigvals *= numpy.exp(self._log_lambda)
         self._ind = state['ind']
+        self.start_step = state['start_step']
 
 
 class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
