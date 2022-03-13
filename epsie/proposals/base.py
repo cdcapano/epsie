@@ -161,6 +161,7 @@ class BaseProposal(BaseRandom):
     symmetric
     state
     nsteps
+    jump_interval
     """
     name = None
     _nsteps = 0
