@@ -75,12 +75,15 @@ class Normal(BaseProposal):
         """
         return self._isdiagonal
 
-    def _update_proposal(self): 
+    def _update_proposal(self):
+        """
+        Update the zero-mean normal proposal distribution and cache it.
+        """
         if self.isdiagonal:
             self._proposal = stats.norm(scale=self._std)
         else:
-            self._proposal = stats.multivariate_normal(cov=self._cov,
-                                                       allow_singular=True)
+            self._proposal = stats.multivariate_normal(
+                cov=self._cov, allow_singular=True)
 
     @property
     def cov(self):
