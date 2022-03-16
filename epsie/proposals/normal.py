@@ -77,7 +77,7 @@ class Normal(BaseProposal):
 
     def _update_proposal(self):
         """
-        Update the zero-mean normal proposal distribution and cache it.
+        Update the zero-mean normal proposal distribution, cache it.
         """
         if self.isdiagonal:
             self._proposal = stats.norm(scale=self._std)
