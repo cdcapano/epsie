@@ -237,10 +237,12 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     """Tests that running with the same seed yields the same results,
     while running with a different seed yields different results.
     """
+    print('HERE 1', flush=True)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                               proposals=proposals)
     # now create another sampler with the same seed and starting position
+    print('HERE 2', flush=True)
     same_seed = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                                 proposals=proposals, set_start=False)
     same_seed.start_position = sampler.start_position
@@ -248,10 +250,12 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     _compare_dict_array(sampler.start_position, same_seed.start_position)
     # we'll start the different seed from the same start position; this
     # should still yield different positions after several iterations
+    print('HERE 3', flush=True)
     diff_seed = _create_sampler(model, nprocs, nchains=NCHAINS, seed=None,
                                 proposals=proposals, set_start=False)
     diff_seed.start_position = sampler.start_position
     # not passing a seed should result in a different seed; check that
+    print('HERE 4', flush=True)
     assert sampler.seed != diff_seed.seed
     if init_iters is not None:
         sampler.run(init_iters)
@@ -262,17 +266,21 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     same_seed.run(ITERINT)
     diff_seed.run(ITERINT)
     # check that the same seed gives the same result
+    print('HERE 5', flush=True)
     _compare_dict_array(sampler.current_positions, same_seed.current_positions)
     _compare_dict_array(sampler.current_stats, same_seed.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, same_seed.current_blobs)
     # check that different seeds give different results
+    print('HERE 6', flush=True)
     _anticompare_dict_array(sampler.current_positions,
                             diff_seed.current_positions)
     _anticompare_dict_array(sampler.current_stats, diff_seed.current_stats)
     if model.blob_params:
         _anticompare_dict_array(sampler.current_blobs,
                                 diff_seed.current_blobs)
+    print('HERE 7', flush=True)
+    print('sampler.pool:', sampler.pool, flush=True)
     if sampler.pool is not None:
         sampler.pool.close()
         same_seed.pool.close()
