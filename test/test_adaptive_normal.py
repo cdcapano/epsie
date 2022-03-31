@@ -16,6 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the AdaptiveNormal proposals."""
 
+import multiprocessing
 import itertools
 import pytest
 import numpy
