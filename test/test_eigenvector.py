@@ -142,3 +142,6 @@ def test_clear_memory(nprocs, proposal_name):
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
     _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
+
+if __name__ == '__main__':
+    test_scale_changes(1, "eigenvector")

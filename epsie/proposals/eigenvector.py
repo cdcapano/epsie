@@ -259,6 +259,11 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         # initialize mu to be zero
         self._mu = numpy.zeros(self.ndim)
 
+        self._initial_proposal_params = {
+            '_cov': self._cov,
+            '_mu': self._mu,
+            '_log_lambda': 0.0,}
+
     def recursive_covariance(self, chain):
         """Recursively updates the covariance given the latest observation.
         Weights all sampled points uniformly.
@@ -271,12 +276,6 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             * (self._cov + N / (N**2 - 1) * numpy.matmul(dx, dx.T))
         self._mu = (N * self._mu + x) / (N + 1)
 
-        self._initial_proposal_params = {
-            '_cov': None,
-            '_mu': None,
-            '_log_lambda': 0.0,
-            'eigvect_init': self._initial_proposal._initial_proposal_params}
-
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
@@ -284,7 +283,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """
         dk = self.nsteps - self.start_step + 1
         if 1 < dk < self.adaptation_duration:
-            self._recursive_covariance(chain)
+            self.recursive_covariance(chain)
             # update eigenvalues and eigenvectors
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
