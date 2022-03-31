@@ -229,7 +229,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     ensuring that when the adaptation phase ends the vanishing decay tends to
     zero. By default assumes that the adaptation phase never ends (only
     decays with time)
-
+å
     References
     ----------
     [1] Andrieu, Christophe & Thoms, Johannes. (2008).
@@ -284,7 +284,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """
         dk = self.nsteps - self.start_step + 1
         if 1 < dk < self.adaptation_duration:
-            self._recursive_mean_cov(chain)
+            self._recursive_covariance(chain)
             # update eigenvalues and eigenvectors
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             # update the scaling factor
