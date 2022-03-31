@@ -200,35 +200,47 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
         import h5py
     except ImportError:
         raise ImportError("h5py must be installed to run this test")
+    print('HERE 1', flush=True)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                               proposals=proposals)
     # create a second sampler for comparison; we won't bother setting
     # a seed or start position, since that shouldn't matter when loading
     # from a checkpoint
+    print('HERE 2', flush=True)
     sampler2 = _create_sampler(model, nprocs, nchains=NCHAINS, seed=None,
                                proposals=proposals, set_start=False)
     if init_iters is not None:
         sampler.run(init_iters)
     sampler.run(ITERINT)
     # checkpoint to an h5py file in memory
+    print('HERE 3', flush=True)
     fp = h5py.File('test.hdf', 'w', driver='core', backing_store=False)
     sampler.checkpoint(fp)
     # run for another set of iterations
+    print('HERE 4', flush=True)
     sampler.run(ITERINT)
     # set the other sampler's state using the checkpoint
+    print('HERE 5', flush=True)
     sampler2.set_state_from_checkpoint(fp)
     fp.close()
     # run again
+    print('HERE 6', flush=True)
     sampler2.run(ITERINT)
     # compare the two
+    print('HERE 7', flush=True)
     _compare_dict_array(sampler.current_positions, sampler2.current_positions)
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
+    print('HERE 8', flush=True)
+    print('sampler.pool:', sampler.pool, flush=True)
+    print('sampler2.pool:', sampler2.pool, flush=True)
     if sampler.pool is not None:
         sampler.pool.close()
         sampler2.pool.close()
+    print('sampler.pool:', sampler.pool, flush=True)
+    print('sampler2.pool:', sampler2.pool, flush=True)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])

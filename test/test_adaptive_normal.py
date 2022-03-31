@@ -132,8 +132,12 @@ def test_checkpointing(nprocs, proposal_name):
     """Performs the same checkpointing test as for the PTSampler, but using
     the adaptive normal proposal.
     """
+    print('nprocs:', nprocs, flush=True)
+    print("loading model", flush=True)
     model = Model()
+    print("setting up proposal", flush=True)
     proposal = _setup_proposal(model, proposal_name)
+    print("running _test_checkpointing", flush=True)
     _test_checkpointing(Model, nprocs, proposals=[proposal])
 
 
@@ -143,12 +147,12 @@ def test_checkpointing(nprocs, proposal_name):
 def test_seed(nprocs, proposal_name):
     """Runs the PTSampler ``test_seed`` using the adaptive normal proposal.
     """
-    print('nprocs:', nprocs)
+    print('nprocs:', nprocs, flush=True)
     print("loading model", flush=True)
     model = Model()
     print("setting up proposal", flush=True)
     proposal = _setup_proposal(model, proposal_name)
-    print("running _test seed", flush=True)
+    print("running _test_seed", flush=True)
     _test_seed(Model, nprocs, proposals=[proposal])
 
 
