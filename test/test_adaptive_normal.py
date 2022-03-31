@@ -161,7 +161,7 @@ def test_clear_memory(nprocs, proposal_name):
 
 def _extract_pt_std(sampler, proposal):
     std = numpy.zeros((sampler.nchains, sampler.ntemps,
-                                   len(proposal.parameters)))
+                       len(proposal.parameters)))
     for ii, chain in enumerate(sampler.chains):
         for jj, subchain in enumerate(chain.chains):
             thisprop = subchain.proposal_dist.proposals[0]
@@ -177,12 +177,12 @@ def test_resetting(proposal_name):
 
     Setup the sampler, run it for ``ADAPTATION_DURATION``, reset it and check
     that the proposals were reset. After that run it again for
-    ``ADAPTATION_DURATION`` and ensure that the proposal is adapting. After that
-    run it again for ``ADAPTATION_DURATION`` and verity the proposal stopped
-    adapting unless it is the Sivia and Skilling proposal.
+    ``ADAPTATION_DURATION`` and ensure that the proposal is adapting. After
+    that run it again for ``ADAPTATION_DURATION`` and verity the proposal
+    stopped adapting unless it is the Sivia and Skilling proposal.
     """
     nprocs = 1
-    
+
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
     sampler = _create_sampler(model, nprocs, proposals=[proposal])
@@ -192,7 +192,7 @@ def test_resetting(proposal_name):
 
     sampler.run(ADAPTATION_DURATION)
     assert (_extract_pt_std(sampler, proposal) != initial_std).all()
-    
+
     # Reset all chains
     for chain in sampler.chains:
         for subchain in chain.chains:
