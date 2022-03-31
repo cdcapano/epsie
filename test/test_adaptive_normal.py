@@ -158,3 +158,61 @@ def test_clear_memory(nprocs, proposal_name):
     model = Model()
     proposal = _setup_proposal(model, proposal_name)
     _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
+
+
+def _extract_pt_std(sampler, proposal):
+    std = numpy.zeros((sampler.nchains, sampler.ntemps,
+                                   len(proposal.parameters)))
+    for ii, chain in enumerate(sampler.chains):
+        for jj, subchain in enumerate(chain.chains):
+            thisprop = subchain.proposal_dist.proposals[0]
+            std[ii, jj, :] = thisprop.std
+    return std
+
+
+@pytest.mark.parametrize('proposal_name', ['ss_adaptive_normal',
+                                           'adaptive_normal'])
+def test_resetting(proposal_name):
+    """
+    Test to ensure that the proposal reset is working.
+
+    Setup the sampler, run it for ``ADAPTATION_DURATION``, reset it and check
+    that the proposals were reset. After that run it again for
+    ``ADAPTATION_DURATION`` and ensure that the proposal is adapting. After that
+    run it again for ``ADAPTATION_DURATION`` and verity the proposal stopped
+    adapting unless it is the Sivia and Skilling proposal.
+    """
+    nprocs = 1
+    
+    model = Model()
+    proposal = _setup_proposal(model, proposal_name)
+    sampler = _create_sampler(model, nprocs, proposals=[proposal])
+
+    # Extract the initial proposal STD
+    initial_std = _extract_pt_std(sampler, proposal)
+
+    sampler.run(ADAPTATION_DURATION)
+    assert (_extract_pt_std(sampler, proposal) != initial_std).all()
+    
+    # Reset all chains
+    for chain in sampler.chains:
+        for subchain in chain.chains:
+            subchain._reset_proposals()
+
+    # Check we sucessfuly resetted
+    assert (_extract_pt_std(sampler, proposal) == initial_std).all()
+    # Check that the starting step was bumped up
+    for chain in sampler.chains:
+        for subchain in chain.chains:
+            prop = subchain.proposal_dist.proposals[0]
+            assert prop.start_step == ADAPTATION_DURATION
+
+    # Check that the std is again changing
+    sampler.run(ADAPTATION_DURATION)
+    current_std = _extract_pt_std(sampler, proposal)
+    assert (current_std != initial_std).all()
+
+    if "ss_" not in proposal_name:
+        # Check that the std stopped changing
+        sampler.run(ADAPTATION_DURATION)
+        assert (_extract_pt_std(sampler, proposal) == current_std).all()
