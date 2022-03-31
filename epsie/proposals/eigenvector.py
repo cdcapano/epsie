@@ -262,7 +262,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         self._initial_proposal_params = {
             '_cov': self._cov,
             '_mu': self._mu,
-            '_log_lambda': 0.0,}
+            '_log_lambda': 0.0}
 
     def recursive_covariance(self, chain):
         """Recursively updates the covariance given the latest observation.
