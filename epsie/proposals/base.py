@@ -455,7 +455,7 @@ class BaseAdaptiveSupport(ABC):
         if eigvect_init is not None:
             for attr, val in eigvect_init.items():
                 setattr(self._initial_proposal, attr, val)
-        
+
         for attr, val in self._initial_proposal_params.items():
             setattr(self, attr, val)
 

@@ -106,7 +106,7 @@ def test_resetting(proposal_name):
     sampler = _create_sampler(model, nprocs, proposals=[proposal])
 
     initial_kappas = _extract_pt_kappas(sampler)
-    # Run the sampler for a bit 
+    # Run the sampler for a bit
     sampler.run(ADAPTATION_DURATION)
     assert (_extract_pt_kappas(sampler) != initial_kappas).all()
 
