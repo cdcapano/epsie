@@ -282,10 +282,8 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
 
         This prepares the proposal for the next jump.
         """
-        dk = self.nsteps - (self.start_step - 1) - self.stability_duration + 1
-        if self._call_initial_proposal:
-            self._stability_update(chain)
-        elif dk < self.adaptation_duration:
+        dk = self.nsteps - self.start_step + 1
+        if 1 < dk < self.adaptation_duration:
             self._recursive_mean_cov(chain)
             # update eigenvalues and eigenvectors
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
