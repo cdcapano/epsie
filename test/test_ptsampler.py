@@ -241,6 +241,9 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
         sampler2.pool.terminate()
     print('sampler.pool:', sampler.pool, flush=True)
     print('sampler2.pool:', sampler2.pool, flush=True)
+    print('number of cpus:', multiprocessing.cpu_count(), flush=True)
+    print('start methods:', multiprocessing.get_all_start_methods(), flush=True)
+    print('start method:', multiprocessing.get_start_method(), flush=True)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
