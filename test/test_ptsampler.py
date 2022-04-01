@@ -79,6 +79,7 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None,
     * That the chains all have different random states after the
       iterations, and different positions/stats/blobs.
     """
+    nprocs = adjust_nprocs(nprocs)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                               swap_interval=swap_interval,
@@ -200,6 +201,7 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
         import h5py
     except ImportError:
         raise ImportError("h5py must be installed to run this test")
+    nprocs = adjust_nprocs(nprocs)
     print('HERE 1', flush=True)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
@@ -248,12 +250,20 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     #print('start method:', multiprocessing.get_start_method(), flush=True)
 
 
+def adjust_nprocs(nprocs):
+    ncpus = multiprocessing.cpu_count()
+    if nprocs > ncpus:
+        print("Using {} nprocs instead of {}".format(ncpus, nprocs), flush=True)
+        nprocs = ncpus
+    return nprocs
+
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
 def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     """Tests that running with the same seed yields the same results,
     while running with a different seed yields different results.
     """
+    nprocs = adjust_nprocs(nprocs)
     print('HERE 1', flush=True)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
@@ -312,6 +322,7 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None,
     """Tests that clearing memory and running yields the same result as if
     the memory had not been cleared.
     """
+    nprocs = adjust_nprocs(nprocs)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                               swap_interval=swap_interval, proposals=proposals)
@@ -382,6 +393,7 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None,
 @pytest.mark.parametrize('swap_interval', [1, 3])
 @pytest.mark.parametrize('annealer_cls', [DynamicalAnnealer])
 def test_beta_changes(model_cls, nprocs, nchains, swap_interval, annealer_cls):
+    nprocs = adjust_nprocs(nprocs)
     model = model_cls()
     annealer = annealer_cls()
     sampler = _create_sampler(model, nprocs, nchains,
