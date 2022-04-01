@@ -234,16 +234,16 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
     print('HERE 8', flush=True)
-    print('sampler.pool:', sampler.pool, flush=True)
-    print('sampler2.pool:', sampler2.pool, flush=True)
+    print('before sampler.pool:', sampler.pool, flush=True)
+    print('before sampler2.pool:', sampler2.pool, flush=True)
     if sampler.pool is not None:
         sampler.pool.terminate()
         sampler2.pool.terminate()
-    print('sampler.pool:', sampler.pool, flush=True)
-    print('sampler2.pool:', sampler2.pool, flush=True)
-    print('number of cpus:', multiprocessing.cpu_count(), flush=True)
-    print('start methods:', multiprocessing.get_all_start_methods(), flush=True)
-    print('start method:', multiprocessing.get_start_method(), flush=True)
+    print('after sampler.pool:', sampler.pool, flush=True)
+    print('after sampler2.pool:', sampler2.pool, flush=True)
+    #print('number of cpus:', multiprocessing.cpu_count(), flush=True)
+    #print('start methods:', multiprocessing.get_all_start_methods(), flush=True)
+    #print('start method:', multiprocessing.get_start_method(), flush=True)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
