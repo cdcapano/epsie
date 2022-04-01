@@ -237,8 +237,8 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     print('sampler.pool:', sampler.pool, flush=True)
     print('sampler2.pool:', sampler2.pool, flush=True)
     if sampler.pool is not None:
-        sampler.pool.close()
-        sampler2.pool.close()
+        sampler.pool.terminate()
+        sampler2.pool.terminate()
     print('sampler.pool:', sampler.pool, flush=True)
     print('sampler2.pool:', sampler2.pool, flush=True)
 
