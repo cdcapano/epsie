@@ -237,8 +237,10 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     print('before sampler.pool:', sampler.pool, flush=True)
     print('before sampler2.pool:', sampler2.pool, flush=True)
     if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler2.pool.terminate()
+        sampler.pool.close()
+        sampler2.pool.close()
+        #sampler.pool.terminate()
+        #sampler2.pool.terminate()
     print('after sampler.pool:', sampler.pool, flush=True)
     print('after sampler2.pool:', sampler2.pool, flush=True)
     #print('number of cpus:', multiprocessing.cpu_count(), flush=True)
