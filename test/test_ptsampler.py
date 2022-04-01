@@ -309,9 +309,9 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     print('HERE 7', flush=True)
     print('sampler.pool:', sampler.pool, flush=True)
     if sampler.pool is not None:
-        sampler.pool.close()
-        same_seed.pool.close()
-        diff_seed.pool.close()
+        sampler.pool.terminate()
+        same_seed.pool.terminate()
+        diff_seed.pool.terminate()
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
