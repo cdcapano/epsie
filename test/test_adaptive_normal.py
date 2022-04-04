@@ -107,7 +107,8 @@ def _test_std_changes(nprocs, proposal, model):
         assert (previous_std == current_std).all()
     # close the multiprocessing pool
     if sampler.pool is not None:
-        sampler.pool.close()
+        sampler.pool.terminate()
+        sampler.pool.join()
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])

@@ -93,7 +93,8 @@ def _test_scale_changes(nprocs, proposal, model):
         assert (previous_eigvals == current_eigvals).all()
     # close the multiprocessing pool
     if sampler.pool is not None:
-        sampler.pool.close()
+        sampler.pool.terminate()
+        sampler.pool.join()
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])

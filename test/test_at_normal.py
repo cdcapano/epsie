@@ -114,7 +114,8 @@ def _test_cov_changes(nprocs, proposal, model):
     assert (previous_cov == current_cov).all()
     # close the multiprocessing pool
     if sampler.pool is not None:
-        sampler.pool.close()
+        sampler.pool.terminate()
+        sampler.pool.join()
 
 
 def _test_std_changes(nprocs, proposal, model):
@@ -153,7 +154,8 @@ def _test_std_changes(nprocs, proposal, model):
     assert (previous_std == current_std).all()
     # close the multiprocessing pool
     if sampler.pool is not None:
-        sampler.pool.close()
+        sampler.pool.terminate()
+        sampler.pool.join()
 
 
 @pytest.mark.parametrize('name', ['at_adaptive_normal',
