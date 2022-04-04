@@ -49,6 +49,7 @@ class MetropolisHastingsSampler(BaseSampler):
         Specify a process pool to use for parallelization. Default is to use a
         single core.
     """
+    name = "mh_sampler"
 
     def __init__(self, parameters, model, nchains, proposals=None,
                  default_proposal=None, default_proposal_args=None, seed=None,

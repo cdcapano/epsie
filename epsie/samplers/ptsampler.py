@@ -67,6 +67,8 @@ class ParallelTemperedSampler(BaseSampler):
         Specify a process pool to use for parallelization. Default is to use a
         single core.
     """
+    name = "pt_sampler"
+
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
                  proposals=None, adaptive_annealer=None,
                  reset_after_swap=False, default_proposal=None,
