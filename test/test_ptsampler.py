@@ -185,9 +185,14 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None,
             for ll in range(NTEMPS):
                 _check_chains_are_different(chain.chains[kk], other.chains[ll],
                                             test_blobs=bool(model.blob_params))
+    import subprocess
+    print('number zombies before:')
+    subprocess.run("ps ax | grep 'Z'", shell=True)
     if sampler.pool is not None:
         sampler.pool.terminate()
         sampler.pool.join()
+    print('number zombies after:')
+    subprocess.run("ps ax | grep 'Z'", shell=True)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -239,6 +244,9 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     print('HERE 8', flush=True)
     print('before sampler.pool:', sampler.pool, flush=True)
     print('before sampler2.pool:', sampler2.pool, flush=True)
+    import subprocess
+    print('number zombies before:')
+    subprocess.run("ps ax | grep 'Z'", shell=True)
     if sampler.pool is not None:
         sampler.pool.terminate()
         sampler2.pool.terminate()
@@ -246,6 +254,8 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
         sampler2.pool.join()
     print('after sampler.pool:', sampler.pool, flush=True)
     print('after sampler2.pool:', sampler2.pool, flush=True)
+    print('number zombies after:')
+    subprocess.run("ps ax | grep 'Z'", shell=True)
     #print('number of cpus:', multiprocessing.cpu_count(), flush=True)
     #print('start methods:', multiprocessing.get_all_start_methods(), flush=True)
     #print('start method:', multiprocessing.get_start_method(), flush=True)
@@ -310,12 +320,17 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     print('HERE 7', flush=True)
     print('sampler.pool:', sampler.pool, flush=True)
     if sampler.pool is not None:
+        import subprocess
+        print('number zombies before:')
+        subprocess.run("ps ax | grep 'Z'", shell=True)
         sampler.pool.terminate()
         same_seed.pool.terminate()
         diff_seed.pool.terminate()
         sampler.pool.join()
         same_seed.pool.join()
         diff_seed.pool.join()
+        print('number zombies after:')
+        subprocess.run("ps ax | grep 'Z'", shell=True)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
