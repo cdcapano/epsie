@@ -537,7 +537,12 @@ class Chain(BaseChain):
         if self.transdimensional:
             current_pos.update({'_state': self._active_props})
         # create a proposal and test it
-        proposal = self.proposal_dist.jump(current_pos)
+        # Some proposals may require the chain
+        if "differential_evolution" in self.proposal_dist.name:
+            proposal = self.proposal_dist.jump(current_pos, chain=self)
+        else:
+            proposal = self.proposal_dist.jump(current_pos)
+            
         self.proposed_position = proposal.copy()
 
         r = self.model(**proposal)
