@@ -18,3 +18,4 @@
 from .chaindata import ChainData
 from .chain import Chain
 from .ptchain import (ParallelTemperedChain, DynamicalAnnealer)
+from .acl import acl_1d, acl_chain, thinned_samples
