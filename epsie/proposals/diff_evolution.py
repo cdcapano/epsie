@@ -17,9 +17,10 @@ import numpy
 from scipy import stats
 
 from .base import (BaseProposal, BaseAdaptiveSupport)
+from .normal import Normal
 
 
-class Normal(BaseProposal):
+class DifferentialEvolution(BaseProposal):
     """
     Differential evolution proposal with fixed...
 
