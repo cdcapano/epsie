@@ -72,4 +72,3 @@ def _mh_gelman_rubin_test(sampler, burnin_iter, full=False):
         return Rs
 
     return numpy.mean(Rs)
- 
