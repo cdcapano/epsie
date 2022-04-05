@@ -93,7 +93,7 @@ def acl_chain(chain, burnin_iter=0, c=5.0, full=False):
     return max(acls)
 
 
-def thinned_samples(sampler, burnin_iter=0, c=5.0):
+def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
     """
     Parse a sampler and return its samples thinned by the ACL.
 
@@ -106,6 +106,11 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0):
         Number of burnin iterations to be thrown away.
     c : float, optional
         ACL calculation hyperparameter. By default 5.
+    temp_acl_func : :py:func, optional.
+        A function that given a list of ACLs of a single chain on different
+        temperature levels returns the chain global ACL. By default 
+        :py:func`numpy.max`. Must act on a 1-dimensional array and return an
+        integer.
 
     Returns
     -------
@@ -118,7 +123,7 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0):
     if sampler.name == "mh_sampler":
         return _thinned_mh_samples(sampler, burnin_iter, c)
     elif sampler.name == "pt_sampler":
-        return _thinned_pt_samples(sampler, burnin_iter, c)
+        return _thinned_pt_samples(sampler, burnin_iter, c, temp_acl_func)
     else:
         return ValueError("Invalid sampler kind.")
 
@@ -144,15 +149,18 @@ def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     return thinned
 
 
-def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0):    
-
+def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
     # Calculate the ACL across temperatures for each chain    
     temp_acls = numpy.zeros((sampler.nchains, sampler.ntemps), dtype=int)
     for ii in range(sampler.nchains):
         for jj in range(sampler.ntemps):
             temp_acls[ii, jj] = acl_chain(sampler.chains[ii].chains[jj], burnin_iter, c=0.5)
-    # Grab the maximum ACL along each each. Is there a better choice though?
-    acls = numpy.max(temp_acls, axis=1)
+    # Grab the ACL for each chain. Typically the maximum ACL among the temps.
+    if temp_acl_func is None:
+        temp_acl_func = numpy.max
+    acls = numpy.apply_along_axis(temp_acl_func, axis=1, arr=temp_acls)
+    # Ensure these are integers
+    acls = numpy.ceil(acls).astype(int)
 
     params = sampler.parameters
     samples = sampler.positions[:, :, burnin_iter:]
