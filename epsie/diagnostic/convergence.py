@@ -18,9 +18,36 @@
 import numpy
 
 
-def gelman_rubin_test(sampler, burnin_iter):
+def gelman_rubin_test(sampler, burnin_iter, full=False):
+    """
+    Calculate the Gelman-Rubin (GR) convergence test outlined in [1] for
+    parallel, independent MCMC chains. The final statistic is averaged over all
+    parameters unless `full=True`, in which case the GR statistic is returned
+    for each parameter.
+
+    Typically values of less than 1.1 or 1.2 are recommended.
+
+    Arguments
+    ---------
+    sampler : {:py:class:`epsie.sampler.MetropolisHastingsSampler`,
+               :py:class:`epsie.sampler.ParallelTemperedSampler`}
+        Epsie sampler whose samples to extract.
+    burnin_iter : int, optional
+        Number of burnin iterations to be thrown away.
+    
+    Returns
+    -------
+    R : float (or array)
+        GS statistics.
+    
+    References
+    ----------
+    .. [1] Gelman, A. and Rubin, D.B. (1992). "Inference from Iterative
+        Simulation using Multiple Sequences". Statistical Science, 7,
+        p. 457–511.
+    """
     if sampler.name == "mh_sampler":
-        return _mh_gelman_rubin_test(sampler, burnin_iter)
+        return _mh_gelman_rubin_test(sampler, burnin_iter, full)
     elif sampler.name == "pt_sampler":
         raise NotImplementedError("PT sampler GH test not implemented yet.")
     else:
@@ -44,6 +71,6 @@ def _mh_gelman_rubin_test(sampler, burnin_iter, full=False):
 
     if full:
         return Rs 
-    
+   
     return numpy.mean(Rs)
     
