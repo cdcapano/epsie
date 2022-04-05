@@ -24,7 +24,7 @@ from epsie.proposals import (NestedTransdimensional, BoundedDiscrete, Normal,
                              SSAdaptiveNormal, AdaptiveNormal,
                              ATAdaptiveNormal, UniformBirth, NormalBirth,
                              LogNormalBirth)
-from _utils import PolynomialRegressionModel
+from _utils import PolynomialRegressionModel, _closepool
 from epsie import make_betas_ladder
 
 from test_ptsampler import _create_sampler
@@ -111,9 +111,7 @@ def test_active_parameters(td_proposal, birth_dist, nprocs, nchains, ntemps,
                     for m in range(1, 5 + 1)])
                 k = sampler.positions[j, i, n]['k']
                 assert numpy.isfinite(coeffs).sum() == k
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
+    _closepool(sampler)
 
 
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',

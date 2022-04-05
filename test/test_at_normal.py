@@ -21,7 +21,7 @@ import numpy
 
 from epsie.proposals import (ATAdaptiveNormal, ATAdaptiveBoundedNormal,
                              ATAdaptiveAngular)
-from _utils import Model
+from _utils import Model, _closepool
 
 from test_ptsampler import _create_sampler
 from test_ptsampler import test_chains as _test_chains
@@ -113,9 +113,7 @@ def _test_cov_changes(nprocs, proposal, model):
 
     assert (previous_cov == current_cov).all()
     # close the multiprocessing pool
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
+    _closepool(sampler)
 
 
 def _test_std_changes(nprocs, proposal, model):
@@ -153,9 +151,7 @@ def _test_std_changes(nprocs, proposal, model):
 
     assert (previous_std == current_std).all()
     # close the multiprocessing pool
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
+    _closepool(sampler)
 
 
 @pytest.mark.parametrize('name', ['at_adaptive_normal',

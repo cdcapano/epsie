@@ -25,7 +25,8 @@ from epsie import make_betas_ladder
 from epsie.chain.ptchain import DynamicalAnnealer
 from epsie.samplers import ParallelTemperedSampler
 from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
-                    _anticompare_dict_array, _check_chains_are_different)
+                    _anticompare_dict_array, _check_chains_are_different,
+                    _closepool)
 
 
 NCHAINS = 4
@@ -79,7 +80,6 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None,
     * That the chains all have different random states after the
       iterations, and different positions/stats/blobs.
     """
-    nprocs = adjust_nprocs(nprocs)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                               swap_interval=swap_interval,
@@ -185,14 +185,7 @@ def test_chains(model_cls, nprocs, swap_interval, proposals=None,
             for ll in range(NTEMPS):
                 _check_chains_are_different(chain.chains[kk], other.chains[ll],
                                             test_blobs=bool(model.blob_params))
-    import subprocess
-    print('number zombies before:')
-    subprocess.run("ps ax | grep 'Z'", shell=True)
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
-    print('number zombies after:')
-    subprocess.run("ps ax | grep 'Z'", shell=True)
+    _closepool(sampler)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -207,7 +200,6 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
         import h5py
     except ImportError:
         raise ImportError("h5py must be installed to run this test")
-    nprocs = adjust_nprocs(nprocs)
     print('HERE 1', flush=True)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
@@ -242,31 +234,9 @@ def test_checkpointing(model_cls, nprocs, proposals=None, init_iters=None):
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
     print('HERE 8', flush=True)
-    print('before sampler.pool:', sampler.pool, flush=True)
-    print('before sampler2.pool:', sampler2.pool, flush=True)
-    import subprocess
-    print('number zombies before:')
-    subprocess.run("ps ax | grep 'Z'", shell=True)
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler2.pool.terminate()
-        sampler.pool.join()
-        sampler2.pool.join()
-    print('after sampler.pool:', sampler.pool, flush=True)
-    print('after sampler2.pool:', sampler2.pool, flush=True)
-    print('number zombies after:')
-    subprocess.run("ps ax | grep 'Z'", shell=True)
-    #print('number of cpus:', multiprocessing.cpu_count(), flush=True)
-    #print('start methods:', multiprocessing.get_all_start_methods(), flush=True)
-    #print('start method:', multiprocessing.get_start_method(), flush=True)
+    _closepool(sampler)
+    _closepool(sampler2)
 
-
-def adjust_nprocs(nprocs):
-    #ncpus = multiprocessing.cpu_count()
-    #if nprocs > ncpus:
-    #    print("Using {} nprocs instead of {}".format(ncpus, nprocs), flush=True)
-    #    nprocs = ncpus
-    return nprocs
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -274,7 +244,6 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
     """Tests that running with the same seed yields the same results,
     while running with a different seed yields different results.
     """
-    nprocs = adjust_nprocs(nprocs)
     print('HERE 1', flush=True)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
@@ -318,19 +287,9 @@ def test_seed(model_cls, nprocs, proposals=None, init_iters=None):
         _anticompare_dict_array(sampler.current_blobs,
                                 diff_seed.current_blobs)
     print('HERE 7', flush=True)
-    print('sampler.pool:', sampler.pool, flush=True)
-    if sampler.pool is not None:
-        import subprocess
-        print('number zombies before:')
-        subprocess.run("ps ax | grep 'Z'", shell=True)
-        sampler.pool.terminate()
-        same_seed.pool.terminate()
-        diff_seed.pool.terminate()
-        sampler.pool.join()
-        same_seed.pool.join()
-        diff_seed.pool.join()
-        print('number zombies after:')
-        subprocess.run("ps ax | grep 'Z'", shell=True)
+    _closepool(sampler)
+    _closepool(same_seed)
+    _closepool(diff_seed)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -341,7 +300,6 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None,
     """Tests that clearing memory and running yields the same result as if
     the memory had not been cleared.
     """
-    nprocs = adjust_nprocs(nprocs)
     model = model_cls()
     sampler = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
                               swap_interval=swap_interval, proposals=proposals)
@@ -401,11 +359,8 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None,
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler2.pool.terminate()
-        sampler.pool.join()
-        sampler2.pool.join()
+    _closepool(sampler)
+    _closepool(sampler2)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -414,7 +369,6 @@ def test_clear_memory(model_cls, nprocs, swap_interval, proposals=None,
 @pytest.mark.parametrize('swap_interval', [1, 3])
 @pytest.mark.parametrize('annealer_cls', [DynamicalAnnealer])
 def test_beta_changes(model_cls, nprocs, nchains, swap_interval, annealer_cls):
-    nprocs = adjust_nprocs(nprocs)
     model = model_cls()
     annealer = annealer_cls()
     sampler = _create_sampler(model, nprocs, nchains,
@@ -424,6 +378,4 @@ def test_beta_changes(model_cls, nprocs, nchains, swap_interval, annealer_cls):
     sampler.run(ITERINT)
     current_betas = sampler.betas
     assert numpy.all(initial_betas[:, 1:-1] != current_betas[:, 1:-1])
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
+    _closepool(sampler)

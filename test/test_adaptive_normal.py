@@ -21,7 +21,7 @@ import pytest
 import numpy
 
 from epsie.proposals import (SSAdaptiveNormal, AdaptiveNormal)
-from _utils import Model
+from _utils import Model, _closepool
 
 from test_ptsampler import _create_sampler
 from test_ptsampler import test_chains as _test_chains
@@ -106,9 +106,7 @@ def _test_std_changes(nprocs, proposal, model):
                 current_std[ii, jj, :] = thisprop.std
         assert (previous_std == current_std).all()
     # close the multiprocessing pool
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
+    _closepool(sampler)
 
 
 @pytest.mark.parametrize('nprocs', [1, 4])

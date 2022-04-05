@@ -23,7 +23,8 @@ import numpy
 import epsie
 from epsie.samplers import MetropolisHastingsSampler
 from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
-                    _anticompare_dict_array, _check_chains_are_different)
+                    _anticompare_dict_array, _check_chains_are_different,
+                    _closepool)
 
 
 NCHAINS = 8
@@ -117,9 +118,7 @@ def test_chains(model_cls, nprocs):
                                     test_blobs=bool(model.blob_params))
     # terminate the multiprocessing pool so we don't end up with too many
     # open processes
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
+    _closepool(sampler)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -159,11 +158,8 @@ def test_checkpointing(model_cls, nprocs):
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
     # terminate the multiprocessing pools so we don't end up with too many
     # open processes
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
-        sampler2.pool.terminate()
-        sampler2.pool.join()
+    _closepool(sampler)
+    _closepool(sampler2)
 
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
@@ -200,13 +196,9 @@ def test_seed(model_cls, nprocs):
     if model.blob_params:
         _anticompare_dict_array(sampler.current_blobs,
                                 diff_seed.current_blobs)
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
-        same_seed.pool.terminate()
-        same_seed.pool.join()
-        diff_seed.pool.terminate()
-        diff_seed.pool.join()
+    _closepool(sampler)
+    _closepool(same_seed)
+    _closepool(diff_seed)
 
 @pytest.mark.parametrize('model_cls', [Model, ModelWithBlobs])
 @pytest.mark.parametrize('nprocs', [1, 4])
@@ -250,8 +242,5 @@ def test_clear_memory(model_cls, nprocs):
     _compare_dict_array(sampler.current_stats, sampler2.current_stats)
     if model.blob_params:
         _compare_dict_array(sampler.current_blobs, sampler2.current_blobs)
-    if sampler.pool is not None:
-        sampler.pool.terminate()
-        sampler.pool.join()
-        sampler2.pool.terminate()
-        sampler2.pool.join()
+    _closepool(sampler)
+    _closepool(sampler2)
