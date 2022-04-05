@@ -34,12 +34,12 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         Epsie sampler whose samples to extract.
     burnin_iter : int, optional
         Number of burnin iterations to be thrown away.
-    
+
     Returns
     -------
     R : float (or array)
         GS statistics.
-    
+
     References
     ----------
     .. [1] Gelman, A. and Rubin, D.B. (1992). "Inference from Iterative
@@ -52,7 +52,6 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         raise NotImplementedError("PT sampler GH test not implemented yet.")
     else:
         raise ValueError("Invalid sampler class.")
-
 
 
 def _mh_gelman_rubin_test(sampler, burnin_iter, full=False):
@@ -70,7 +69,7 @@ def _mh_gelman_rubin_test(sampler, burnin_iter, full=False):
         Rs[i] = ((1 - 1 / N) + numpy.var(cmus) / numpy.mean(cvars))**0.5
 
     if full:
-        return Rs 
-   
+        return Rs
+
     return numpy.mean(Rs)
-    
+ 
