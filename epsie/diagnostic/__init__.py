@@ -14,3 +14,4 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from .acl import acl_1d, acl_chain, thinned_samples
+from .convergence import gelman_rubin_test
