@@ -21,29 +21,26 @@ import numpy
 def gelman_rubin_test(sampler, burnin_iter):
     if sampler.name == "mh_sampler":
         return _mh_gelman_rubin_test(sampler, burnin_iter)
+    elif sampler.name == "pt_sampler":
+        raise NotImplementedError("PT sampler GH test not implemented yet.")
     else:
-        raise NotImplementedError("Other sampler not implemented yet.")
+        raise ValueError("Invalid sampler class.")
 
 
 
 def _mh_gelman_rubin_test(sampler, burnin_iter, full=False):
     params = sampler.parameters
-
+    # Cut off burnin iterations
     samples = sampler.positions[:, burnin_iter:]
-
+    # Number of iterations post-burnin
     N = sampler.niterations - burnin_iter
-
+    # Calculate the GH statistic for each parameter independently
     Rs = numpy.zeros(len(params))
-
     for i, param in enumerate(params):
-        chains_variance = numpy.var(samples[param], axis=1)
-        chains_mean = numpy.mean(samples[param], axis=1)
+        cvars = numpy.var(samples[param], axis=1)
+        cmus = numpy.mean(samples[param], axis=1)
 
-        W = numpy.mean(chains_variance)
-        B = numpy.var(chains_mean)
-
-        V = (1 - 1 / N) * W + B
-        Rs[i] = numpy.sqrt(V / W) 
+        Rs[i] = ((1 - 1 / N) + numpy.var(cmus) / numpy.mean(cvars))**0.5
 
     if full:
         return Rs 
