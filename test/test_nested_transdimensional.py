@@ -111,6 +111,9 @@ def test_active_parameters(td_proposal, birth_dist, nprocs, nchains, ntemps,
                     for m in range(1, 5 + 1)])
                 k = sampler.positions[j, i, n]['k']
                 assert numpy.isfinite(coeffs).sum() == k
+    if sampler.pool is not None:
+        sampler.pool.terminate()
+        sampler.pool.join()
 
 
 @pytest.mark.parametrize('td_proposal', ['normal', 'adaptive_normal',
