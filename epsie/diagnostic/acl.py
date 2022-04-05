@@ -51,7 +51,11 @@ def acl_1d(x, c=5.0):
 
     taus = 2.0 * numpy.cumsum(acf) - 1.0
     window = auto_window(taus, c)
-    return numpy.ceil(taus[window]).astype(int)
+    acl = numpy.ceil(taus[window]).astype(int)
+    if acl < 1:
+        acl = 1
+    return acl
+
 
 
 def auto_window(taus, c):
