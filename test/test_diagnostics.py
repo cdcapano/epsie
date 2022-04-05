@@ -52,9 +52,9 @@ def _test_mh_thinning():
     # run both for a few iterations
     sampler.run(ITERINT)
 
-    # Given a random seed test a comparison to a known value 
+    # Given a random seed test a comparison to a known value
     acl = diagnostic.acl_chain(sampler.chains[0], full=True)
-    assert numpy.all(acl == numpy.array([8,9]))
+    assert numpy.all(acl == numpy.array([8, 9]))
     # Check that the thinnd arrays have the right shape
     thinned = diagnostic.thinned_samples(sampler, burnin_iter=int(ITERINT/2))
     shape = None
@@ -66,7 +66,7 @@ def _test_mh_thinning():
         else:
             assert px.shape == shape
 
-            
+
 def _test_pt_thinning(temp_acl_func):
     model = Model()
     sampler = _create_pt_sampler(model, 1, nchains=NCHAINS, betas=BETAS,
