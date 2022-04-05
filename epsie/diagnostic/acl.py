@@ -57,7 +57,6 @@ def acl_1d(x, c=5.0):
     return acl
 
 
-
 def auto_window(taus, c):
     """
     ACL automated windowing procedure following Sokal (1989).

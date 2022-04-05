@@ -16,18 +16,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Performs unit tests on the ParallelTempered sampler."""
 
-import itertools
-import multiprocessing
 import pytest
 import numpy
-import epsie
 from epsie import make_betas_ladder
 from epsie import diagnostic
-from epsie.samplers import ParallelTemperedSampler
-from _utils import (Model, ModelWithBlobs, _check_array, _compare_dict_array,
-                    _anticompare_dict_array, _check_chains_are_different)
+from _utils import Model
 
-                    
 from test_ptsampler import _create_sampler as _create_pt_sampler
 from test_mhsampler import _create_sampler as _create_mh_sampler
 
@@ -37,6 +31,7 @@ NTEMPS = 3
 BETAS = make_betas_ladder(NTEMPS, 1e5)
 ITERINT = 64
 SEED = 2020
+
 
 @pytest.mark.parametrize("sampler_cls", ["mh", "pt"])
 def test_thinning(sampler_cls):
