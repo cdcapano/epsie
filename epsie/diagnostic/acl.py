@@ -138,7 +138,7 @@ def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     samples = sampler.positions[:, burnin_iter:]
 
     # Cycle over the chains and thin them
-    for ii, chain in enumerate(sampler.chains):
+    for ii in range(sampler.nchains):
         for p in params:
             _thinned[p].append(samples[p][ii, :][::-1][::acls[ii]][::-1])
     # Put the thinned samples into a structured array
