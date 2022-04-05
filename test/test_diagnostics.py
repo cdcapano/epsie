@@ -38,17 +38,13 @@ BETAS = make_betas_ladder(NTEMPS, 1e5)
 ITERINT = 64
 SEED = 2020
 
-@pytest.mark.parametrize("sampler_cls", ["mh"])
+@pytest.mark.parametrize("sampler_cls", ["mh", "pt"])
 def test_thinning(sampler_cls):
     if sampler_cls == "mh":
         _test_mh_thinning()
     elif sampler_cls == "pt":
-        pass
-#    sampler2 = _create_sampler(model, nprocs, nchains=NCHAINS, seed=SEED,
-#                               swap_interval=swap_interval,
-#                               proposals=proposals, set_start=False)
-#    sampler.start_position = model.prior_rvs(size=nchains*ntemps,
-#                                                 shape=(ntemps, nchains))
+        _test_pt_thinning(None)
+        _test_pt_thinning(numpy.mean)
     else:
         raise ValueError("Unknown sampler class.")
 
@@ -58,14 +54,12 @@ def _test_mh_thinning():
     sampler = _create_mh_sampler(model, nprocs=1, nchains=NCHAINS,
                                  seed=SEED)
     sampler.start_position = model.prior_rvs(size=NCHAINS)
-
     # run both for a few iterations
     sampler.run(ITERINT)
 
     # Given a random seed test a comparison to a known value 
     acl = diagnostic.acl_chain(sampler.chains[0], full=True)
     assert numpy.all(acl == numpy.array([8,9]))
-
     # Check that the thinnd arrays have the right shape
     thinned = diagnostic.thinned_samples(sampler, burnin_iter=int(ITERINT/2))
     shape = None
@@ -77,6 +71,24 @@ def _test_mh_thinning():
         else:
             assert px.shape == shape
 
-    
-if __name__ == "__main__":
-    test_thinning("mh")
+            
+def _test_pt_thinning(temp_acl_func):
+    model = Model()
+    sampler = _create_pt_sampler(model, 1, nchains=NCHAINS, betas=BETAS,
+                                 seed=SEED, swap_interval=1, proposals=None,
+                                 set_start=False)
+    sampler.start_position = model.prior_rvs(size=(NTEMPS, NCHAINS))
+
+    sampler.run(ITERINT)
+
+    thinned = diagnostic.thinned_samples(
+        sampler, burnin_iter=int(ITERINT/2), temp_acl_func=temp_acl_func)
+
+    shape = None
+    for i, param in enumerate(sampler.parameters):
+        px = thinned[param]
+        assert px.ndim == 2
+        if i == 0:
+            shape = px.shape
+        else:
+            assert px.shape == shape
