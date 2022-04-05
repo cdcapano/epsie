@@ -66,6 +66,15 @@ def _test_mh_thinning():
         else:
             assert px.shape == shape
 
+    # Test the GR calculation
+    Rs = diagnostic.gelman_rubin_test(
+        sampler, burnin_iter=int(ITERINT/2), full=True)
+    assert isinstance(Rs, numpy.ndarray)
+    assert ~numpy.any(Rs < 1)
+    # And run it again without full
+    R = diagnostic.gelman_rubin_test(sampler, burnin_iter=int(ITERINT/2))
+    assert isinstance(R, float)
+
 
 def _test_pt_thinning(temp_acl_func):
     model = Model()
