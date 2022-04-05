@@ -20,7 +20,7 @@ import numpy
 def acl_1d(x, c=5.0):
     """
     Calculate the autocorrelation length (ACL) of some series.
-    
+
     Algorithm used is from:
     N. Madras and A.D. Sokal, J. Stat. Phys. 50, 109 (1988).
 
@@ -33,25 +33,26 @@ def acl_1d(x, c=5.0):
         Samples whose autocorrelation length is to be calculated.
     c : float, optional
         ACL hyperparameter. As per Sokal by default set to 5.
-    
+
     Returns
     -------
     ACL: int
         Autocorrelation length.
     """
     if x.ndim != 1:
-        raise TypeError("``x`` must be a 1D array. Currently {}".format(x.ndim))
+        raise TypeError("``x`` not a 1D array. Currently {}".format(x.ndim))
     # n is the next power of 2 for length of x
     n = (2**numpy.ceil(numpy.log2(x.size))).astype(int)
     # Compute the FFT and then (from that) the auto-correlation function
     f = numpy.fft.fft(x - numpy.mean(x), n=2 * n)
-    acf =  numpy.fft.ifft(f * numpy.conjugate(f))[: len(x)].real / (4 * n)
+    acf = numpy.fft.ifft(f * numpy.conjugate(f))[: len(x)].real / (4 * n)
 
     acf /= acf[0]
-    
+
     taus = 2.0 * numpy.cumsum(acf) - 1.0
     window = auto_window(taus, c)
     return numpy.ceil(taus[window]).astype(int)
+
 
 def auto_window(taus, c):
     """
@@ -81,7 +82,7 @@ def acl_chain(chain, burnin_iter=0, c=5.0, full=False):
     full : bool, optionall
         Whether to return the ACL of every parameter. By default False, thus
         returning only the maximum ACL.
-    
+
     Returns
     -------
     ACL : int or array of integers
@@ -108,7 +109,7 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
         ACL calculation hyperparameter. By default 5.
     temp_acl_func : :py:func, optional.
         A function that given a list of ACLs of a single chain on different
-        temperature levels returns the chain global ACL. By default 
+        temperature levels returns the chain global ACL. By default
         :py:func`numpy.max`. Must act on a 1-dimensional array and return an
         integer.
 
@@ -129,7 +130,7 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
 
 
 def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
-    # Calculate the ACL for each chain 
+    # Calculate the ACL for each chain
     acls = [acl_chain(chain, burnin_iter, c) for chain in sampler.chains]
 
     params = sampler.parameters
@@ -150,11 +151,12 @@ def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
 
 
 def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
-    # Calculate the ACL across temperatures for each chain    
+    # Calculate the ACL across temperatures for each chain
     temp_acls = numpy.zeros((sampler.nchains, sampler.ntemps), dtype=int)
     for ii in range(sampler.nchains):
         for jj in range(sampler.ntemps):
-            temp_acls[ii, jj] = acl_chain(sampler.chains[ii].chains[jj], burnin_iter, c=0.5)
+            temp_acls[ii, jj] = acl_chain(
+                sampler.chains[ii].chains[jj], burnin_iter, c=0.5)
     # Grab the ACL for each chain. Typically the maximum ACL among the temps.
     if temp_acl_func is None:
         temp_acl_func = numpy.max
@@ -174,10 +176,10 @@ def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
             for param in params:
                 sp = samples[param][tk, ii, :]
                 _thinned[param].append(sp[::-1][::acls[ii]][::-1])
-        
+
         for param in params:
             thinned[param].append(numpy.concatenate(_thinned[param]))
-    
+
     # Cast the thinned samples from a list of arrays into a 2D array for each
     # parameter and return as a structured array
     thinned_samples = numpy.zeros((sampler.ntemps, thinned[params[0]][0].size),
