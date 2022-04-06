@@ -406,11 +406,11 @@ def _check_chains_are_different(chain, other, test_blobs,
 
 def _closepool(sampler):
     """Terminates a sampler's pool, if the sampler has one."""
-    import subprocess
-    print('number python procs before:')
-    subprocess.run("ps ax | grep 'python3'", shell=True)
+    #import subprocess
+    #print('number python procs before:')
+    #subprocess.run("ps ax | grep 'python3'", shell=True)
     if sampler.pool is not None:
         sampler.pool.terminate()
         sampler.pool.join()
-    print('number python procs after:')
-    subprocess.run("ps ax | grep 'python3'", shell=True)
+    #print('number python procs after:')
+    #subprocess.run("ps ax | grep 'python3'", shell=True)
