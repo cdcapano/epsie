@@ -18,3 +18,4 @@
 from .chaindata import ChainData
 from .chain import Chain
 from .ptchain import (ParallelTemperedChain, DynamicalAnnealer)
+from .fastchain import FastChain
