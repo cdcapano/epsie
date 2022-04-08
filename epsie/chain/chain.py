@@ -85,6 +85,7 @@ class Chain(BaseChain):
     proposal_dist : JointProposal
         The joint proposal used for all parameters.
     """
+
     def __init__(self, parameters, model, proposals, bit_generator=None,
                  chain_id=0, beta=1.):
         self.parameters = parameters
