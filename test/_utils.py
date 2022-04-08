@@ -406,11 +406,12 @@ def _check_chains_are_different(chain, other, test_blobs,
 
 def _closepool(sampler):
     """Terminates a sampler's pool, if the sampler has one."""
-    import subprocess
-    #print('number python procs before:')
-    #subprocess.run("ps ax | grep 'python3'", shell=True)
     if sampler.pool is not None:
         sampler.pool.terminate()
         sampler.pool.join()
-    #print('number python procs after:')
-    #subprocess.run("ps ax | grep 'python3'", shell=True)
+    # the pool processes aren't always being released in
+    # python >= 3.8 on github, causing test functions to
+    # hang at this point. I found that making a command-line
+    # call via subprocess unsticks them... I have nod idea why
+    import subprocess
+    subprocess.run("echo")
