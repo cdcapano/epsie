@@ -24,6 +24,7 @@ import numpy
 # from .base import BaseChain
 # from .chaindata import (ChainData, detect_dtypes)
 from .chain import Chain
+from .chaindata import ChainData
 
 
 class FastChain(Chain):
@@ -49,6 +50,12 @@ class FastChain(Chain):
         self._proposed_slow = None
 
         self.original_model = model
+
+        self._dragged_stats = ChainData(["logpost_init", "logpost_final"])
+        self._dragged_stats.set_len(nfast)
+        
+        
+        # Dragged stats rewritten for some reason, how is the initial set?
 
 
         super().__init__(parameters, self.model, proposals, bit_generator,
@@ -106,9 +113,13 @@ class FastChain(Chain):
         # Check how indexed when proposing the first step.        
         prog = (self.iteration + 1) / self.nfast
 
+        
+        
+
         if prog > 1:
             raise ValueError("Chain should have been cleared.")
 
+        # I will have to start saving their sum or values
 
         r0 = self.original_model(**{**proposed, **self.current_slow})
         r1 = self.original_model(**{**proposed, **self.proposed_slow})
@@ -119,6 +130,9 @@ class FastChain(Chain):
             ll0, lp0 = r0
             ll1, lp1 = r1
 
+        index = len(self)
+        self._dragged_stats[index] = sum(r0), sum(r1)
+
         f = lambda x,y: (1 - prog) * x + prog * y
 
         logl = f(ll0, ll1)
@@ -128,8 +142,17 @@ class FastChain(Chain):
         return logl, logp
 
         
-    def dragging_acceptance(self):
-        pass
+    def draggin_logar(self):
+        """
+        Partial acceptance, will still have to be multiplied by the slow param
+        proposal.
+        
+        """
+        # Return error if fast dragging not completed yet
+        stats = self._dragged_stats
+
+
+        return numpy.mean(stats["logpost_init"] + stats["logpost_final"])
 
     
     def fast_stepping(self):
@@ -138,6 +161,7 @@ class FastChain(Chain):
         """
         for __ in range(self.nfast):
             self.step()
+            
 
     
 
