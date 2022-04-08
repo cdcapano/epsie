@@ -406,16 +406,14 @@ def _check_chains_are_different(chain, other, test_blobs,
 
 def _closepool(sampler):
     """Terminates a sampler's pool, if the sampler has one."""
-    import os
-    print('I am process: ', os.getpid(), 'My parent is:', os.getppid(), flush=True)
     if sampler.pool is not None:
         # the pool processes aren't always being released in
         # python >= 3.8 on github, causing test functions to
         # hang at this point. I found that making a command-line
         # call via subprocess unsticks them... I have nod idea why
-        #import subprocess
-        #subprocess.run("echo")
+        import subprocess
+        subprocess.run("echo")
         sampler.pool.terminate()
         sampler.pool.join()
-        #subprocess.run("echo")
+        subprocess.run("echo")
     return
