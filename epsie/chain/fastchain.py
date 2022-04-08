@@ -51,12 +51,9 @@ class FastChain(Chain):
 
         self.original_model = model
 
-        self._dragged_stats = ChainData(["logpost_init", "logpost_final"])
+        self._dragged_stats = ChainData(["lpost0", "lpostf"])
         self._dragged_stats.set_len(nfast)
         
-        
-        # Dragged stats rewritten for some reason, how is the initial set?
-
 
         super().__init__(parameters, self.model, proposals, bit_generator,
                          chain_id=0, beta=1.)
@@ -87,6 +84,8 @@ class FastChain(Chain):
         Check that parameters in `self.parameters_slow` 
         
         """
+        if positions is None:
+            return None
         positions = copy(positions)
         checked_positions = {}
         for par in self.parameters_slow:
@@ -108,13 +107,8 @@ class FastChain(Chain):
 
         """
 
-        print("Hmmm")
-
         # Check how indexed when proposing the first step.        
         prog = (self.iteration + 1) / self.nfast
-
-        
-        
 
         if prog > 1:
             raise ValueError("Chain should have been cleared.")
@@ -130,7 +124,9 @@ class FastChain(Chain):
             ll0, lp0 = r0
             ll1, lp1 = r1
 
-        index = len(self)
+        # We want to store the start positions
+        index = len(self) + int(~numpy.isnan(self._dragged_stats[0]["lpost0"]))
+        
         self._dragged_stats[index] = sum(r0), sum(r1)
 
         f = lambda x,y: (1 - prog) * x + prog * y
@@ -138,30 +134,41 @@ class FastChain(Chain):
         logl = f(ll0, ll1)
         logp = f(lp0, lp1)
 
-
         return logl, logp
 
-        
-    def draggin_logar(self):
+    @property        
+    def dragging_logar(self):
         """
         Partial acceptance, will still have to be multiplied by the slow param
         proposal.
         
         """
-        # Return error if fast dragging not completed yet
+        # TODO Return error if fast dragging not completed yet
         stats = self._dragged_stats
 
-
-        return numpy.mean(stats["logpost_init"] + stats["logpost_final"])
-
+        logar = numpy.mean(stats["lpost0"] + stats["lpostf"])
+        if numpy.isnan(logar):
+            raise RuntimeError("Fast dragging not completed yet.")
+        return logar
     
+    def dragging_clear(self):
+        self.clear()  # clear the parent chain
+        self._dragged_stats.clear(self.nfast)  # clear the dragged stats
+        self._lastclear = 0  # we don't want to use this
+        # Reset the iterations 
+        self._iteration = 0
+        # Reset the current and proposed slow parameters
+        self.current_slow = None
+        self.proposed_slow = None
+
     def fast_stepping(self):
         """
         Util function to test the chain, will later remove. 
         """
-        for __ in range(self.nfast):
+        for __ in range(1, self.nfast):
             self.step()
-            
+
+
 
     
 
