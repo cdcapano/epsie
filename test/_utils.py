@@ -412,8 +412,8 @@ def _closepool(sampler):
         # hang at this point. I found that making a command-line
         # call via subprocess unsticks them... I have nod idea why
         import subprocess
-        subprocess.run("echo", shell=True)
+        subprocess.run("ps", shell=True)
         sampler.pool.terminate()
         sampler.pool.join()
-        subprocess.run("echo", shell=True)
+        subprocess.run("ps", shell=True)
     return
