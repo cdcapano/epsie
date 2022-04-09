@@ -62,7 +62,9 @@ class Normal(BaseProposal):
         self._isdiagonal = False
         self._cov = None
         self._std = None
+        self._proposal = None
         self.cov = cov
+        self._update_proposal()
 
     @property
     def isdiagonal(self):
@@ -72,6 +74,16 @@ class Normal(BaseProposal):
         will be used for proposals. Otherwise, a multivariate normal is used.
         """
         return self._isdiagonal
+
+    def _update_proposal(self):
+        """
+        Update the zero-mean normal proposal distribution, cache it.
+        """
+        if self.isdiagonal:
+            self._proposal = stats.norm(scale=self._std)
+        else:
+            self._proposal = stats.multivariate_normal(
+                cov=self._cov, allow_singular=True)
 
     @property
     def cov(self):
@@ -177,14 +189,8 @@ class Normal(BaseProposal):
         return dict(zip(self.parameters, newpt))
 
     def _logpdf(self, xi, givenx):
-        mu = [givenx[p] for p in self.parameters]
-        xi = [xi[p] for p in self.parameters]
-        if self.isdiagonal:
-            logp = stats.norm.logpdf(xi, loc=mu, scale=self._std).sum()
-        else:
-            logp = stats.multivariate_normal.logpdf(xi, mean=mu, cov=self._cov,
-                                                    allow_singular=True)
-        return logp
+        dx = [givenx[p] - xi[p] for p in self.parameters]
+        return self._proposal.logpdf(dx).sum()
 
 
 #
@@ -281,6 +287,7 @@ class AdaptiveSupport(BaseAdaptiveSupport):
             initial_std = (1 - self.target_rate)*0.09*self.deltas
         # set the covariance to the initial
         self._std = initial_std
+        self._update_proposal()
 
     @property
     def prior_widths(self):
@@ -326,6 +333,7 @@ class AdaptiveSupport(BaseAdaptiveSupport):
             lzidx = newsigmas < 0
             newsigmas[lzidx] = sigmas[lzidx]
             self._std = newsigmas
+            self._update_proposal()
 
     @property
     def state(self):
@@ -337,6 +345,7 @@ class AdaptiveSupport(BaseAdaptiveSupport):
         self.random_state = state['random_state']
         self._std = state['std']
         self._nsteps = state['nsteps']
+        self._update_proposal()
 
 
 class AdaptiveNormal(AdaptiveSupport, Normal):
@@ -448,6 +457,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         else:
             max_std = numpy.inf
         self.max_std = max_std
+        self._update_proposal()
 
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
@@ -475,6 +485,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
             max_cov = alpha * self._cov.max()
             if max_cov <= self.max_std**2:
                 self._cov *= alpha
+        self._update_proposal()
 
     @property
     def state(self):
@@ -495,6 +506,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
             self._std = state['std']
         else:
             self._cov = state['cov']
+        self._update_proposal()
 
 
 class SSAdaptiveNormal(SSAdaptiveSupport, Normal):
@@ -620,6 +632,7 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
                 self.target_rate = 0.48
         else:
             self.target_rate = target_rate
+        self._update_proposal()
 
     def _componentwise_scaling(self, chain, dk):
         """Componentwise scaling. Does virtual moves along each axis
@@ -684,6 +697,7 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
                     Lambda = numpy.diag(numpy.exp(self._log_lambda))**0.5
                     self._cov = numpy.matmul(
                         numpy.matmul(Lambda, self._unit_cov), Lambda)
+            self._update_proposal()
 
     @property
     def state(self):
@@ -708,6 +722,7 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
             self._std = state['std']
         else:
             self._cov = state['cov']
+        self._update_proposal()
 
 
 class ATAdaptiveNormal(ATAdaptiveSupport, Normal):

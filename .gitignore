@@ -1,0 +1,7 @@
+scratch_*
+*ipynb_checkpoints
+*.DS_Store
+*__pycache__
+build/*
+epsie.egg-info/*
+reinstall_epsie.sh
