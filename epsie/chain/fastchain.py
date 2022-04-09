@@ -38,13 +38,13 @@ class FastChain(Chain):
     """
     _is_fast = True
 
-    def __init__(self, parameters, model, proposals, parameters_slow, nfast, bit_generator=None):
+    def __init__(self, parameters, model, proposals, slow_parameters, nfast, bit_generator=None):
         # Initialise the parent chain
         # Add a setter for this
         self.nfast = nfast
 
         # Make sure there is no overlap between parameters and slow_parameters
-        self.parameters_slow = parameters_slow
+        self.slow_parameters = slow_parameters
         
         self._current_slow = None
         self._proposed_slow = None
@@ -81,14 +81,14 @@ class FastChain(Chain):
 
     def _set_slow_params(self, positions):
         """
-        Check that parameters in `self.parameters_slow` 
+        Check that parameters in `self.slow_parameters` 
         
         """
         if positions is None:
             return None
         positions = copy(positions)
         checked_positions = {}
-        for par in self.parameters_slow:
+        for par in self.slow_parameters:
             val = positions.pop(par, None)
             if val is None:
                 raise KeyError("Slow parameter ``{}`` missing position"
