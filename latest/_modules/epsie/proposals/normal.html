@@ -145,7 +145,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proposal</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cov</span> <span class="o">=</span> <span class="n">cov</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">isdiagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -155,6 +157,16 @@
 <span class="sd">        will be used for proposals. Otherwise, a multivariate normal is used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span>
+
+    <span class="k">def</span> <span class="nf">_update_proposal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the zero-mean normal proposal distribution, cache it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_proposal</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_proposal</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span>
+                <span class="n">cov</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span> <span class="n">allow_singular</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cov</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -260,14 +272,8 @@
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">newpt</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_logpdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">givenx</span><span class="p">):</span>
-        <span class="n">mu</span> <span class="o">=</span> <span class="p">[</span><span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
-        <span class="n">xi</span> <span class="o">=</span> <span class="p">[</span><span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
-            <span class="n">logp</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logp</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span>
-                                                    <span class="n">allow_singular</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">logp</span></div>
+        <span class="n">dx</span> <span class="o">=</span> <span class="p">[</span><span class="n">givenx</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">-</span> <span class="n">xi</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_proposal</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
 
 
 <span class="c1">#</span>
@@ -363,7 +369,8 @@
         <span class="k">if</span> <span class="n">initial_std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">initial_std</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">)</span><span class="o">*</span><span class="mf">0.09</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">deltas</span>
         <span class="c1"># set the covariance to the initial</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">initial_std</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">initial_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">prior_widths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -409,6 +416,7 @@
             <span class="n">lzidx</span> <span class="o">=</span> <span class="n">newsigmas</span> <span class="o">&lt;</span> <span class="mi">0</span>
             <span class="n">newsigmas</span><span class="p">[</span><span class="n">lzidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">sigmas</span><span class="p">[</span><span class="n">lzidx</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">newsigmas</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -419,7 +427,8 @@
 <div class="viewcode-block" id="AdaptiveSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="AdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveNormal</span><span class="p">(</span><span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>
@@ -530,7 +539,8 @@
             <span class="n">max_std</span> <span class="o">=</span> <span class="n">max_cov</span><span class="o">**</span><span class="mf">0.5</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">max_std</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span> <span class="o">=</span> <span class="n">max_std</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span> <span class="o">=</span> <span class="n">max_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Updates the adaptation based on whether the last jump was accepted.</span>
@@ -558,6 +568,7 @@
             <span class="n">max_cov</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">max_cov</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span><span class="o">**</span><span class="mi">2</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">*=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -577,7 +588,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="SSAdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.SSAdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">SSAdaptiveNormal</span><span class="p">(</span><span class="n">SSAdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>
@@ -702,7 +714,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="mf">0.48</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_componentwise_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">dk</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Componentwise scaling. Does virtual moves along each axis</span>
@@ -767,6 +780,7 @@
                     <span class="n">Lambda</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
                         <span class="n">numpy</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Lambda</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">),</span> <span class="n">Lambda</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -790,7 +804,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;cov&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="ATAdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.ATAdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">ATAdaptiveNormal</span><span class="p">(</span><span class="n">ATAdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>

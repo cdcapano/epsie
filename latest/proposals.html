@@ -169,10 +169,10 @@ position to the new point. This only used for non-symmetric proposals, but
 is good to define regardless.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">symmetric</span></code>: a boolean indicating whether the proposal is symmetric or
 not (see
-<a class="reference internal" href="epsie.proposals.html#id1" title="epsie.proposals.base.BaseProposal.symmetric"><code class="xref py py-meth docutils literal notranslate"><span class="pre">symmetric()</span></code></a> for details).</p></li>
+<a class="reference internal" href="epsie.proposals.html#id2" title="epsie.proposals.base.BaseProposal.symmetric"><code class="xref py py-meth docutils literal notranslate"><span class="pre">symmetric()</span></code></a> for details).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: a dictionary of any parameters that need to be set in order to
 produce a deterministic jump; see
-<a class="reference internal" href="epsie.proposals.html#id6" title="epsie.proposals.base.BaseRandom.state"><code class="xref py py-attr docutils literal notranslate"><span class="pre">state</span></code></a> for details.</p></li>
+<a class="reference internal" href="epsie.proposals.html#id7" title="epsie.proposals.base.BaseRandom.state"><code class="xref py py-attr docutils literal notranslate"><span class="pre">state</span></code></a> for details.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">set_state</span></code>: a method for setting the state when recovering from a
 checkpoint; see <a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseRandom.set_state" title="epsie.proposals.base.BaseRandom.set_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_state()</span></code></a> for
 details.</p></li>
@@ -181,11 +181,11 @@ details.</p></li>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseProposal" title="epsie.proposals.base.BaseProposal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProposal</span></code></a> has a
-<a class="reference internal" href="epsie.proposals.html#id4" title="epsie.proposals.base.BaseRandom.random_generator"><code class="xref py py-attr docutils literal notranslate"><span class="pre">random_generator</span></code></a> attribute,
+<a class="reference internal" href="epsie.proposals.html#id5" title="epsie.proposals.base.BaseRandom.random_generator"><code class="xref py py-attr docutils literal notranslate"><span class="pre">random_generator</span></code></a> attribute,
 which is inherited from <a class="reference internal" href="epsie.proposals.html#epsie.proposals.base.BaseRandom" title="epsie.proposals.base.BaseRandom"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseRandom</span></code></a>. This
 is a thin wrapper around an instance of <a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v1.22)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code></a>.
 <strong>You must use the</strong>
-<a class="reference internal" href="epsie.proposals.html#id4" title="epsie.proposals.base.BaseRandom.random_generator"><code class="xref py py-attr docutils literal notranslate"><span class="pre">random_generator</span></code></a> <strong>attribute
+<a class="reference internal" href="epsie.proposals.html#id5" title="epsie.proposals.base.BaseRandom.random_generator"><code class="xref py py-attr docutils literal notranslate"><span class="pre">random_generator</span></code></a> <strong>attribute
 for producing random variates for jump proposals, or any other random
 variates you create in the proposal class.</strong> Use of any other psuedo-random
 number generator will cause the sampler to not work correctly in a parallel
