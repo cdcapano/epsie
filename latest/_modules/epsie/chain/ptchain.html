@@ -139,6 +139,9 @@
 <span class="sd">    adaptive_annealer : object, optional</span>
 <span class="sd">        Adaptive annealing that adjusts the temperature levels during runtime.</span>
 <span class="sd">        By default `None`, meaning no annealing.</span>
+<span class="sd">    reset_after_swap : bool, optional</span>
+<span class="sd">        Whether to reset proposals&#39; adaptation after each swap. By default</span>
+<span class="sd">        no reset.</span>
 <span class="sd">    bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional</span>
 <span class="sd">        Use the given random bit generator for generating random variates. If</span>
 <span class="sd">        an int or None is provided, a generator will be created instead using</span>
@@ -170,7 +173,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">proposals</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bit_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+                 <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reset_after_swap</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">bit_generator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="c1"># store the temp</span>
@@ -184,6 +188,7 @@
             <span class="c1"># note that pass by reference is required here if setting</span>
             <span class="c1"># Tmax=infty</span>
             <span class="n">adaptive_annealer</span><span class="o">.</span><span class="n">setup_annealing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_after_swap</span> <span class="o">=</span> <span class="n">reset_after_swap</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntemps</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># we pass ntemps=ntemps-1 here because there will be ntemps-1</span>
@@ -360,6 +365,17 @@
     <span class="k">def</span> <span class="nf">ntemps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the number of temperatures used by the chain.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">reset_after_swap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Whether to reset proposals&#39; adaptation after each swap.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_after_swap</span>
+
+    <span class="nd">@reset_after_swap</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">reset_after_swap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_after_swap</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reset_after_swap</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`reset_after_swap` must be a bool.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_after_swap</span> <span class="o">=</span> <span class="n">reset_after_swap</span>
 
     <span class="k">def</span> <span class="nf">_concatenate_dicts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Concatenates dictionary attributes over all of the temperatures.</span>
@@ -616,7 +632,7 @@
                 <span class="n">ar</span> <span class="o">=</span> <span class="mf">1.</span>
                 <span class="n">swap</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ar</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">dbetas</span><span class="p">[</span><span class="n">tj</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">loglj</span> <span class="o">-</span> <span class="n">loglk</span><span class="p">))</span>
+                <span class="n">ar</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logar</span><span class="p">)</span>
                 <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_generator</span><span class="o">.</span><span class="n">uniform</span><span class="p">()</span>
                 <span class="n">swap</span> <span class="o">=</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">ar</span>
             <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
@@ -652,10 +668,15 @@
                 <span class="n">chain</span><span class="o">.</span><span class="n">_active_props</span> <span class="o">=</span> <span class="n">new_active</span><span class="p">[</span><span class="n">tk</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasblobs</span><span class="p">:</span>
                 <span class="n">chain</span><span class="o">.</span><span class="n">_blobs</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_blobs</span><span class="p">[</span><span class="n">tk</span><span class="p">]</span>
+            <span class="c1"># Reset adaptation for swapped proposals</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset_after_swap</span> <span class="ow">and</span> <span class="n">tk</span> <span class="o">!=</span> <span class="n">swap_index</span><span class="p">[</span><span class="n">tk</span><span class="p">]:</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">_reset_proposals</span><span class="p">()</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_temperature_acceptance</span><span class="p">[</span><span class="n">ii</span><span class="o">//</span><span class="bp">self</span><span class="o">.</span><span class="n">swap_interval</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;acceptance_ratio&#39;</span><span class="p">:</span> <span class="n">ars</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_temperature_swaps</span><span class="p">[</span><span class="n">ii</span><span class="o">//</span><span class="bp">self</span><span class="o">.</span><span class="n">swap_interval</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;swap_index&#39;</span><span class="p">:</span> <span class="n">swap_index</span><span class="p">}</span>
+
         <span class="c1"># for adaptive PT adjust the temperature leves</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_annealer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_annealer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>

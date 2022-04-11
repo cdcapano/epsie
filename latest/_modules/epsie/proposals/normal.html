@@ -370,7 +370,10 @@
             <span class="n">initial_std</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">)</span><span class="o">*</span><span class="mf">0.09</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">deltas</span>
         <span class="c1"># set the covariance to the initial</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">initial_std</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
+        <span class="c1"># save the initial proposal parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_std&#39;</span><span class="p">:</span> <span class="n">initial_std</span><span class="o">.</span><span class="n">copy</span><span class="p">()}</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">prior_widths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -422,13 +425,15 @@
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
                 <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">,</span>
-                <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">}</span>
+                <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">,</span>
+                <span class="s1">&#39;start_step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span><span class="p">}</span>
 
 <div class="viewcode-block" id="AdaptiveSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;start_step&#39;</span><span class="p">]</span></div></div>
 
 
 <div class="viewcode-block" id="AdaptiveNormal"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.normal.AdaptiveNormal">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveNormal</span><span class="p">(</span><span class="n">AdaptiveSupport</span><span class="p">,</span> <span class="n">Normal</span><span class="p">):</span>
@@ -528,7 +533,7 @@
 <span class="sd">            The target acceptance rate. Default is 0.234.</span>
 <span class="sd">        max_cov : float, optional</span>
 <span class="sd">            The maximum value any element in the covariance matrix is allowed</span>
-<span class="sd">            to obtain. If an adapatation step would cause any element to exceed</span>
+<span class="sd">            to obtain. If an adaptation step would cause any element to exceed</span>
 <span class="sd">            this value, the covariance matrix will not be changed. Default</span>
 <span class="sd">            (None) means that no cap will be applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -540,7 +545,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">max_std</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_std</span> <span class="o">=</span> <span class="n">max_std</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_proposal</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Cache the initial std/covariance</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="o">.</span><span class="n">copy</span><span class="p">()})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="o">.</span><span class="n">copy</span><span class="p">()})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;n_accepted&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span></div>
+
 
     <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Updates the adaptation based on whether the last jump was accepted.</span>
@@ -548,7 +563,7 @@
 <span class="sd">        This prepares the proposal for the next jump.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">acceptance</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;accepted&#39;</span><span class="p">])</span>
-        <span class="n">n_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">n_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">/</span> <span class="n">n_iter</span>
         <span class="k">if</span> <span class="n">rate</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span><span class="p">:</span>
             <span class="n">alpha</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span><span class="p">)</span>
@@ -574,7 +589,8 @@
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
                  <span class="s1">&#39;n_accepted&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span><span class="p">,</span>
-                 <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">}</span>
+                 <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">,</span>
+                 <span class="s1">&#39;start_step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span><span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
@@ -585,6 +601,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_accepted</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;n_accepted&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;start_step&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -696,17 +713,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_isdiagonal</span> <span class="o">=</span> <span class="n">diagonal</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span> <span class="o">=</span> <span class="p">(</span><span class="n">adaptation_duration</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span>
 
+        <span class="c1"># save the initial proposal parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>  <span class="c1"># initial mean</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="o">**</span><span class="mf">0.5</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="o">.</span><span class="n">copy</span><span class="p">()})</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>  <span class="c1"># inital covariance</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;_cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="o">.</span><span class="n">copy</span><span class="p">()})</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="s1">&#39;_unit_cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                 <span class="s1">&#39;_log_lambda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">,</span>
+                 <span class="s1">&#39;_mean&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="o">.</span><span class="n">copy</span><span class="p">()})</span>
+
         <span class="c1"># set target rate (componentwise target rate scales differently)</span>
         <span class="k">if</span> <span class="n">target_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iscomponentwise</span><span class="p">:</span>
@@ -788,7 +817,8 @@
                  <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">,</span>
                  <span class="s1">&#39;log_lambda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">,</span>
                  <span class="s1">&#39;unit_cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span><span class="p">,</span>
-                 <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">}</span>
+                 <span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">,</span>
+                 <span class="s1">&#39;start_step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span><span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
@@ -801,6 +831,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;log_lambda&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unit_cov</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;unit_cov&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;start_step&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdiagonal</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>

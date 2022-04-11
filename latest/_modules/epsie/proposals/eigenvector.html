@@ -312,7 +312,7 @@
 <span class="sd">    ensuring that when the adaptation phase ends the vanishing decay tends to</span>
 <span class="sd">    zero. By default assumes that the adaptation phase never ends (only</span>
 <span class="sd">    decays with time)</span>
-
+<span class="sd">å</span>
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    [1] Andrieu, Christophe &amp; Thoms, Johannes. (2008).</span>
@@ -334,12 +334,18 @@
 <span class="sd">            Target acceptance rate. By default 0.234</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span> <span class="o">=</span> <span class="n">adaptation_duration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span> <span class="o">=</span> <span class="n">adaptation_duration</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">start_step</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="c1"># initialize mu to be zero</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;_cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span>
+            <span class="s1">&#39;_mu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span><span class="p">,</span>
+            <span class="s1">&#39;_log_lambda&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="AdaptiveEigenvectorSupport.recursive_covariance"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvectorSupport.recursive_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">recursive_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Recursively updates the covariance given the latest observation.</span>
@@ -360,7 +366,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">dk</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptation_duration</span><span class="p">:</span>
-            <span class="c1"># recursively update the covariance</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">recursive_covariance</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span>
             <span class="c1"># update eigenvalues and eigenvectors</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">)</span>
@@ -379,7 +384,8 @@
                 <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu</span><span class="p">,</span>
                 <span class="s1">&#39;cov&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">,</span>
                 <span class="s1">&#39;ind&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span><span class="p">,</span>
-                <span class="s1">&#39;log_lambda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">}</span>
+                <span class="s1">&#39;log_lambda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">,</span>
+                <span class="s1">&#39;start_step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span><span class="p">}</span>
 
 <div class="viewcode-block" id="AdaptiveEigenvectorSupport.set_state"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvectorSupport.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
@@ -390,7 +396,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigvects</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cov</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">eigvals</span> <span class="o">*=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_lambda</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;ind&#39;</span><span class="p">]</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;ind&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;start_step&#39;</span><span class="p">]</span></div></div>
 
 
 <div class="viewcode-block" id="AdaptiveEigenvector"><a class="viewcode-back" href="../../../epsie.proposals.html#epsie.proposals.eigenvector.AdaptiveEigenvector">[docs]</a><span class="k">class</span> <span class="nc">AdaptiveEigenvector</span><span class="p">(</span><span class="n">AdaptiveEigenvectorSupport</span><span class="p">,</span> <span class="n">Eigenvector</span><span class="p">):</span>

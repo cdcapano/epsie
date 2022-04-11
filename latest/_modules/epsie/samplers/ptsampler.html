@@ -132,6 +132,12 @@
 <span class="sd">    proposals : list, optional</span>
 <span class="sd">        List of proposals to use. Any parameters that do not have a proposal</span>
 <span class="sd">        provided will use the ``default_propsal``.</span>
+<span class="sd">    adaptive_annealer : object, optional</span>
+<span class="sd">        Adaptive annealing that adjusts the temperature levels during runtime.</span>
+<span class="sd">        By default `None`, meaning no annealing.</span>
+<span class="sd">    reset_after_swap : bool, optional</span>
+<span class="sd">        Whether to reset proposals&#39; adaptation after each swap. By default</span>
+<span class="sd">        no reset.</span>
 <span class="sd">    default_proposal : an epsie.Proposal class, optional</span>
 <span class="sd">        The default proposal to use for parameters not in ``proposals``.</span>
 <span class="sd">        Default is :py:class:`epsie.proposals.Normal`.</span>
@@ -145,12 +151,14 @@
 <span class="sd">        single core.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">proposals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_proposal</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">proposals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">reset_after_swap</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_proposal</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">default_proposal_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_proposals</span><span class="p">(</span><span class="n">proposals</span><span class="p">,</span> <span class="n">default_proposal</span><span class="p">,</span> <span class="n">default_proposal_args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
             <span class="c1"># only single temperature; turn into list so things below won&#39;t</span>
@@ -160,10 +168,11 @@
             <span class="c1"># betas is probably a list or tuple; convert to array so we can use</span>
             <span class="c1"># numpy functions</span>
             <span class="n">betas</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_chains</span><span class="p">(</span><span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="p">,</span> <span class="n">adaptive_annealer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_chains</span><span class="p">(</span><span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="p">,</span> <span class="n">adaptive_annealer</span><span class="p">,</span>
+                           <span class="n">reset_after_swap</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ParallelTemperedSampler.create_chains"><a class="viewcode-back" href="../../../epsie.samplers.html#epsie.samplers.ptsampler.ParallelTemperedSampler.create_chains">[docs]</a>    <span class="k">def</span> <span class="nf">create_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nchains</span><span class="p">,</span> <span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                      <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">adaptive_annealer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reset_after_swap</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Creates a list of :py:class:`chain.ParallelTemperedChain`.</span>
 
 <span class="sd">        Parameters</span>
@@ -179,6 +188,9 @@
 <span class="sd">        adaptive_annealer : object, optional</span>
 <span class="sd">            Adaptive anneler adjusting temperatures on the go.</span>
 <span class="sd">            Default is `None`.</span>
+<span class="sd">        reset_after_swap : bool, optional</span>
+<span class="sd">            Whether to reset proposals&#39; adaptation after each swap. By default</span>
+<span class="sd">            no reset.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">nchains</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nchains must be &gt;= 1&quot;</span><span class="p">)</span>
@@ -189,6 +201,7 @@
             <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposals</span><span class="p">],</span>
             <span class="n">betas</span><span class="o">=</span><span class="n">betas</span><span class="p">,</span> <span class="n">swap_interval</span><span class="o">=</span><span class="n">swap_interval</span><span class="p">,</span>
             <span class="n">adaptive_annealer</span><span class="o">=</span><span class="n">adaptive_annealer</span><span class="p">,</span>
+            <span class="n">reset_after_swap</span><span class="o">=</span><span class="n">reset_after_swap</span><span class="p">,</span>
             <span class="n">bit_generator</span><span class="o">=</span><span class="n">bg</span><span class="p">,</span> <span class="n">chain_id</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">bg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bitgens</span><span class="p">)]</span></div>
 

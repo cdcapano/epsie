@@ -480,6 +480,7 @@
     <span class="sd">&quot;&quot;&quot;Abstract base class for all proposal classes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_start_step</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_initial_proposal_params</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_adaptation_duration</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_target_rate</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -521,6 +522,19 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">target_rate</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target acceptance rate must be in range (0, 1)&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
+
+    <span class="k">def</span> <span class="nf">_reset_adaptation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the proposal&#39;s adaptation scheme to the initial values</span>
+<span class="sd">        and possibly bumps up `start_step`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Proposal &#39;</span><span class="si">{}</span><span class="s2">&#39; does not support &quot;</span>
+                                      <span class="s2">&quot;resetting the adaptation.&quot;</span>
+                                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span>
+
+        <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>

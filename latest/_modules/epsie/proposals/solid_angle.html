@@ -352,8 +352,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        adaptation_duration: int</span>
-<span class="sd">            The number of proposal steps over which to apply the adaptation. No</span>
-<span class="sd">            more adaptation will be done once a proposal exceeds this value.</span>
+<span class="sd">            The number of proposal steps over which to apply the adaptation.</span>
+<span class="sd">            No more adaptation will be done once a proposal exceeds this</span>
+<span class="sd">            value.</span>
 <span class="sd">        start_step : int, optional</span>
 <span class="sd">            The proposal step when the adaptation phase begins.</span>
 <span class="sd">        target_rate: float, optional</span>
@@ -365,7 +366,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">target_rate</span> <span class="o">=</span> <span class="n">target_rate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_decay_const</span> <span class="o">=</span> <span class="p">(</span><span class="n">adaptation_duration</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">)</span>
         <span class="c1"># this one will be getting updated</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log_kappa</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_kappa</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_proposal_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_kappa&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">,</span>
+                                         <span class="s1">&#39;_log_kappa&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_kappa</span><span class="p">,</span>
+                                         <span class="s1">&#39;norm&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_norm</span><span class="p">}</span></div>
 
     <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
         <span class="n">dk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">+</span> <span class="mi">1</span>
@@ -383,6 +388,7 @@
     <span class="k">def</span> <span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nsteps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span><span class="p">,</span>
                  <span class="s1">&#39;random_state&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+                 <span class="s1">&#39;start_step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span><span class="p">,</span>
                  <span class="s1">&#39;kappa&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">state</span>
 
@@ -390,6 +396,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;random_state&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nsteps</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;nsteps&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;kappa&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_step</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;start_step&#39;</span><span class="p">]</span>
         <span class="c1"># store the log and the normalisation constant</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_kappa</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalisation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">)</span></div></div>

@@ -497,6 +497,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lastclear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iteration</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
+<div class="viewcode-block" id="Chain.reset_proposals"><a class="viewcode-back" href="../../../epsie.chain.html#epsie.chain.chain.Chain.reset_proposals">[docs]</a>    <span class="k">def</span> <span class="nf">reset_proposals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the chain&#39;s adaptive proposals to the initial values.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">proposal</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_dist</span><span class="o">.</span><span class="n">proposals</span><span class="p">:</span>
+            <span class="c1"># non-adaptive proposals will yield an attribute error</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">proposal</span><span class="o">.</span><span class="n">_reset_adaptation</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns all of the chain data at the requested index.&quot;&quot;&quot;</span>
         <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
