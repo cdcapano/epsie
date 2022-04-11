@@ -206,3 +206,69 @@ def test_clear_memory(name, nprocs):
     model = Model()
     proposal = _setup_proposal(model, name)
     _test_clear_memory(Model, nprocs, SWAP_INTERVAL, proposals=[proposal])
+
+
+def _extract_pt_cov(sampler, proposal, diagonal):
+    N = len(proposal.parameters)
+    if diagonal:
+        cov = numpy.zeros((sampler.nchains, sampler.ntemps, N))
+    else:
+        cov = numpy.zeros((sampler.nchains, sampler.ntemps, N, N))
+
+    for ii, ptchain in enumerate(sampler.chains):
+        for jj, subchain in enumerate(ptchain.chains):
+            thisprop = subchain.proposal_dist.proposals[0]
+            if diagonal:
+                cov[ii, jj, :] = thisprop.std
+            else:
+                cov[ii, jj, :, :] = thisprop.cov
+    return cov
+
+
+@pytest.mark.parametrize('proposal_name', ['at_adaptive_normal'])
+@pytest.mark.parametrize('diagonal', [True, False])
+@pytest.mark.parametrize('componentwise', [True, False])
+def test_resetting(proposal_name, diagonal, componentwise):
+    """
+    Test to ensure that the proposal reset is working.
+
+    Setup the sampler, run it for ``ADAPTATION_DURATION``, reset it and check
+    that the proposals were reset. After that run it again for
+    ``ADAPTATION_DURATION`` and ensure that the proposal is adapting. After
+    that run it again for ``ADAPTATION_DURATION`` and verity the proposal
+    stopped adapting.
+    """
+    nprocs = 1
+
+    model = Model()
+    proposal = _setup_proposal(model, proposal_name, diagonal=diagonal,
+                               componentwise=componentwise)
+    sampler = _create_sampler(model, nprocs, proposals=[proposal])
+
+    # Extract the initial proposal STD
+    initial_cov = _extract_pt_cov(sampler, proposal, diagonal)
+
+    sampler.run(ADAPTATION_DURATION)
+    assert (_extract_pt_cov(sampler, proposal, diagonal) != initial_cov).all()
+
+    # Reset all chains
+    for chain in sampler.chains:
+        for subchain in chain.chains:
+            subchain.reset_proposals()
+
+    # Check we sucessfuly resetted
+    assert (_extract_pt_cov(sampler, proposal, diagonal) == initial_cov).all()
+    # Check that the starting step was bumped up
+    for chain in sampler.chains:
+        for subchain in chain.chains:
+            prop = subchain.proposal_dist.proposals[0]
+            assert prop.start_step == ADAPTATION_DURATION
+
+    # Check that the std is again changing
+    sampler.run(ADAPTATION_DURATION)
+    current_cov = _extract_pt_cov(sampler, proposal, diagonal)
+    assert (current_cov != initial_cov).all()
+
+    # Check that the std stopped changing
+    sampler.run(ADAPTATION_DURATION)
+    assert (_extract_pt_cov(sampler, proposal, diagonal) == current_cov).all()

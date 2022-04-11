@@ -49,6 +49,12 @@ class ParallelTemperedSampler(BaseSampler):
     proposals : list, optional
         List of proposals to use. Any parameters that do not have a proposal
         provided will use the ``default_propsal``.
+    adaptive_annealer : object, optional
+        Adaptive annealing that adjusts the temperature levels during runtime.
+        By default `None`, meaning no annealing.
+    reset_after_swap : bool, optional
+        Whether to reset proposals' adaptation after each swap. By default
+        no reset.
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
@@ -62,12 +68,14 @@ class ParallelTemperedSampler(BaseSampler):
         single core.
     """
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
-                 proposals=None, adaptive_annealer=None, default_proposal=None,
+                 proposals=None, adaptive_annealer=None,
+                 reset_after_swap=False, default_proposal=None,
                  default_proposal_args=None, seed=None, pool=None):
         self.parameters = parameters
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
         self.seed = seed
+
         self.pool = pool
         if isinstance(betas, (float, int)):
             # only single temperature; turn into list so things below won't
@@ -77,10 +85,11 @@ class ParallelTemperedSampler(BaseSampler):
             # betas is probably a list or tuple; convert to array so we can use
             # numpy functions
             betas = numpy.array(betas)
-        self.create_chains(nchains, betas, swap_interval, adaptive_annealer)
+        self.create_chains(nchains, betas, swap_interval, adaptive_annealer,
+                           reset_after_swap)
 
     def create_chains(self, nchains, betas, swap_interval=1,
-                      adaptive_annealer=None):
+                      adaptive_annealer=None, reset_after_swap=False):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -96,6 +105,9 @@ class ParallelTemperedSampler(BaseSampler):
         adaptive_annealer : object, optional
             Adaptive anneler adjusting temperatures on the go.
             Default is `None`.
+        reset_after_swap : bool, optional
+            Whether to reset proposals' adaptation after each swap. By default
+            no reset.
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
@@ -106,6 +118,7 @@ class ParallelTemperedSampler(BaseSampler):
             [copy.deepcopy(p) for p in self.proposals],
             betas=betas, swap_interval=swap_interval,
             adaptive_annealer=adaptive_annealer,
+            reset_after_swap=reset_after_swap,
             bit_generator=bg, chain_id=cid)
             for cid, bg in enumerate(bitgens)]
 

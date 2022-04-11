@@ -288,6 +288,9 @@ class AdaptiveSupport(BaseAdaptiveSupport):
         # set the covariance to the initial
         self._std = initial_std
         self._update_proposal()
+        # save the initial proposal parameters
+        self._initial_proposal_params = {'_std': initial_std.copy()}
+
 
     @property
     def prior_widths(self):
@@ -339,13 +342,15 @@ class AdaptiveSupport(BaseAdaptiveSupport):
     def state(self):
         return {'random_state': self.random_state,
                 'std': self._std,
-                'nsteps': self._nsteps}
+                'nsteps': self._nsteps,
+                'start_step': self.start_step}
 
     def set_state(self, state):
         self.random_state = state['random_state']
         self._std = state['std']
         self._nsteps = state['nsteps']
         self._update_proposal()
+        self.start_step = state['start_step']
 
 
 class AdaptiveNormal(AdaptiveSupport, Normal):
@@ -445,7 +450,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
             The target acceptance rate. Default is 0.234.
         max_cov : float, optional
             The maximum value any element in the covariance matrix is allowed
-            to obtain. If an adapatation step would cause any element to exceed
+            to obtain. If an adaptation step would cause any element to exceed
             this value, the covariance matrix will not be changed. Default
             (None) means that no cap will be applied.
         """
@@ -459,13 +464,23 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         self.max_std = max_std
         self._update_proposal()
 
+        self._initial_proposal_params = {}
+        # Cache the initial std/covariance
+        if self.isdiagonal:
+            self._initial_proposal_params.update({'_std': self._std.copy()})
+        else:
+            self._initial_proposal_params.update({'_cov': self._cov.copy()})
+
+        self._initial_proposal_params.update({'n_accepted': 0})
+
+
     def _update(self, chain):
         """Updates the adaptation based on whether the last jump was accepted.
 
         This prepares the proposal for the next jump.
         """
         self.n_accepted += int(chain.acceptance[-1]['accepted'])
-        n_iter = self.nsteps + 1
+        n_iter = self.nsteps - (self.start_step - 1) + 1
         rate = self.n_accepted / n_iter
         if rate > self.target_rate:
             alpha = numpy.exp(1/self.n_accepted)
@@ -491,7 +506,8 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
     def state(self):
         state = {'random_state': self.random_state,
                  'n_accepted': self.n_accepted,
-                 'nsteps': self._nsteps}
+                 'nsteps': self._nsteps,
+                 'start_step': self.start_step}
         if self.isdiagonal:
             state.update({'std': self._std})
         else:
@@ -502,6 +518,7 @@ class SSAdaptiveSupport(BaseAdaptiveSupport):
         self.random_state = state['random_state']
         self.n_accepted = state['n_accepted']
         self._nsteps = state['nsteps']
+        self.start_step = state['start_step']
         if self.isdiagonal:
             self._std = state['std']
         else:
@@ -613,17 +630,29 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
         self._isdiagonal = diagonal
         self._decay_const = (adaptation_duration)**(-0.6)
 
+        # save the initial proposal parameters
+        self._initial_proposal_params = {}
         self._mean = numpy.zeros(self.ndim)  # initial mean
+
         if self.isdiagonal:
             self._unit_cov = numpy.ones(self.ndim)
             self._std = self._unit_cov**0.5
+            self._initial_proposal_params.update({'_std': self._std.copy()})
         else:
             self._unit_cov = numpy.eye(self.ndim)  # inital covariance
             self._cov = self._unit_cov
+            self._initial_proposal_params.update({'_cov': self._cov.copy()})
+
         if not self._iscomponentwise:
             self._log_lambda = 0
         else:
             self._log_lambda = numpy.zeros(self.ndim)
+
+        self._initial_proposal_params.update(
+                {'_unit_cov': self._unit_cov.copy(),
+                 '_log_lambda': self._log_lambda,
+                 '_mean': self._mean.copy()})
+
         # set target rate (componentwise target rate scales differently)
         if target_rate is None:
             if not self._iscomponentwise:
@@ -705,7 +734,8 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
                  'mean': self._mean,
                  'log_lambda': self._log_lambda,
                  'unit_cov': self._unit_cov,
-                 'nsteps': self._nsteps}
+                 'nsteps': self._nsteps,
+                 'start_step': self.start_step}
         if self.isdiagonal:
             state.update({'std': self._std})
         else:
@@ -718,6 +748,7 @@ class ATAdaptiveSupport(BaseAdaptiveSupport):
         self._log_lambda = state['log_lambda']
         self._unit_cov = state['unit_cov']
         self._nsteps = state['nsteps']
+        self.start_step = state['start_step']
         if self.isdiagonal:
             self._std = state['std']
         else:

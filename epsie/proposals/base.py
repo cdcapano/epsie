@@ -397,6 +397,7 @@ class BaseAdaptiveSupport(ABC):
     """Abstract base class for all proposal classes.
     """
     _start_step = None
+    _initial_proposal_params = None
     _adaptation_duration = None
     _target_rate = None
 
@@ -438,6 +439,19 @@ class BaseAdaptiveSupport(ABC):
         if not 0.0 < target_rate < 1.0:
             raise ValueError("Target acceptance rate must be in range (0, 1)")
         self._target_rate = target_rate
+
+    def _reset_adaptation(self):
+        """Sets the proposal's adaptation scheme to the initial values
+        and possibly bumps up `start_step`.
+        """
+        if self._initial_proposal_params is None:
+            raise NotImplementedError("Proposal '{}' does not support "
+                                      "resetting the adaptation."
+                                      .format(self.name))
+        self.start_step = self.nsteps
+
+        for attr, val in self._initial_proposal_params.items():
+            setattr(self, attr, val)
 
     @abstractmethod
     def _update(self, chain):

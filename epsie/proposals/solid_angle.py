@@ -269,8 +269,9 @@ class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
         Parameters
         ----------
         adaptation_duration: int
-            The number of proposal steps over which to apply the adaptation. No
-            more adaptation will be done once a proposal exceeds this value.
+            The number of proposal steps over which to apply the adaptation.
+            No more adaptation will be done once a proposal exceeds this
+            value.
         start_step : int, optional
             The proposal step when the adaptation phase begins.
         target_rate: float, optional
@@ -283,6 +284,10 @@ class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
         self._decay_const = (adaptation_duration)**(-0.6)
         # this one will be getting updated
         self._log_kappa = numpy.log(self.kappa)
+
+        self._initial_proposal_params = {'_kappa': self.kappa,
+                                         '_log_kappa': self._log_kappa,
+                                         'norm': self._norm}
 
     def _update(self, chain):
         dk = self.nsteps - self.start_step + 1
@@ -300,6 +305,7 @@ class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
     def state(self):
         state = {'nsteps': self._nsteps,
                  'random_state': self.random_state,
+                 'start_step': self.start_step,
                  'kappa': self.kappa}
         return state
 
@@ -307,6 +313,7 @@ class AdaptiveIsotropicSolidAngleSupport(BaseAdaptiveSupport):
         self.random_state = state['random_state']
         self._nsteps = state['nsteps']
         self.kappa = state['kappa']
+        self.start_step = state['start_step']
         # store the log and the normalisation constant
         self._log_kappa = numpy.log(self.kappa)
         self.norm = self._normalisation(self.kappa)

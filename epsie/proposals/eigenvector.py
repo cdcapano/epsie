@@ -229,7 +229,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
     ensuring that when the adaptation phase ends the vanishing decay tends to
     zero. By default assumes that the adaptation phase never ends (only
     decays with time)
-
+å
     References
     ----------
     [1] Andrieu, Christophe & Thoms, Johannes. (2008).
@@ -251,12 +251,18 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             Target acceptance rate. By default 0.234
         """
         self.target_rate = target_rate
+        self.start_step = 1
         self.adaptation_duration = adaptation_duration
         self._decay_const = adaptation_duration**(-0.6)
         self.start_step = start_step
         self._log_lambda = 0.0
         # initialize mu to be zero
         self._mu = numpy.zeros(self.ndim)
+
+        self._initial_proposal_params = {
+            '_cov': self._cov,
+            '_mu': self._mu,
+            '_log_lambda': 0.0}
 
     def recursive_covariance(self, chain):
         """Recursively updates the covariance given the latest observation.
@@ -277,7 +283,6 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
         """
         dk = self.nsteps - self.start_step + 1
         if 1 < dk < self.adaptation_duration:
-            # recursively update the covariance
             self.recursive_covariance(chain)
             # update eigenvalues and eigenvectors
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
@@ -296,7 +301,8 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
                 'mu': self._mu,
                 'cov': self._cov,
                 'ind': self._ind,
-                'log_lambda': self._log_lambda}
+                'log_lambda': self._log_lambda,
+                'start_step': self.start_step}
 
     def set_state(self, state):
         self._nsteps = state['nsteps']
@@ -308,6 +314,7 @@ class AdaptiveEigenvectorSupport(BaseAdaptiveSupport):
             self.eigvals, self.eigvects = numpy.linalg.eigh(self._cov)
             self.eigvals *= numpy.exp(self._log_lambda)
         self._ind = state['ind']
+        self.start_step = state['start_step']
 
 
 class AdaptiveEigenvector(AdaptiveEigenvectorSupport, Eigenvector):
