@@ -136,20 +136,28 @@ def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     # Calculate the ACL for each chain
     acls = [acl_chain(chain, burnin_iter, c) for chain in sampler.chains]
 
-    params = sampler.parameters
-    _thinned = {p: [] for p in params}
+    params = list(sampler.parameters)
+    stats_keys = ["logl", "logp"]
+    _thinned = {p: [] for p in params + stats_keys}
     # Explicitly cut off the burnin iterations
     samples = sampler.positions[:, burnin_iter:]
+    stats = sampler.stats[:, burnin_iter:]
 
     # Cycle over the chains and thin them
     for ii in range(sampler.nchains):
         for p in params:
             _thinned[p].append(samples[p][ii, :][::-1][::acls[ii]][::-1])
+        for key in stats_keys:
+            _thinned[key].append(stats[key][ii, :][::-1][::acls[ii]][::-1])
+
     # Put the thinned samples into a structured array
     N = sum(x.size for x in _thinned[params[0]])
-    thinned = numpy.zeros(N, dtype=samples.dtype)
-    for p in params:
+    dtype = {"names": list(samples.dtype.names) + ["logl", "logp"],
+             "formats": [d[1] for d in samples.dtype.descr] + [float, float]}    
+    thinned = numpy.zeros(N, dtype=dtype)
+    for p in params + stats_keys:
         thinned[p] = numpy.concatenate(_thinned[p])
+
     return thinned
 
 
