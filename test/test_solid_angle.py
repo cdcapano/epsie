@@ -113,7 +113,7 @@ def test_resetting(proposal_name):
     # Reset all chains
     for chain in sampler.chains:
         for subchain in chain.chains:
-            subchain._reset_proposals()
+            subchain.reset_proposals()
 
     # Check we sucessfuly resetted
     assert (_extract_pt_kappas(sampler) == initial_kappas).all()
