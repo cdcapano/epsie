@@ -56,7 +56,7 @@ class ParallelTemperedChain(BaseChain):
     adaptive_annealer : object, optional
         Adaptive annealing that adjusts the temperature levels during runtime.
         By default `None`, meaning no annealing.
-    reset_swap_proposals : bool, optional
+    reset_after_swap : bool, optional
         Whether to reset proposals' adaptation after each swap. By default
         no reset.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
@@ -90,7 +90,7 @@ class ParallelTemperedChain(BaseChain):
     """
 
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
-                 adaptive_annealer=None, reset_swap_proposals=False,
+                 adaptive_annealer=None, reset_after_swap=False,
                  bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
@@ -105,7 +105,7 @@ class ParallelTemperedChain(BaseChain):
             # note that pass by reference is required here if setting
             # Tmax=infty
             adaptive_annealer.setup_annealing(self.betas)
-        self.reset_swap_proposals = reset_swap_proposals
+        self.reset_after_swap = reset_after_swap
 
         if self.ntemps > 1:
             # we pass ntemps=ntemps-1 here because there will be ntemps-1
@@ -284,15 +284,15 @@ class ParallelTemperedChain(BaseChain):
         return len(self.betas)
 
     @property
-    def reset_swap_proposals(self):
+    def reset_after_swap(self):
         """Whether to reset proposals' adaptation after each swap."""
-        return self._reset_swap_proposals
+        return self._reset_after_swap
 
-    @reset_swap_proposals.setter
-    def reset_swap_proposals(self, reset_swap_proposals):
-        if not isinstance(reset_swap_proposals, bool):
-            raise ValueError("`reset_swap_proposals` must be a bool.")
-        self._reset_swap_proposals = reset_swap_proposals
+    @reset_after_swap.setter
+    def reset_after_swap(self, reset_after_swap):
+        if not isinstance(reset_after_swap, bool):
+            raise ValueError("`reset_after_swap` must be a bool.")
+        self._reset_after_swap = reset_after_swap
 
     def _concatenate_dicts(self, attr):
         """Concatenates dictionary attributes over all of the temperatures.
@@ -586,7 +586,7 @@ class ParallelTemperedChain(BaseChain):
             if self.hasblobs:
                 chain._blobs[ii] = new_blobs[tk]
             # Reset adaptation for swapped proposals
-            if self.reset_swap_proposals and tk != swap_index[tk]:
+            if self.reset_after_swap and tk != swap_index[tk]:
                 chain._reset_proposals()
 
         self._temperature_acceptance[ii//self.swap_interval] = {
