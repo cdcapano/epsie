@@ -105,7 +105,7 @@ class ParallelTemperedChain(BaseChain):
             # note that pass by reference is required here if setting
             # Tmax=infty
             adaptive_annealer.setup_annealing(self.betas)
-        self._reset_swap_proposals = reset_swap_proposals
+        self.reset_swap_proposals = reset_swap_proposals
 
         if self.ntemps > 1:
             # we pass ntemps=ntemps-1 here because there will be ntemps-1
