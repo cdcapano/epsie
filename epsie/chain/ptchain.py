@@ -287,13 +287,12 @@ class ParallelTemperedChain(BaseChain):
     def reset_swap_proposals(self):
         """Whether to reset proposals' adaptation after each swap."""
         return self._reset_swap_proposals
-    
+
     @reset_swap_proposals.setter
     def reset_swap_proposals(self, reset_swap_proposals):
         if not isinstance(reset_swap_proposals, bool):
             raise ValueError("`reset_swap_proposals` must be a bool.")
         self._reset_swap_proposals = reset_swap_proposals
-            
 
     def _concatenate_dicts(self, attr):
         """Concatenates dictionary attributes over all of the temperatures.
