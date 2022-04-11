@@ -583,7 +583,6 @@ class ParallelTemperedChain(BaseChain):
             if self.reset_proposals and tk != swap_index[tk]:
                 chain._reset_proposals()
 
-
         self._temperature_acceptance[ii//self.swap_interval] = {
             'acceptance_ratio': ars}
         self._temperature_swaps[ii//self.swap_interval] = {
