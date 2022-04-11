@@ -52,7 +52,7 @@ class ParallelTemperedSampler(BaseSampler):
     adaptive_annealer : object, optional
         Adaptive annealing that adjusts the temperature levels during runtime.
         By default `None`, meaning no annealing.
-    reset_proposals : bool, optional
+    reset_swap_proposals : bool, optional
         Whether to reset proposals' adaptation after each swap. By default
         no reset.
     default_proposal : an epsie.Proposal class, optional
@@ -68,7 +68,7 @@ class ParallelTemperedSampler(BaseSampler):
         single core.
     """
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
-                 proposals=None, adaptive_annealer=None, reset_proposals=False,
+                 proposals=None, adaptive_annealer=None, reset_swap_proposals=False,
                  default_proposal=None, default_proposal_args=None, seed=None,
                  pool=None):
         self.parameters = parameters
@@ -86,10 +86,10 @@ class ParallelTemperedSampler(BaseSampler):
             # numpy functions
             betas = numpy.array(betas)
         self.create_chains(nchains, betas, swap_interval, adaptive_annealer,
-                           reset_proposals)
+                           reset_swap_proposals)
 
     def create_chains(self, nchains, betas, swap_interval=1,
-                      adaptive_annealer=None, reset_proposals=False):
+                      adaptive_annealer=None, reset_swap_proposals=False):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -105,7 +105,7 @@ class ParallelTemperedSampler(BaseSampler):
         adaptive_annealer : object, optional
             Adaptive anneler adjusting temperatures on the go.
             Default is `None`.
-        reset_proposals : bool, optional
+        reset_swap_proposals : bool, optional
             Whether to reset proposals' adaptation after each swap. By default
             no reset.
         """
@@ -118,7 +118,7 @@ class ParallelTemperedSampler(BaseSampler):
             [copy.deepcopy(p) for p in self.proposals],
             betas=betas, swap_interval=swap_interval,
             adaptive_annealer=adaptive_annealer,
-            reset_proposals=reset_proposals,
+            reset_swap_proposals=reset_swap_proposals,
             bit_generator=bg, chain_id=cid)
             for cid, bg in enumerate(bitgens)]
 
