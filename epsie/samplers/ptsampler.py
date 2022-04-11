@@ -68,9 +68,9 @@ class ParallelTemperedSampler(BaseSampler):
         single core.
     """
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
-                 proposals=None, adaptive_annealer=None, reset_swap_proposals=False,
-                 default_proposal=None, default_proposal_args=None, seed=None,
-                 pool=None):
+                 proposals=None, adaptive_annealer=None,
+                 reset_swap_proposals=False, default_proposal=None,
+                 default_proposal_args=None, seed=None, pool=None):
         self.parameters = parameters
         self.model = model
         self.set_proposals(proposals, default_proposal, default_proposal_args)
