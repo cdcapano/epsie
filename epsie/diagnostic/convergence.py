@@ -56,13 +56,20 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         samples = sampler.positions[0, :, burnin_iter:]
     # Number of iterations post-burnin
     N = sampler.niterations - burnin_iter
+    J = samples.shape[0]
     # Calculate the GH statistic for each parameter independently
     Rs = numpy.zeros(len(params))
     for i, param in enumerate(params):
-        cvars = numpy.var(samples[param], axis=1)
-        cmus = numpy.mean(samples[param], axis=1)
-
-        Rs[i] = ((1 - 1 / N) + numpy.var(cmus) / numpy.mean(cvars))**0.5
+        # Mean of each chain
+        chain_means = numpy.mean(samples[param], axis=1)
+        # Mean of means of each chain
+        grand_mean = numpy.mean(chain_means)
+        B = N / (J - 1) * numpy.sum((chain_means - grand_mean)**2)
+        # Within chain variance
+        s2 = numpy.var(samples[param], axis=1)
+        
+        W = numpy.mean(s2)
+        Rs[i] = (1 - (1 / N) + B / W / N)**0.5
 
     if full:
         return Rs
