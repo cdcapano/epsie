@@ -38,7 +38,7 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
     Returns
     -------
     R : float (or array)
-        GS statistics.
+        GR statistics.
 
     References
     ----------
