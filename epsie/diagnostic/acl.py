@@ -136,12 +136,12 @@ def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     # Calculate the ACL for each chain
     acls = [acl_chain(chain, burnin_iter, c) for chain in sampler.chains]
 
-    params = list(sampler.parameters)
-    stats_keys = ["logl", "logp"]
+    params = sampler.parameters
+    stats_keys = ("logl", "logp")
     if sampler.blobs is not None:
-        blobs_keys = list(sampler.blobs.dtype.names)
+        blobs_keys = sampler.blobs.dtype.names
     else:
-        blobs_keys = []
+        blobs_keys = ()
 
     _thinned = {p: [] for p in params + stats_keys + blobs_keys}
     # Explicitly cut off the burnin iterations
@@ -198,7 +198,7 @@ def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
     if sampler.blobs is not None:
         blobs_keys = sampler.blobs.dtype.names
     else:
-        blobs_keys = []
+        blobs_keys = ()
 
     samples = sampler.positions[:, :, burnin_iter:]
     stats = sampler.stats[:, :, burnin_iter:]
