@@ -414,7 +414,7 @@ class Chain(BaseChain):
         self._lastclear = self._iteration
         return self
 
-    def _reset_proposals(self):
+    def reset_proposals(self):
         """Reset the chain's adaptive proposals to the initial values."""
         for proposal in self.proposal_dist.proposals:
             # non-adaptive proposals will yield an attribute error
