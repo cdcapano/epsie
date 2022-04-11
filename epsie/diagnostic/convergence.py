@@ -25,6 +25,8 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
     parameters unless `full=True`, in which case the GR statistic is returned
     for each parameter.
 
+    For a PT sampler the GR statistic is calculated using the coldest chains.
+
     Typically values of less than 1.1 or 1.2 are recommended.
 
     Arguments
@@ -46,18 +48,12 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         Simulation using Multiple Sequences". Statistical Science, 7,
         p. 457–511.
     """
-    if sampler.name == "mh_sampler":
-        return _mh_gelman_rubin_test(sampler, burnin_iter, full)
-    elif sampler.name == "pt_sampler":
-        raise NotImplementedError("PT sampler GH test not implemented yet.")
-    else:
-        raise ValueError("Invalid sampler class.")
-
-
-def _mh_gelman_rubin_test(sampler, burnin_iter, full=False):
     params = sampler.parameters
-    # Cut off burnin iterations
-    samples = sampler.positions[:, burnin_iter:]
+    # Cut off burnin iterations and for PT take coldest chains
+    if sampler.name == "mh_sampler":
+        samples = sampler.positions[:, burnin_iter:]
+    else:
+        samples = sampler.positions[0, :, burnin_iter:]
     # Number of iterations post-burnin
     N = sampler.niterations - burnin_iter
     # Calculate the GH statistic for each parameter independently
