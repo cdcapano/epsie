@@ -542,7 +542,7 @@ class Chain(BaseChain):
             proposal = self.proposal_dist.jump(current_pos, chain=self)
         else:
             proposal = self.proposal_dist.jump(current_pos)
-            
+
         self.proposed_position = proposal.copy()
 
         r = self.model(**proposal)

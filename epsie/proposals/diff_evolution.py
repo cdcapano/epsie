@@ -81,7 +81,7 @@ class DifferentialEvolution(BaseProposal):
                  + self._jump_stds[k]
                  * (chain.positions[i][p] - chain.positions[j][p])
                  for k, p in enumerate(self.parameters)]
-        
+
         return dict(zip(self.parameters, newpt))
 
     def _logpdf(self, xi, givenx):
