@@ -72,14 +72,14 @@ class JointProposal(BaseProposal):
         for prop in self.proposals:
             prop.update(chain)
 
-    def _jump(self, fromx):
+    def _jump(self, fromx, **kwargs):
         out = {}
         for prop in self.proposals:
             # we'll only pass the parameters that the proposal needs
             point = {p: fromx[p] for p in prop.parameters}
             if prop.transdimensional:
                 point.update({'_state': fromx['_state']})
-            out.update(prop.jump(point))
+            out.update(prop.jump(point, **kwargs))
         return out
 
     @property

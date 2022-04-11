@@ -237,17 +237,17 @@ class BaseProposal(BaseRandom):
             return False
         return True
 
-    def jump(self, fromx):
+    def jump(self, fromx, **kwargs):
         """Depending on the current number of chain iterations and the
         ``jump_interval`` either calls the ``_jump`` method to provide a
         random sample or returns ``fromx``.
         """
         if not self._call_jump():
             return fromx
-        return self._jump(fromx)
+        return self._jump(fromx, **kwargs)
 
     @abstractmethod
-    def _jump(self, fromx):
+    def _jump(self, fromx, **kwargs):
         """This should provide random samples from the proposal distribution.
 
         Samples should be returned as a dictionary mapping parameters to

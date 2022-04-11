@@ -18,6 +18,7 @@ from .base import BaseProposal
 from .joint import JointProposal
 from .normal import (Normal, AdaptiveNormal, SSAdaptiveNormal,
                      ATAdaptiveNormal)
+from .diff_evolution import DifferentialEvolution
 from .eigenvector import (Eigenvector, AdaptiveEigenvector)
 from .bounded_eigenvector import (BoundedEigenvector,
                                   AdaptiveBoundedEigenvector)
