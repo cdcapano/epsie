@@ -160,12 +160,17 @@ def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
         for jj in range(sampler.ntemps):
             temp_acls[ii, jj] = acl_chain(
                 sampler.chains[ii].chains[jj], burnin_iter, c=0.5)
-    # Grab the ACL for each chain. Typically the maximum ACL among the temps.
+            # By default we only take the coldest chain. No need to calculate
+            # the hotter chains then.
+            if temp_acl_func is None:
+                break
+    # Grab the ACL for each chain. By default ACL of the coldest chain
     if temp_acl_func is None:
-        temp_acl_func = numpy.max
-    acls = numpy.apply_along_axis(temp_acl_func, axis=1, arr=temp_acls)
-    # Ensure these are integers
-    acls = numpy.ceil(acls).astype(int)
+        acls = temp_acls[:, 0]
+    else:
+        acls = numpy.apply_along_axis(temp_acl_func, axis=1, arr=temp_acls)
+        # Ensure these are integers
+        acls = numpy.ceil(acls).astype(int)
 
     params = sampler.parameters
     samples = sampler.positions[:, :, burnin_iter:]
