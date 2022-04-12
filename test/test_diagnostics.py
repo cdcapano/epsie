@@ -99,7 +99,3 @@ def _test_pt_thinning(temp_acls_method):
         sampler, burnin_iter=int(ITERINT/2), full=True)
     assert isinstance(Rs, numpy.ndarray)
     assert ~numpy.any(Rs < 1)
-    print(Rs)
-
-if __name__ == '__main__':
-    _test_pt_thinning("coldest")

@@ -65,7 +65,7 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
     Rs = numpy.zeros(len(params))
     for i, param in enumerate(params):
         # Between chains variance
-        B = N  * numpy.var(numpy.mean(samples[param], axis=1), ddof=1)
+        B = N * numpy.var(numpy.mean(samples[param], axis=1), ddof=1)
         # Within chains variance
         W = numpy.mean(numpy.var(samples[param], axis=1, ddof=1))
         Rs[i] = ((N - 1) / N + 1 / N * B / W)**0.5
