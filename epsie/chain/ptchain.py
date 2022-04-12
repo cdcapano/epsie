@@ -16,6 +16,7 @@
 
 """Markov chains with parallel tempering."""
 
+from abc import (ABC, abstractmethod)
 import logging
 import numpy
 import copy
@@ -663,11 +664,15 @@ class DynamicalAnnealer:
         for i in range(1, chain.ntemps - 1):
             chain.betas[i] = 1./(1./chain.betas[i-1] + numpy.exp(self._S[i-1]))
 
+class BaseSwapDecay(ABC):
 
-class SomeSwapDecay:
+    @abstractmethod
+    def log_penalty(self, chain):
+        pass
+
+class BasicSwapDecay(BaseSwapDecay):
     """
     TODO:
-        - figure out a good name?
         - make a base class?
         - Add a schedule when to turn off a specific chain
         - Use the arg to specify the chain above which turn off
