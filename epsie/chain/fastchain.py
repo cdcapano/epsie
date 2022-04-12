@@ -61,7 +61,6 @@ class FastChain(Chain):
         super().__init__(parameters, self.model, proposals, bit_generator,
                          chain_id=0, beta=1.)
 
-
     @property
     def current_slow(self):
         """Current slow parameters."""
@@ -148,7 +147,9 @@ class FastChain(Chain):
         self._dragged_stats[index] = sum(r0), sum(r1)
 
         # Interpolation -- sum of log pdfs weighted by how many fast steps done
-        f = lambda x,y: (1 - prog) * x + prog * y
+        def f(x, y):
+            return (1 - prog) * x + prog * y
+
         return f(ll0, ll1), f(lp0, lp1)
 
     @property
@@ -178,7 +179,7 @@ class FastChain(Chain):
 
     def fast_stepping(self):
         """
-        Util function to test the chain, will later remove. 
+        Util function to test the chain, will later remove.
         """
         for __ in range(1, self.ndrags):
             self.step()
