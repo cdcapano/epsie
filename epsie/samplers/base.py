@@ -32,7 +32,6 @@ class BaseSampler(ABC):
     _seed = None
     _pool = None
     _map = None
-    name = None
 
     @property
     def parameters(self):
