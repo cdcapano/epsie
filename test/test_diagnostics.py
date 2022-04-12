@@ -38,8 +38,8 @@ def test_thinning(sampler_cls):
     if sampler_cls == "mh":
         _test_mh_thinning()
     elif sampler_cls == "pt":
-        _test_pt_thinning(None)
-        _test_pt_thinning(numpy.mean)
+        _test_pt_thinning("coldest")
+        _test_pt_thinning("max")
     else:
         raise ValueError("Unknown sampler class.")
 
@@ -76,7 +76,7 @@ def _test_mh_thinning():
     assert isinstance(R, float)
 
 
-def _test_pt_thinning(temp_acl_func):
+def _test_pt_thinning(temp_acls_method):
     model = Model()
     sampler = _create_pt_sampler(model, 1, nchains=NCHAINS, betas=BETAS,
                                  seed=SEED, swap_interval=1, proposals=None,
@@ -86,7 +86,7 @@ def _test_pt_thinning(temp_acl_func):
     sampler.run(ITERINT)
 
     thinned = diagnostic.thinned_samples(
-        sampler, burnin_iter=int(ITERINT/2), temp_acl_func=temp_acl_func)
+        sampler, burnin_iter=int(ITERINT/2), temp_acls_method=temp_acls_method)
 
     shape = None
     for i, param in enumerate(sampler.parameters):
