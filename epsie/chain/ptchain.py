@@ -91,7 +91,7 @@ class ParallelTemperedChain(BaseChain):
 
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
                  adaptive_annealer=None, reset_after_swap=False,
-                 bit_generator=None, chain_id=0):
+                 swap_decay_kwargs=None, bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
         # store the temp
@@ -662,3 +662,39 @@ class DynamicalAnnealer:
         # note: the coldest and hottest temperatures are kept fixed
         for i in range(1, chain.ntemps - 1):
             chain.betas[i] = 1./(1./chain.betas[i-1] + numpy.exp(self._S[i-1]))
+
+
+class SomeSwapDecay:
+    """
+    TODO:
+        - figure out a good name?
+        - make a base class?
+        - Add a schedule when to turn off a specific chain
+        - Use the arg to specify the chain above which turn off
+        - Add this to the logar in the PT chain
+        - In the PT chain work out how to turn off a chain
+
+    """
+    def __init__(self, tau, Ntemps, epsilon, chains_to_turn_off):
+        self.tau = tau
+        self.Ntemps = Ntemps
+        self.epsilon = epsilon
+
+    def weight(self, n, Ntemps):
+        return (n + 1) / Ntemps
+
+    def log_penalty(self, chain):
+        """
+        Pass in the PT chain.
+
+        Call iteration the swap interval?
+
+        """
+        assert (self.Ntemps == chain.ntemps)
+        # The chain index whose swap we want
+        n = 3
+        iteration = chain.iteration // chain.swap_interval
+
+        weight = self.weight(n, chain.ntemps)
+
+        return - weight * iteration / self.tau
