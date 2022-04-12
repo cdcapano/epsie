@@ -99,7 +99,7 @@ def acl_chain(chain, burnin_iter=0, c=5.0, full=False):
     return max(acls)
 
 
-def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
+def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acls_method="coldest"):
     """
     Parse a sampler and return its samples thinned by the ACL.
 
@@ -112,11 +112,11 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
         Number of burnin iterations to be thrown away.
     c : float, optional
         ACL calculation hyperparameter. By default 5.
-    temp_acl_func : :py:func, optional.
-        A function that given a list of ACLs of a single chain on different
-        temperature levels returns the chain global ACL. By default
-        :py:func`numpy.max`. Must act on a 1-dimensional array and return an
-        integer.
+    temp_acls_method : string, optional
+        Tempered acls selection, either `coldest` or `max`. The former
+        corresponds to taking the ACL of the coldest chain, while the latter to
+        the maximum ACL across all temperatures. This single ACL is then used
+        to thin all temperatures.
 
     Returns
     -------
@@ -129,7 +129,7 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
     if isinstance(sampler, MetropolisHastingsSampler):
         return _thinned_mh_samples(sampler, burnin_iter, c)
     elif isinstance(sampler, ParallelTemperedSampler):
-        return _thinned_pt_samples(sampler, burnin_iter, c, temp_acl_func)
+        return _thinned_pt_samples(sampler, burnin_iter, c, temp_acls_method)
     else:
         raise ValueError("Unknown sampler type ``{}``".format(type(sampler)))
 
@@ -174,7 +174,12 @@ def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     return thinned
 
 
-def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
+def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0,
+                        temp_acls_method="coldest"):
+    allowed_methods = ["coldest", "max"]
+    if temp_acls_method not in allowed_methods:
+        raise ValueError("`Invalid `temp_acls_method`. Allowed methods: `{}`"
+                         .format(allowed_methods))
     # Calculate the ACL across temperatures for each chain
     temp_acls = numpy.zeros((sampler.nchains, sampler.ntemps), dtype=int)
     for ii in range(sampler.nchains):
@@ -183,15 +188,13 @@ def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
                 sampler.chains[ii].chains[jj], burnin_iter, c=c)
             # By default we only take the coldest chain. No need to calculate
             # the hotter chains then.
-            if temp_acl_func is None:
+            if temp_acls_method == "coldest":
                 break
     # Grab the ACL for each chain. By default ACL of the coldest chain
-    if temp_acl_func is None:
+    if temp_acls_method == "coldest":
         acls = temp_acls[:, 0]
     else:
-        acls = numpy.apply_along_axis(temp_acl_func, axis=1, arr=temp_acls)
-        # Ensure these are integers
-        acls = numpy.ceil(acls).astype(int)
+        acls = numpy.max(temp_acls, axis=1)
 
     # Structured array keys
     params = sampler.parameters
