@@ -103,38 +103,34 @@ class FastChain(Chain):
 
     def model(self, **proposed):
         """
-        Interpolated posterior.
-
+        Interpolated posterior between the previous and proposed slow
+        parameters. Sums the logarithms of the two PDFs weighted by the number
+        of completed fast steps.
         """
-
-        # Check how indexed when proposing the first step.
+        # Fraction of completed fast steps, + 1 to account for the start pos
         prog = (self.iteration + 1) / self.nfast
-
         if prog > 1:
             raise ValueError("Chain should have been cleared.")
-
-        # I will have to start saving their sum or values
-
+        # Call the models with the slow and fast parameters
+        # the caching of the slow functions must happen on the user side
         r0 = self.original_model(**{**proposed, **self.current_slow})
         r1 = self.original_model(**{**proposed, **self.proposed_slow})
 
+        # What do do about blobs?
         if self._hasblobs:
             raise NotImplementedError("Blobs not supported")
         else:
             ll0, lp0 = r0
             ll1, lp1 = r1
 
-        # We want to store the start positions
+        # The 0th index is reserved for the start positions, so bump up
+        # if start position already set
         index = len(self) + int(~numpy.isnan(self._dragged_stats[0]["lpost0"]))
-
         self._dragged_stats[index] = sum(r0), sum(r1)
 
+        # Interpolation -- sum of log pdfs weighted by how many fast steps done
         f = lambda x,y: (1 - prog) * x + prog * y
-
-        logl = f(ll0, ll1)
-        logp = f(lp0, lp1)
-
-        return logl, logp
+        return f(ll0, ll1), f(lp0, lp1)
 
     @property
     def dragging_logar(self):
