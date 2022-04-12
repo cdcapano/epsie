@@ -21,10 +21,8 @@ from epsie.samplers import MetropolisHastingsSampler, ParallelTemperedSampler
 
 def gelman_rubin_test(sampler, burnin_iter, full=False):
     """
-    Calculate the Gelman-Rubin (GR) convergence test outlined in [1] for
-    parallel, independent MCMC chains. The final statistic is averaged over all
-    parameters unless `full=True`, in which case the GR statistic is returned
-    for each parameter.
+    Calculate the Gelman-Rubin (GR) convergence test outlined in [1] and
+    summarised in [2] for parallel, independent MCMC chains.
 
     For a PT sampler the GR statistic is calculated using the coldest chains.
 
@@ -40,14 +38,16 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
 
     Returns
     -------
-    R : float (or array)
-        GR statistics.
+    Rs : array
+        GR statistic of each parameter.
 
     References
     ----------
     .. [1] Gelman, A. and Rubin, D.B. (1992). "Inference from Iterative
         Simulation using Multiple Sequences". Statistical Science, 7,
         p. 457–511.
+    .. [2] (https://mc-stan.org/docs/2_18/reference-manual/
+        notation-for-samples-chains-and-draws.html)
     """
     params = sampler.parameters
     # Cut off burnin iterations and for PT take coldest chains
@@ -57,24 +57,17 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         samples = sampler.positions[0, :, burnin_iter:]
     else:
         raise ValueError("Unknown sampler type ``{}``".format(type(sampler)))
+
     # Number of iterations post-burnin
     N = sampler.niterations - burnin_iter
-    J = samples.shape[0]
+
     # Calculate the GH statistic for each parameter independently
     Rs = numpy.zeros(len(params))
     for i, param in enumerate(params):
-        # Mean of each chain
-        chain_means = numpy.mean(samples[param], axis=1)
-        # Mean of means of each chain
-        grand_mean = numpy.mean(chain_means)
-        B = N / (J - 1) * numpy.sum((chain_means - grand_mean)**2)
-        # Within chain variance
-        s2 = numpy.var(samples[param], axis=1)
+        # Between chains variance
+        B = N  * numpy.var(numpy.mean(samples[param], axis=1), ddof=1)
+        # Within chains variance
+        W = numpy.mean(numpy.var(samples[param], axis=1, ddof=1))
+        Rs[i] = ((N - 1) / N + 1 / N * B / W)**0.5
 
-        W = numpy.mean(s2)
-        Rs[i] = (1 - (1 / N) + B / W / N)**0.5
-
-    if full:
-        return Rs
-
-    return numpy.mean(Rs)
+    return Rs
