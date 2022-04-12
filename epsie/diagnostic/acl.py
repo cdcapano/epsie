@@ -180,7 +180,7 @@ def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
     for ii in range(sampler.nchains):
         for jj in range(sampler.ntemps):
             temp_acls[ii, jj] = acl_chain(
-                sampler.chains[ii].chains[jj], burnin_iter, c=0.5)
+                sampler.chains[ii].chains[jj], burnin_iter, c=c)
             # By default we only take the coldest chain. No need to calculate
             # the hotter chains then.
             if temp_acl_func is None:
