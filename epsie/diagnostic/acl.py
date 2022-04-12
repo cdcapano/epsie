@@ -133,42 +133,40 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acls_method="coldest"):
     else:
         raise ValueError("Unknown sampler type ``{}``".format(type(sampler)))
 
+
+def _get_raw_data(sampler, burnin_iter):
+    raw = {}
+    raw.update({p: sampler.positions[..., burnin_iter:][p]
+                for p in sampler.parameters})
+    raw.update({p: sampler.stats[..., burnin_iter:][p]
+                for p in ("logl", "logp")})
+    if sampler.blobs is not None:
+        raw.update({p: sampler.blobs[..., burnin_iter:][p]
+                    for p in sampler.blobs.dtype.names})
+    return raw
+
+
 def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     # Calculate the ACL for each chain
     acls = [acl_chain(chain, burnin_iter, c) for chain in sampler.chains]
 
-    params = sampler.parameters
-    stats_keys = ("logl", "logp")
-    if sampler.blobs is not None:
-        blobs_keys = sampler.blobs.dtype.names
-    else:
-        blobs_keys = ()
-
-    _thinned = {p: [] for p in params + stats_keys + blobs_keys}
-    # Explicitly cut off the burnin iterations
-    samples = sampler.positions[:, burnin_iter:]
-    stats = sampler.stats[:, burnin_iter:]
-    if sampler.blobs is not None:
-        blobs = sampler.blobs[:, burnin_iter:]
-    else:
-        blobs = None
+    keys = sampler.parameters + ("logl", "logp")
+    keys += sampler.blobs.dtype.names if sampler.blobs is not None else ()
+    raw = _get_raw_data(sampler, burnin_iter)
 
     # Cycle over the chains and thin them
+    _thinned = {p: [] for p in keys}
     for ii in range(sampler.nchains):
-        for p in params:
-            _thinned[p].append(samples[p][ii, :][::-1][::acls[ii]][::-1])
-        for key in stats_keys:
-            _thinned[key].append(stats[key][ii, :][::-1][::acls[ii]][::-1])
-        for key in blobs_keys:
-            _thinned[key].append(blobs[key][ii, :][::-1][::acls[ii]][::-1])
+        for key in keys:
+            _thinned[key].append(raw[key][ii, :][::-1][::acls[ii]][::-1])
 
     # Put the thinned samples into a structured array
-    dtype = samples.dtype.descr + stats.dtype.descr
-    if len(blobs_keys) > 0:
-        dtype += blobs.dtype.descr
-    thinned = numpy.zeros(sum(x.size for x in _thinned[params[0]]),
+    dtype = sampler.positions.dtype.descr + sampler.stats.dtype.descr
+    if sampler.blobs is not None:
+        dtype += sampler.blobs.dtype.descr
+    thinned = numpy.zeros(sum(x.size for x in _thinned[keys[0]]),
                           dtype=numpy.dtype(dtype))
-    for p in params + stats_keys + blobs_keys:
+    for p in keys:
         thinned[p] = numpy.concatenate(_thinned[p])
 
     return thinned
@@ -196,47 +194,29 @@ def _thinned_pt_samples(sampler, burnin_iter=0, c=5.0,
     else:
         acls = numpy.max(temp_acls, axis=1)
 
-    # Structured array keys
-    params = sampler.parameters
-    stats_keys = ("logl", "logp")
-    if sampler.blobs is not None:
-        blobs_keys = sampler.blobs.dtype.names
-    else:
-        blobs_keys = ()
+    keys = sampler.parameters + ("logl", "logp")
+    keys += sampler.blobs.dtype.names if sampler.blobs is not None else ()
+    raw = _get_raw_data(sampler, burnin_iter)
 
-    samples = sampler.positions[:, :, burnin_iter:]
-    stats = sampler.stats[:, :, burnin_iter:]
-    if sampler.blobs is not None:
-        blobs = sampler.blobs[:, :, burnin_iter:]
-    else:
-        blobs = None
-
-    thinned = {p: [] for p in params + stats_keys + blobs_keys}
+    thinned = {p: [] for p in keys}
     # Cycle over the chains, thinning them
     for tk in range(sampler.ntemps):
-        _thinned = {p: [] for p in params + stats_keys + blobs_keys}
+        _thinned = {p: [] for p in keys}
 
         for ii in range(sampler.nchains):
-            for param in params:
-                sp = samples[param][tk, ii, :]
-                _thinned[param].append(sp[::-1][::acls[ii]][::-1])
-            for key in stats_keys:
-                sp = stats[key][tk, ii, :]
-                _thinned[key].append(sp[::-1][::acls[ii]][::-1])
-            for key in blobs_keys:
-                sp = blobs[key][tk, ii, :]
-                _thinned[key].append(sp[::-1][::acls[ii]][::-1])
+            for key in keys:
+                _thinned[key].append(
+                    raw[key][tk, ii, :][::-1][::acls[ii]][::-1])
 
-        for param in params + stats_keys + blobs_keys:
+        for param in keys:
             thinned[param].append(numpy.concatenate(_thinned[param]))
-
     # Cast the thinned samples from a list of arrays into a 2D array for each
     # parameter and return as a structured array
-    dtype = samples.dtype.descr + stats.dtype.descr
-    if len(blobs_keys) > 0:
-        dtype += blobs.dtype.descr
-    thinned_samples = numpy.zeros((sampler.ntemps, thinned[params[0]][0].size),
+    dtype = sampler.positions.dtype.descr + sampler.stats.dtype.descr
+    if sampler.blobs is not None:
+        dtype += sampler.blobs.dtype.descr
+    thinned_samples = numpy.zeros((sampler.ntemps, thinned[keys[0]][0].size),
                                   dtype=numpy.dtype(dtype))
-    for param in params + stats_keys + blobs_keys:
+    for param in keys:
         thinned_samples[param] = numpy.asarray(thinned[param])
     return thinned_samples
