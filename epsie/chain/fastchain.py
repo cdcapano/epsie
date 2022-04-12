@@ -34,7 +34,7 @@ class FastChain(Chain):
     Clear up the chain at the end!
 
     Warn the user that blobs are not supported ?
-    
+
     """
     _is_fast = True
 
@@ -45,7 +45,7 @@ class FastChain(Chain):
 
         # Make sure there is no overlap between parameters and slow_parameters
         self.slow_parameters = slow_parameters
-        
+
         self._current_slow = None
         self._proposed_slow = None
 
@@ -53,13 +53,13 @@ class FastChain(Chain):
 
         self._dragged_stats = ChainData(["lpost0", "lpostf"])
         self._dragged_stats.set_len(nfast)
-        
+
 
         super().__init__(parameters, self.model, proposals, bit_generator,
                          chain_id=0, beta=1.)
-        
-    
-    @property        
+
+
+    @property
     def current_slow(self):
         if self._current_slow is None:
             raise ValueError("``current_slow`` not set!")
@@ -69,7 +69,7 @@ class FastChain(Chain):
     def current_slow(self, current_slow):
         self._current_slow = self._set_slow_params(current_slow)
 
-    @property        
+    @property
     def proposed_slow(self):
         if self._proposed_slow is None:
             raise ValueError("``proposed_slow`` not set!")
@@ -82,7 +82,7 @@ class FastChain(Chain):
     def _set_slow_params(self, positions):
         """
         Check that parameters in `self.slow_parameters` 
-        
+
         """
         if positions is None:
             return None
@@ -93,21 +93,21 @@ class FastChain(Chain):
             if val is None:
                 raise KeyError("Slow parameter ``{}`` missing position"
                                .format(par))
-            
+
             checked_positions.update({par: val})
         if len(positions) > 0:
             raise ValueError("Unrecognised slow parameters: ``{}``"
                              .format(list(positions.keys())))
 
         return checked_positions
-        
+
     def model(self, **proposed):
         """
         Interpolated posterior.
 
         """
 
-        # Check how indexed when proposing the first step.        
+        # Check how indexed when proposing the first step.
         prog = (self.iteration + 1) / self.nfast
 
         if prog > 1:
@@ -126,7 +126,7 @@ class FastChain(Chain):
 
         # We want to store the start positions
         index = len(self) + int(~numpy.isnan(self._dragged_stats[0]["lpost0"]))
-        
+
         self._dragged_stats[index] = sum(r0), sum(r1)
 
         f = lambda x,y: (1 - prog) * x + prog * y
@@ -136,12 +136,12 @@ class FastChain(Chain):
 
         return logl, logp
 
-    @property        
+    @property
     def dragging_logar(self):
         """
         Partial acceptance, will still have to be multiplied by the slow param
         proposal.
-        
+
         """
         # TODO Return error if fast dragging not completed yet
         stats = self._dragged_stats
@@ -150,12 +150,12 @@ class FastChain(Chain):
         if numpy.isnan(logar):
             raise RuntimeError("Fast dragging not completed yet.")
         return logar
-    
+
     def dragging_clear(self):
         self.clear()  # clear the parent chain
         self._dragged_stats.clear(self.nfast)  # clear the dragged stats
         self._lastclear = 0  # we don't want to use this
-        # Reset the iterations 
+        # Reset the iterations
         self._iteration = 0
         # Reset the current and proposed slow parameters
         self.current_slow = None
@@ -167,9 +167,3 @@ class FastChain(Chain):
         """
         for __ in range(1, self.nfast):
             self.step()
-
-
-
-    
-
-
