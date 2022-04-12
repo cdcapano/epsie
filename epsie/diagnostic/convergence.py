@@ -16,6 +16,7 @@
 """MCMC convergence tests."""
 
 import numpy
+from epsie.samplers import MetropolisHastingsSampler, ParallelTemperedSampler
 
 
 def gelman_rubin_test(sampler, burnin_iter, full=False):
@@ -50,10 +51,12 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
     """
     params = sampler.parameters
     # Cut off burnin iterations and for PT take coldest chains
-    if sampler.name == "mh_sampler":
+    if isinstance(sampler, MetropolisHastingsSampler):
         samples = sampler.positions[:, burnin_iter:]
-    else:
+    elif isinstance(sampler, ParallelTemperedSampler):
         samples = sampler.positions[0, :, burnin_iter:]
+    else:
+        raise ValueError("Unknown sampler type ``{}``".format(type(sampler)))
     # Number of iterations post-burnin
     N = sampler.niterations - burnin_iter
     J = samples.shape[0]
@@ -67,7 +70,7 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         B = N / (J - 1) * numpy.sum((chain_means - grand_mean)**2)
         # Within chain variance
         s2 = numpy.var(samples[param], axis=1)
-        
+
         W = numpy.mean(s2)
         Rs[i] = (1 - (1 / N) + B / W / N)**0.5
 

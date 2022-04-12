@@ -16,6 +16,8 @@
 """Autocorrelation time calculation."""
 import numpy
 
+from epsie.samplers import MetropolisHastingsSampler, ParallelTemperedSampler
+
 
 def acl_1d(x, c=5.0):
     """
@@ -124,13 +126,12 @@ def thinned_samples(sampler, burnin_iter=0, c=5.0, temp_acl_func=None):
         sampler. In the latter case the first and second axis represent the
         temperature and sample index.
     """
-    if sampler.name == "mh_sampler":
+    if isinstance(sampler, MetropolisHastingsSampler):
         return _thinned_mh_samples(sampler, burnin_iter, c)
-    elif sampler.name == "pt_sampler":
+    elif isinstance(sampler, ParallelTemperedSampler):
         return _thinned_pt_samples(sampler, burnin_iter, c, temp_acl_func)
     else:
-        return ValueError("Invalid sampler kind.")
-
+        raise ValueError("Unknown sampler type ``{}``".format(type(sampler)))
 
 def _thinned_mh_samples(sampler, burnin_iter=0, c=5.0):
     # Calculate the ACL for each chain
