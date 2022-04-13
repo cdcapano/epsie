@@ -531,9 +531,15 @@ class ParallelTemperedChain(BaseChain):
         return out
 
     def step(self):
-        """Evolves all of the temperatures by one iteration.
-        """
-        for chain in self.chains:
+        """Evolves all of the temperatures by one iteration."""
+        # Step the coldest chain
+        self.chains[0].step()
+        # Step the PT chains
+        decay = self.swap_decay
+        for tk, chain in enumerate(self.chains[1:]):
+            # tk = 0, 1, ..., Ntemps - 2
+            if decay is not None and not decay.active_temps[tk]:
+                continue
             chain.step()
         # do temperature swaps
         if self.ntemps > 1 and self.iteration % self.swap_interval == 0:
@@ -544,6 +550,8 @@ class ParallelTemperedChain(BaseChain):
 
         The positions, stats, and (if they exist) blobs are swapped. The
         acceptance is not swapped, however.
+
+        TODO: skip swaps with inactive chains.
         """
         # get values of all temps at current step
         stats = self.current_stats
@@ -797,7 +805,6 @@ class BasicSwapDecay(BaseSwapDecay):
 
         #TODO ask about counting iters
         iteration = chain.iteration // chain.swap_interval
-        print(iteration)
         log_penalty = - self.weight(n, self.Ntemps) * iteration / self.tau
 
         # If penalty below the epsilon boundary return infty and turn off temp
