@@ -61,6 +61,9 @@ class ParallelTemperedChain(BaseChain):
     reset_after_swap : bool, optional
         Whether to reset proposals' adaptation after each swap. By default
         no reset.
+    swap_decay : py:class:`epsie.chain.BaseSwapDecay`
+        Swap decay class for penalising the swap acceptance ratio and
+        optionally turning off higher temperatures. By default turned off.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
         Use the given random bit generator for generating random variates. If
         an int or None is provided, a generator will be created instead using
@@ -89,11 +92,12 @@ class ParallelTemperedChain(BaseChain):
     hasblobs
     chain_id : int or None
         Integer identifying the chain.
+    swap_decay
     """
 
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
                  adaptive_annealer=None, reset_after_swap=False,
-                 swap_decay_kwargs=None, bit_generator=None, chain_id=0):
+                 swap_decay=None, bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
         # store the temp
@@ -132,6 +136,8 @@ class ParallelTemperedChain(BaseChain):
             for beta in self.betas]
         self.transdimensional = any(chain.transdimensional
                                     for chain in self.chains)
+        self._swap_decay = None
+        self.swap_decay = swap_decay
 
     @property
     def bit_generator(self):
@@ -481,6 +487,19 @@ class ParallelTemperedChain(BaseChain):
         else:
             blob = self._concatenate_dicts('current_blob')
         return blob
+
+    @property
+    def swap_decay(self):
+        """The swap decay object."""
+        return self._swap_decay
+
+    @swap_decay.setter
+    def swap_decay(self, decay):
+        """Sets the swap decay. Checks it inherits from the base swapper."""
+        if (decay is not None) and not (isinstance(decay, BaseSwapDecay)):
+            raise TypeError("`swap_decay` must be of "
+                            ":py:class:`epsie.chain.BaseSwapDecay` type.")
+        self._swap_decay = decay
 
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
