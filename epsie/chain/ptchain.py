@@ -18,6 +18,7 @@
 
 from abc import (ABC, abstractmethod)
 import logging
+from argon2 import Type
 import numpy
 import copy
 
@@ -665,6 +666,26 @@ class DynamicalAnnealer:
             chain.betas[i] = 1./(1./chain.betas[i-1] + numpy.exp(self._S[i-1]))
 
 class BaseSwapDecay(ABC):
+    _active_temps = None
+    _Ntemps = None
+
+    @property
+    def Ntemps(self):
+        """Number of swap decays temperature levels."""
+        return self._Ntemps
+
+    @Ntemps.setter
+    def Ntemps(self, Ntemps):
+        """Sets the number of temperature levels."""
+        if ~(Ntemps > 1 and isinstance(Ntemps, int)):
+            raise ValueError("`Ntemps` must be an integer larger than 1.")
+        self._Ntemps = Ntemps
+
+    @property
+    def active_temps(self):
+        if self._active_temps is None:
+            raise ValueError("`active_temps` is not set!")
+        return self._active_temps
 
     @abstractmethod
     def log_penalty(self, chain):
@@ -673,33 +694,78 @@ class BaseSwapDecay(ABC):
 class BasicSwapDecay(BaseSwapDecay):
     """
     TODO:
-        - make a base class?
-        - Add a schedule when to turn off a specific chain
-        - Use the arg to specify the chain above which turn off
         - Add this to the logar in the PT chain
         - In the PT chain work out how to turn off a chain
+        - ACL calculation
 
     """
-    def __init__(self, tau, Ntemps, epsilon, chains_to_turn_off):
+    _tau = None
+    _epsilon = None
+    _log_epsilon = None
+
+    def __init__(self, tau, epsilon, Ntemps):
         self.tau = tau
-        self.Ntemps = Ntemps
         self.epsilon = epsilon
+        self.Ntemps = Ntemps
+
+        self._active_temps = numpy.ones(self.Ntemps - 1, dtype=bool)
+
+    @property
+    def tau(self):
+        """Swapping decay timescale."""
+        return self._tau
+
+    @tau.setter
+    def tau(self, tau):
+        """Sets the swap decay."""
+        if tau <= 0:
+            raise ValueError("`tau` must be strictly positive.")
+        self._tau = tau
+
+    @property
+    def epsilon(self):
+        """Minimum swapping decay penalty, if below chain is turned off."""
+        return self._epsilon
+
+    @property
+    def log_epsilon(self):
+        """Minimum log swapping decay penalty, if below chain is turned off."""
+        return self._log_epsilon
+
+    @epsilon.setter
+    def epsilon(self, epsilon):
+        """Sets the minimum swapping decay penalty."""
+        if epsilon <= 0:
+            raise ValueError("`epsilon` must be strictly positive.")
+        self._epsilon = epsilon
+        self._log_epsilon = numpy.log(epsilon)
 
     def weight(self, n, Ntemps):
+        """Swap decay temperature level weight."""
         return (n + 1) / Ntemps
 
-    def log_penalty(self, chain):
+    def log_penalty(self, n, chain):
         """
         Pass in the PT chain.
 
         Call iteration the swap interval?
 
+        n = 1, 2, 3, ..., N - 1
         """
         assert (self.Ntemps == chain.ntemps)
-        # The chain index whose swap we want
-        n = 3
+        if not isinstance(n, int):
+            raise TypeError("`n` must be an integer.")
+        assert 1 <= n <= self.Ntemps - 1
+        # If this chain turned off return directly
+        if ~self._active_temps[n - 1]:
+            return - numpy.infty
+
+        #TODO ask about counting iters
         iteration = chain.iteration // chain.swap_interval
+        log_penalty = - self.weight(n, self.Ntepms) * iteration / self.tau
 
-        weight = self.weight(n, chain.ntemps)
-
-        return - weight * iteration / self.tau
+        # If penalty below the epsilon boundary return infty and turn off temp
+        if log_penalty < self._log_epsilon:
+            log_penalty = - numpy.infty
+            self._active_temps[n - 1] = False
+        return log_penalty
