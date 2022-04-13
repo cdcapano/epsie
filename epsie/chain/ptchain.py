@@ -532,13 +532,11 @@ class ParallelTemperedChain(BaseChain):
 
     def step(self):
         """Evolves all of the temperatures by one iteration."""
-        # Step the coldest chain
-        self.chains[0].step()
         # Step the PT chains
         decay = self.swap_decay
-        for tk, chain in enumerate(self.chains[1:]):
+        for tk, chain in enumerate(self.chains):
             # tk = 0, 1, ..., Ntemps - 2
-            if decay is not None and not decay.active_temps[tk]:
+            if tk > 0 and decay is not None and not decay.active_temps[tk - 1]:
                 continue
             chain.step()
         # do temperature swaps
@@ -569,21 +567,27 @@ class ParallelTemperedChain(BaseChain):
         # now cycle down through the temps, comparing the current one
         # to the one below it
         for tk in range(self.ntemps-1, 0, -1):
+            # If this higher temperature leve is off go straight to the next
+            if self.swap_decay is not None and not self.active_temps[tk - 1]:
+                # TODO what to do about these?
+                ars[tk - 1] = numpy.nan
+                continue
             swk = swap_index[tk]
             tj = tk - 1
             loglj = stats['logl'][tj]
             swj = swap_index[tj]
             logar = dbetas[tj]*(loglj - loglk)
+            logar_with_decay = logar
             if self.swap_decay is not None:
                 # TODO: decide whether to store this or unpenalised in the chain
-                logar += self.swap_decay.log_penalty(tk, self)
-            if logar > 0:
-                ar = 1.
+                logar_with_decay += self.swap_decay.log_penalty(tk, self)
+            if logar_with_decay > 0:
+                ar_with_decay = 1.
                 swap = True
             else:
-                ar = numpy.exp(logar)
+                ar_with_decay = numpy.exp(logar_with_decay)
                 u = self.random_generator.uniform()
-                swap = u <= ar
+                swap = u <= ar_with_decay
             if swap:
                 # move the colder index into the current slot...
                 swap_index[tk] = swj
@@ -596,7 +600,10 @@ class ParallelTemperedChain(BaseChain):
                 # the colder logl to compare on the next loop
                 loglk = loglj
             # store the acceptance ratio
-            ars[tj] = ar
+            if logar > 0:
+                ars[tj] = 1.
+            else:
+                ars[tj] = numpy.exp(logar)
         # now do the swaps and store
         new_positions = [self.chains[swk].current_position
                          for swk in swap_index]
