@@ -677,7 +677,7 @@ class BaseSwapDecay(ABC):
     @Ntemps.setter
     def Ntemps(self, Ntemps):
         """Sets the number of temperature levels."""
-        if ~(Ntemps > 1 and isinstance(Ntemps, int)):
+        if not (Ntemps > 1 and isinstance(Ntemps, int)):
             raise ValueError("`Ntemps` must be an integer larger than 1.")
         self._Ntemps = Ntemps
 
@@ -744,28 +744,42 @@ class BasicSwapDecay(BaseSwapDecay):
         """Swap decay temperature level weight."""
         return (n + 1) / Ntemps
 
+    @property
+    def annealing_schedule(self):
+        """
+        Annealing schedule of turning off temperature levels. The last
+        element of this array is the turn off iteration of the hottest chain
+        and so on.
+        """
+        C = self.Ntemps * self.tau * self.log_epsilon
+        return - numpy.ceil(C/ (numpy.arange(1, self.Ntemps) + 1)).astype(int)
+
+
     def log_penalty(self, n, chain):
         """
-        Pass in the PT chain.
-
-        Call iteration the swap interval?
-
-        n = 1, 2, 3, ..., N - 1
+        Log swapping penalty factor for :math:`n=1, 2, \ldots, N - 1`, where
+        :math:`n` is the penalty of swaps between the :math:`n`-th and
+        :math:`n+1`th temperature levels such that :math:`n=1` denotes the
+        coldest chain. The number of temperature levels if :math:`N`.
         """
-        assert (self.Ntemps == chain.ntemps)
+        if self.Ntemps != chain.ntemps:
+            raise ValueError("Chain's number of temperatures does not match "
+                             "`self.Ntemps`")
         if not isinstance(n, int):
             raise TypeError("`n` must be an integer.")
-        assert 1 <= n <= self.Ntemps - 1
+        if not (1 <= n <= self.Ntemps - 1):
+            raise ValueError("`n` must be 1, 2, ..., Ntemps - 1.")
         # If this chain turned off return directly
         if ~self._active_temps[n - 1]:
             return - numpy.infty
 
         #TODO ask about counting iters
         iteration = chain.iteration // chain.swap_interval
-        log_penalty = - self.weight(n, self.Ntepms) * iteration / self.tau
+        print(iteration)
+        log_penalty = - self.weight(n, self.Ntemps) * iteration / self.tau
 
         # If penalty below the epsilon boundary return infty and turn off temp
-        if log_penalty < self._log_epsilon:
+        if log_penalty < self.log_epsilon:
             log_penalty = - numpy.infty
             self._active_temps[n - 1] = False
         return log_penalty
