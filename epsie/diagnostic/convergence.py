@@ -19,12 +19,12 @@ import numpy
 from epsie.samplers import MetropolisHastingsSampler, ParallelTemperedSampler
 
 
-def gelman_rubin_test(sampler, burnin_iter, full=False):
+def gelman_rubin_test(sampler, burnin_iter):
     """
     Calculate the Gelman-Rubin (GR) convergence test outlined in [1] and
     summarised in [2] for parallel, independent MCMC chains.
 
-    For a PT sampler the GR statistic is calculated using the coldest chains.
+    For a PT sampler the GR statistic is calculated for each temperature level.
 
     Typically values of less than 1.1 or 1.2 are recommended.
 
@@ -39,7 +39,9 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
     Returns
     -------
     Rs : array
-        GR statistic of each parameter.
+        GR statistic of each parameter. In case of a MH sampler 1-dimensional
+        array of length `len(sampler.paramaters)` and in case of a PT sampler
+        2-dimensional array of shape `len(sampler.ntemps, len(sampler.params)`.
 
     References
     ----------
@@ -51,16 +53,21 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
     """
     params = sampler.parameters
     # Cut off burnin iterations and for PT take coldest chains
+    samples = sampler.positions[..., burnin_iter:]
     if isinstance(sampler, MetropolisHastingsSampler):
-        samples = sampler.positions[:, burnin_iter:]
+        return _gelman_rubin_at_temp(samples, params)
     elif isinstance(sampler, ParallelTemperedSampler):
-        samples = sampler.positions[0, :, burnin_iter:]
+        Rs = numpy.zeros((sampler.ntemps, len(params)))
+        for tk in range(sampler.ntemps):
+            Rs[tk, :] = _gelman_rubin_at_temp(samples[tk, ...], params)
+        return Rs
     else:
         raise ValueError("Unknown sampler type ``{}``".format(type(sampler)))
 
-    # Number of iterations post-burnin
-    N = sampler.niterations - burnin_iter
 
+def _gelman_rubin_at_temp(samples, params):
+    """Calculate the Gelman Rubin statistic at a given temperature level."""
+    N = samples.shape[1]
     # Calculate the GH statistic for each parameter independently
     Rs = numpy.zeros(len(params))
     for i, param in enumerate(params):
@@ -71,3 +78,5 @@ def gelman_rubin_test(sampler, burnin_iter, full=False):
         Rs[i] = ((N - 1) / N + 1 / N * B / W)**0.5
 
     return Rs
+
+
