@@ -70,6 +70,7 @@ def _test_mh_thinning():
     Rs = diagnostic.gelman_rubin_test(
         sampler, burnin_iter=int(ITERINT/2), full=True)
     assert isinstance(Rs, numpy.ndarray)
+    assert Rs.ndim == 1
     assert ~numpy.any(Rs < 1)
 
 
@@ -98,4 +99,5 @@ def _test_pt_thinning(temp_acls_method):
     Rs = diagnostic.gelman_rubin_test(
         sampler, burnin_iter=int(ITERINT/2), full=True)
     assert isinstance(Rs, numpy.ndarray)
+    assert Rs.ndim == 2
     assert ~numpy.any(Rs < 1)
