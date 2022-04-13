@@ -566,6 +566,9 @@ class ParallelTemperedChain(BaseChain):
             loglj = stats['logl'][tj]
             swj = swap_index[tj]
             logar = dbetas[tj]*(loglj - loglk)
+            if self.swap_decay is not None:
+                # TODO: decide whether to store this or unpenalised in the chain
+                logar += self.swap_decay.log_penalty(tk, self)
             if logar > 0:
                 ar = 1.
                 swap = True
