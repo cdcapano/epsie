@@ -18,7 +18,7 @@
 """Classes for parallel tempered Markov chains."""
 
 import numpy
-import copy
+from copy import deepcopy
 
 from epsie import (create_bit_generators, array2dict)
 from epsie.chain import (ParallelTemperedChain, BaseSwapDecay)
@@ -122,9 +122,10 @@ class ParallelTemperedSampler(BaseSampler):
         bitgens = create_bit_generators(nchains, seed=self.seed)
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals], betas=betas,
-            swap_interval=swap_interval, adaptive_annealer=adaptive_annealer,
-            reset_after_swap=reset_after_swap, swap_decay=swap_decay,
+            [deepcopy(p) for p in self.proposals], betas=betas,
+            swap_interval=swap_interval,
+            adaptive_annealer=deepcopy(adaptive_annealer),
+            reset_after_swap=reset_after_swap, swap_decay=deepcopy(swap_decay),
             bit_generator=bg, chain_id=cid)
             for cid, bg in enumerate(bitgens)]
 
