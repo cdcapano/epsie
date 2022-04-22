@@ -29,7 +29,7 @@ from test_mhsampler import _create_sampler as _create_mh_sampler
 NCHAINS = 2
 NTEMPS = 3
 BETAS = make_betas_ladder(NTEMPS, 1e5)
-ITERINT = 64
+ITERINT = 128
 SEED = 2020
 
 
@@ -54,7 +54,7 @@ def _test_mh_thinning():
 
     # Given a random seed test a comparison to a known value
     acl = diagnostic.acl_chain(sampler.chains[0], full=True)
-    assert numpy.all(acl == numpy.array([8, 9]))
+    assert numpy.all(acl == numpy.array([22, 32]))
     # Check that the thinnd arrays have the right shape
     thinned = diagnostic.thinned_samples(sampler, burnin_iter=int(ITERINT/2))
     shape = None
@@ -68,7 +68,7 @@ def _test_mh_thinning():
 
     # Test the GR calculation
     Rs = diagnostic.gelman_rubin_test(
-        sampler, burnin_iter=int(ITERINT/2), full=True)
+        sampler, burnin_iter=int(ITERINT/2))
     assert isinstance(Rs, numpy.ndarray)
     assert Rs.ndim == 1
     assert ~numpy.any(Rs < 1)
@@ -97,7 +97,8 @@ def _test_pt_thinning(temp_acls_method):
 
     # Test the GR calculation
     Rs = diagnostic.gelman_rubin_test(
-        sampler, burnin_iter=int(ITERINT/2), full=True)
+        sampler, burnin_iter=int(ITERINT/2))
     assert isinstance(Rs, numpy.ndarray)
+    print(Rs)
     assert Rs.ndim == 2
     assert ~numpy.any(Rs < 1)
