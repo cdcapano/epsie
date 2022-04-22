@@ -67,7 +67,9 @@ def gelman_rubin_test(sampler, burnin_iter):
 
 def _gelman_rubin_at_temp(samples, params):
     """Calculate the Gelman Rubin statistic at a given temperature level."""
-    N = samples.shape[1]
+    Nchains, N = samples.shape
+    if Nchains == 1:
+        raise TypeError("GL statistic requires > 1 independent chains.")
     # Calculate the GH statistic for each parameter independently
     Rs = numpy.zeros(len(params))
     for i, param in enumerate(params):
