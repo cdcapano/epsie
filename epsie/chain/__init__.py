@@ -17,4 +17,5 @@
 # promote chain classes to module namespace
 from .chaindata import ChainData
 from .chain import Chain
-from .ptchain import (ParallelTemperedChain, DynamicalAnnealer)
+from .ptchain import (ParallelTemperedChain, DynamicalAnnealer, BaseSwapDecay,
+                      BasicSwapDecay)

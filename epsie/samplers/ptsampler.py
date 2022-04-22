@@ -18,10 +18,10 @@
 """Classes for parallel tempered Markov chains."""
 
 import numpy
-import copy
+from copy import deepcopy
 
 from epsie import (create_bit_generators, array2dict)
-from epsie.chain import ParallelTemperedChain
+from epsie.chain import (ParallelTemperedChain, BaseSwapDecay)
 from epsie.chain.chaindata import (ChainData, detect_dtypes)
 
 from .base import BaseSampler
@@ -55,6 +55,9 @@ class ParallelTemperedSampler(BaseSampler):
     reset_after_swap : bool, optional
         Whether to reset proposals' adaptation after each swap. By default
         no reset.
+    swap_decay : py:class:`epsie.chain.BaseSwapDecay`, optional
+        Swap decay class for penalising the swap acceptance ratio and
+        optionally turning off higher temperatures. By default turned off.
     default_proposal : an epsie.Proposal class, optional
         The default proposal to use for parameters not in ``proposals``.
         Default is :py:class:`epsie.proposals.Normal`.
@@ -69,7 +72,7 @@ class ParallelTemperedSampler(BaseSampler):
     """
     def __init__(self, parameters, model, nchains, betas, swap_interval=1,
                  proposals=None, adaptive_annealer=None,
-                 reset_after_swap=False, default_proposal=None,
+                 reset_after_swap=False, swap_decay=None, default_proposal=None,
                  default_proposal_args=None, seed=None, pool=None):
         self.parameters = parameters
         self.model = model
@@ -86,10 +89,11 @@ class ParallelTemperedSampler(BaseSampler):
             # numpy functions
             betas = numpy.array(betas)
         self.create_chains(nchains, betas, swap_interval, adaptive_annealer,
-                           reset_after_swap)
+                           reset_after_swap, swap_decay)
 
     def create_chains(self, nchains, betas, swap_interval=1,
-                      adaptive_annealer=None, reset_after_swap=False):
+                      adaptive_annealer=None, reset_after_swap=False,
+                      swap_decay=None):
         """Creates a list of :py:class:`chain.ParallelTemperedChain`.
 
         Parameters
@@ -108,6 +112,9 @@ class ParallelTemperedSampler(BaseSampler):
         reset_after_swap : bool, optional
             Whether to reset proposals' adaptation after each swap. By default
             no reset.
+        swap_decay : py:class:`epsie.chain.BaseSwapDecay`, optional
+            Swap decay class for penalising the swap acceptance ratio and
+            optionally turning off higher temperatures. By default turned off.
         """
         if nchains < 1:
             raise ValueError("nchains must be >= 1")
@@ -115,10 +122,10 @@ class ParallelTemperedSampler(BaseSampler):
         bitgens = create_bit_generators(nchains, seed=self.seed)
         self._chains = [ParallelTemperedChain(
             self.parameters, self.model,
-            [copy.deepcopy(p) for p in self.proposals],
-            betas=betas, swap_interval=swap_interval,
-            adaptive_annealer=adaptive_annealer,
-            reset_after_swap=reset_after_swap,
+            [deepcopy(p) for p in self.proposals], betas=betas,
+            swap_interval=swap_interval,
+            adaptive_annealer=deepcopy(adaptive_annealer),
+            reset_after_swap=reset_after_swap, swap_decay=deepcopy(swap_decay),
             bit_generator=bg, chain_id=cid)
             for cid, bg in enumerate(bitgens)]
 

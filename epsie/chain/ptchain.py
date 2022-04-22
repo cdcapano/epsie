@@ -16,7 +16,9 @@
 
 """Markov chains with parallel tempering."""
 
+from abc import (ABC, abstractmethod)
 import logging
+from argon2 import Type
 import numpy
 import copy
 
@@ -59,6 +61,9 @@ class ParallelTemperedChain(BaseChain):
     reset_after_swap : bool, optional
         Whether to reset proposals' adaptation after each swap. By default
         no reset.
+    swap_decay : py:class:`epsie.chain.BaseSwapDecay`
+        Swap decay class for penalising the swap acceptance ratio and
+        optionally turning off higher temperatures. By default turned off.
     bit_generator : :py:class:`epsie.BIT_GENERATOR` instance, optional
         Use the given random bit generator for generating random variates. If
         an int or None is provided, a generator will be created instead using
@@ -87,11 +92,12 @@ class ParallelTemperedChain(BaseChain):
     hasblobs
     chain_id : int or None
         Integer identifying the chain.
+    swap_decay
     """
 
     def __init__(self, parameters, model, proposals, betas=1., swap_interval=1,
                  adaptive_annealer=None, reset_after_swap=False,
-                 bit_generator=None, chain_id=0):
+                 swap_decay=None, bit_generator=None, chain_id=0):
         self.parameters = parameters
         self.model = model
         # store the temp
@@ -130,6 +136,8 @@ class ParallelTemperedChain(BaseChain):
             for beta in self.betas]
         self.transdimensional = any(chain.transdimensional
                                     for chain in self.chains)
+        self._swap_decay = None
+        self.swap_decay = swap_decay
 
     @property
     def bit_generator(self):
@@ -480,6 +488,19 @@ class ParallelTemperedChain(BaseChain):
             blob = self._concatenate_dicts('current_blob')
         return blob
 
+    @property
+    def swap_decay(self):
+        """The swap decay object."""
+        return self._swap_decay
+
+    @swap_decay.setter
+    def swap_decay(self, decay):
+        """Sets the swap decay. Checks it inherits from the base swapper."""
+        if (decay is not None) and not (isinstance(decay, BaseSwapDecay)):
+            raise TypeError("`swap_decay` must be of "
+                            ":py:class:`epsie.chain.BaseSwapDecay` type.")
+        self._swap_decay = decay
+
     def clear(self):
         """Clears memory of the current chain, and sets start position to the
         current position.
@@ -510,9 +531,13 @@ class ParallelTemperedChain(BaseChain):
         return out
 
     def step(self):
-        """Evolves all of the temperatures by one iteration.
-        """
-        for chain in self.chains:
+        """Evolves all of the temperatures by one iteration."""
+        # Step the PT chains
+        decay = self.swap_decay
+        for tk, chain in enumerate(self.chains):
+            # tk = 0, 1, ..., Ntemps - 2
+            if tk > 0 and decay is not None and not decay.active_temps[tk - 1]:
+                continue
             chain.step()
         # do temperature swaps
         if self.ntemps > 1 and self.iteration % self.swap_interval == 0:
@@ -523,6 +548,8 @@ class ParallelTemperedChain(BaseChain):
 
         The positions, stats, and (if they exist) blobs are swapped. The
         acceptance is not swapped, however.
+
+        TODO: skip swaps with inactive chains.
         """
         # get values of all temps at current step
         stats = self.current_stats
@@ -539,19 +566,29 @@ class ParallelTemperedChain(BaseChain):
         dbetas = numpy.diff(self.betas)
         # now cycle down through the temps, comparing the current one
         # to the one below it
+        decay = self.swap_decay
         for tk in range(self.ntemps-1, 0, -1):
+            # If this higher temperature leve is off go straight to the next
+            if decay is not None and not decay.active_temps[tk - 1]:
+                # TODO what to do about these?
+                ars[tk - 1] = numpy.nan
+                continue
             swk = swap_index[tk]
             tj = tk - 1
             loglj = stats['logl'][tj]
             swj = swap_index[tj]
             logar = dbetas[tj]*(loglj - loglk)
-            if logar > 0:
-                ar = 1.
+            logar_with_decay = logar
+            if self.swap_decay is not None:
+                # TODO: decide whether to store this or unpenalised in the chain
+                logar_with_decay += self.swap_decay.log_penalty(tk, self)
+            if logar_with_decay > 0:
+                ar_with_decay = 1.
                 swap = True
             else:
-                ar = numpy.exp(logar)
+                ar_with_decay = numpy.exp(logar_with_decay)
                 u = self.random_generator.uniform()
-                swap = u <= ar
+                swap = u <= ar_with_decay
             if swap:
                 # move the colder index into the current slot...
                 swap_index[tk] = swj
@@ -564,7 +601,10 @@ class ParallelTemperedChain(BaseChain):
                 # the colder logl to compare on the next loop
                 loglk = loglj
             # store the acceptance ratio
-            ars[tj] = ar
+            if logar > 0:
+                ars[tj] = 1.
+            else:
+                ars[tj] = numpy.exp(logar)
         # now do the swaps and store
         new_positions = [self.chains[swk].current_position
                          for swk in swap_index]
@@ -662,3 +702,121 @@ class DynamicalAnnealer:
         # note: the coldest and hottest temperatures are kept fixed
         for i in range(1, chain.ntemps - 1):
             chain.betas[i] = 1./(1./chain.betas[i-1] + numpy.exp(self._S[i-1]))
+
+class BaseSwapDecay(ABC):
+    _active_temps = None
+    _Ntemps = None
+
+    @property
+    def Ntemps(self):
+        """Number of swap decays temperature levels."""
+        return self._Ntemps
+
+    @Ntemps.setter
+    def Ntemps(self, Ntemps):
+        """Sets the number of temperature levels."""
+        if not (Ntemps > 1 and isinstance(Ntemps, int)):
+            raise ValueError("`Ntemps` must be an integer larger than 1.")
+        self._Ntemps = Ntemps
+
+    @property
+    def active_temps(self):
+        if self._active_temps is None:
+            raise ValueError("`active_temps` is not set!")
+        return self._active_temps
+
+    @abstractmethod
+    def log_penalty(self, chain):
+        pass
+
+
+class BasicSwapDecay(BaseSwapDecay):
+    """
+    TODO:
+        - Add this to the logar in the PT chain
+        - In the PT chain work out how to turn off a chain
+        - ACL calculation
+
+    """
+    _tau = None
+    _epsilon = None
+    _log_epsilon = None
+
+    def __init__(self, tau, epsilon, Ntemps):
+        self.tau = tau
+        self.epsilon = epsilon
+        self.Ntemps = Ntemps
+        self._active_temps = numpy.ones(self.Ntemps - 1, dtype=bool)
+
+    @property
+    def tau(self):
+        """Swapping decay timescale."""
+        return self._tau
+
+    @tau.setter
+    def tau(self, tau):
+        """Sets the swap decay."""
+        if tau <= 0:
+            raise ValueError("`tau` must be strictly positive.")
+        self._tau = tau
+
+    @property
+    def epsilon(self):
+        """Minimum swapping decay penalty, if below chain is turned off."""
+        return self._epsilon
+
+    @property
+    def log_epsilon(self):
+        """Minimum log swapping decay penalty, if below chain is turned off."""
+        return self._log_epsilon
+
+    @epsilon.setter
+    def epsilon(self, epsilon):
+        """Sets the minimum swapping decay penalty."""
+        if epsilon <= 0:
+            raise ValueError("`epsilon` must be strictly positive.")
+        self._epsilon = epsilon
+        self._log_epsilon = numpy.log(epsilon)
+
+    def weight(self, n, Ntemps):
+        """Swap decay temperature level weight."""
+        return (n + 1) / Ntemps
+
+    @property
+    def annealing_schedule(self):
+        """
+        Annealing schedule of turning off temperature levels. The last
+        element of this array is the turn off iteration of the hottest chain
+        and so on.
+        """
+        C = self.Ntemps * self.tau * self.log_epsilon
+        return - numpy.ceil(C/ (numpy.arange(1, self.Ntemps) + 1)).astype(int)
+
+
+    def log_penalty(self, n, chain):
+        """
+        Log swapping penalty factor for :math:`n=1, 2, \ldots, N - 1`, where
+        :math:`n` is the penalty of swaps between the :math:`n`-th and
+        :math:`n+1`th temperature levels such that :math:`n=1` denotes the
+        coldest chain. The number of temperature levels if :math:`N`.
+        """
+        if self.Ntemps != chain.ntemps:
+            raise ValueError("Chain's number of temperatures does not match "
+                             "`self.Ntemps`")
+        if not isinstance(n, int):
+            raise TypeError("`n` must be an integer.")
+        if not (1 <= n <= self.Ntemps - 1):
+            raise ValueError("`n` must be 1, 2, ..., Ntemps - 1.")
+        # If this chain turned off return directly
+        if ~self._active_temps[n - 1]:
+            return - numpy.infty
+
+        #TODO ask about counting iters
+        iteration = chain.iteration // chain.swap_interval
+        log_penalty = - self.weight(n, self.Ntemps) * iteration / self.tau
+
+        # If penalty below the epsilon boundary return infty and turn off temp
+        if log_penalty < self.log_epsilon:
+            log_penalty = - numpy.infty
+            self._active_temps[n - 1] = False
+        return log_penalty
