@@ -48,8 +48,8 @@ def gelman_rubin_test(sampler, burnin_iter):
     .. [1] Gelman, A. and Rubin, D.B. (1992). "Inference from Iterative
         Simulation using Multiple Sequences". Statistical Science, 7,
         p. 457–511.
-    .. [2] (https://mc-stan.org/docs/2_18/reference-manual/
-        notation-for-samples-chains-and-draws.html)
+    .. [2] https://mc-stan.org/docs/2_18/reference-manual/
+        notation-for-samples-chains-and-draws.html
     """
     params = sampler.parameters
     # Cut off burnin iterations and for PT take coldest chains
