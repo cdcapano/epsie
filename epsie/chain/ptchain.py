@@ -566,9 +566,10 @@ class ParallelTemperedChain(BaseChain):
         dbetas = numpy.diff(self.betas)
         # now cycle down through the temps, comparing the current one
         # to the one below it
+        decay = self.swap_decay
         for tk in range(self.ntemps-1, 0, -1):
             # If this higher temperature leve is off go straight to the next
-            if self.swap_decay is not None and not self.active_temps[tk - 1]:
+            if decay is not None and not decay.active_temps[tk - 1]:
                 # TODO what to do about these?
                 ars[tk - 1] = numpy.nan
                 continue
@@ -728,6 +729,7 @@ class BaseSwapDecay(ABC):
     def log_penalty(self, chain):
         pass
 
+
 class BasicSwapDecay(BaseSwapDecay):
     """
     TODO:
@@ -744,7 +746,6 @@ class BasicSwapDecay(BaseSwapDecay):
         self.tau = tau
         self.epsilon = epsilon
         self.Ntemps = Ntemps
-
         self._active_temps = numpy.ones(self.Ntemps - 1, dtype=bool)
 
     @property
