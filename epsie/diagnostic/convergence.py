@@ -80,5 +80,3 @@ def _gelman_rubin_at_temp(samples, params):
         Rs[i] = ((N - 1) / N + 1 / N * B / W)**0.5
 
     return Rs
-
-
